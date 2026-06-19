@@ -1,4 +1,4 @@
-package com.gudboy.domain.animal.model;
+package com.gudboy.domain.Usuario;
 
 public class Visitador extends Usuario {
     

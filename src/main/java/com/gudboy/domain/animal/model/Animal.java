@@ -1,5 +1,8 @@
 package com.gudboy.domain.animal.model;
 
+import com.gudboy.domain.animal.State.EstadoSaludable;
+import com.gudboy.domain.animal.State.IEstadoDeSalud;
+
 /**
  * Clase base que representa a cualquier animal del refugio.
  * Tanto animales domésticos como salvajes extienden esta clase.
@@ -26,39 +29,16 @@ public abstract class Animal {
         this.peso = peso;
         this.edad = edad;
         this.condicionMedica = condicionMedica;
-        this.estadoDeSalud = new EstadoDisponible(this);
+        this.estadoDeSalud = new EstadoSaludable(this);
     }
 
-    public void disponibilizar() {
-        estadoDeSalud.Disponibilizar();
-    }
+    public void disponibilizar() { estadoDeSalud.Saludable(); }
+    public void ponerEnTratamiento() { estadoDeSalud.PonerEnTratamiento(); }
 
-    public void ponerEnTratamiento() {
-        estadoDeSalud.PonerEnTratamiento();
-    }
+    public void setEstadoDeSalud(IEstadoDeSalud estadoDeSalud) { this.estadoDeSalud = estadoDeSalud; }
+    public IEstadoDeSalud getEstadoDeSalud() { return estadoDeSalud; }
 
-    public void adoptar() {
-        estadoDeSalud.Adoptar();
-    }
-
-    void setEstadoDeSalud(IEstadoDeSalud estadoDeSalud) {
-        this.estadoDeSalud = estadoDeSalud;
-    }
-
-    public IEstadoDeSalud getEstadoDeSalud() {
-        return estadoDeSalud;
-    }
-
-    /**
-     * Indica si el animal puede ser adoptado.
-     * - Los animales salvajes NUNCA pueden ser adoptados.
-     * - Los domésticos pueden adoptarse si no están en tratamiento médico.
-     */
     public abstract boolean esAdoptable();
-
-    /**
-     * Retorna una descripción del tipo de animal (doméstico / salvaje).
-     */
     public abstract String getTipoAnimal();
 
     public String getNombre()          { return nombre; }

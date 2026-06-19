@@ -1,21 +1,36 @@
 package com.gudboy.domain.animal.model;
 
-/**
- * Representa un animal doméstico (perro, gato, canario, loro, tortuga, etc.).
- * Puede ser adoptado siempre y cuando esté en estado de salud disponible
- * (no bajo tratamiento médico).
- */
+import com.gudboy.domain.animal.State.EstadoDisponible;
+import com.gudboy.domain.animal.State.EstadoSaludable;
+import com.gudboy.domain.animal.State.IEstadoAdopcion;
+
 public class AnimalDomestico extends Animal {
+
+    private IEstadoAdopcion estadoAdopcion;
 
     public AnimalDomestico(String nombre, String especie, double altura,
                            double peso, int edad, String condicionMedica) {
         super(nombre, especie, altura, peso, edad, condicionMedica);
+        this.estadoAdopcion = new EstadoDisponible(this);
     }
 
-    /** Los animales domésticos son adoptables SÓLO si su estado de salud es disponible. */
+    public void adoptar() {
+        estadoAdopcion.Adoptar();
+    }
+
+    public void disponibilizarAdopcion() {
+        estadoAdopcion.Disponibilizar();
+    }
+
+    public void setEstadoAdopcion(IEstadoAdopcion estadoAdopcion) {
+        this.estadoAdopcion = estadoAdopcion;
+    }
+
+    /** Los animales domésticos son adoptables SÓLO si están sanos y no fueron adoptados ya. */
     @Override
     public boolean esAdoptable() {
-        return getEstadoDeSalud() instanceof EstadoDisponible;
+        return getEstadoDeSalud() instanceof EstadoSaludable
+                && estadoAdopcion instanceof EstadoDisponible;
     }
 
     @Override
