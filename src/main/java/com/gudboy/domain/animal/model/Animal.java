@@ -18,7 +18,6 @@ public abstract class Animal {
     private final double altura;
     private final double peso;
     private final int edad;
-    private final String condicionMedica;
     private IEstadoDeSalud estadoDeSalud;
 
     protected Animal(String nombre, String especie, double altura,
@@ -28,7 +27,6 @@ public abstract class Animal {
         this.altura = altura;
         this.peso = peso;
         this.edad = edad;
-        this.condicionMedica = condicionMedica;
         this.estadoDeSalud = new EstadoSaludable(this);
     }
 
@@ -46,5 +44,4 @@ public abstract class Animal {
     public double getAltura()          { return altura; }
     public double getPeso()            { return peso; }
     public int    getEdad()            { return edad; }
-    public String getCondicionMedica() { return condicionMedica; }
 }
