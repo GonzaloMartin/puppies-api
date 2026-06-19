@@ -1,13 +1,12 @@
 package com.gudboy.domain.animal.model;
 
-/**
- * Representa un animal salvaje (zorro, pingüino, halcón, etc.).
- * Por su naturaleza, NUNCA puede ser adoptado.
- */
+import java.util.UUID;
+
 public class AnimalSalvaje implements Animal {
 
+    private final UUID id;
     private final String nombre;
-    private final String especie;         // zorro, pingüino, halcón, etc.
+    private final String especie;
     private final double altura;
     private final double peso;
     private final int edad;
@@ -17,6 +16,7 @@ public class AnimalSalvaje implements Animal {
     public AnimalSalvaje(String nombre, String especie, double altura,
                          double peso, int edad, String condicionMedica,
                          String habitatNatural) {
+        this.id = UUID.randomUUID();
         this.nombre = nombre;
         this.especie = especie;
         this.altura = altura;
@@ -39,6 +39,7 @@ public class AnimalSalvaje implements Animal {
 
     // --- getters ---
 
+    @Override public UUID   getId()              { return id; }
     @Override public String getNombre()          { return nombre; }
     @Override public double getAltura()          { return altura; }
     @Override public double getPeso()            { return peso; }
