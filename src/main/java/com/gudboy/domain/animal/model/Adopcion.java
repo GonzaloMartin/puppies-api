@@ -1,14 +1,19 @@
 package com.gudboy.domain.animal.model;
+import java.util.List;
+
 import com.gudboy.domain.Usuario.Veterinario;
 import com.gudboy.domain.Usuario.Visitador;
 
 public class Adopcion {
-    private Animal animal;
+    private List<Animal> animales;
     private Visitador adoptante;
     private Veterinario responsable;
 
-    public Adopcion(Animal animal, Visitador adoptante, Veterinario responsable) {
-        this.animal = animal;
+    public Adopcion(Animal animal1, Animal animal2, Visitador adoptante, Veterinario responsable) {
+        this.animales.add(animal1);
+        if (animal2 != null) {
+            this.animales.add(animal2);
+        }
         this.adoptante = adoptante;
         this.responsable = responsable;
     }
@@ -17,8 +22,8 @@ public class Adopcion {
         this.responsable = nuevoResponsable;
     }
 
-    public Animal getAnimal() {
-        return animal;
+    public List<Animal> getAnimales() {
+        return animales;
     }
     public Visitador getAdoptante() {
         return adoptante;
