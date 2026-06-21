@@ -22,6 +22,10 @@ public class VentanaPrincipal extends JFrame {
     private final UsuarioController usuarioController;
     private final AdopcionController adopcionController;
 
+    private final DefaultListModel<Animal> animalListModel = new DefaultListModel<>();
+    private final DefaultListModel<Visitador> visitadorListModel = new DefaultListModel<>();
+    private final DefaultListModel<Veterinario> veterinarioListModel = new DefaultListModel<>();
+
     public VentanaPrincipal(AnimalController animalController, UsuarioController usuarioController,
                              AdopcionController adopcionController) {
         super("Puppies - Refugio de animales");
@@ -30,11 +34,10 @@ public class VentanaPrincipal extends JFrame {
         this.adopcionController = adopcionController;
 
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(400, 250);
+        setSize(700, 500);
         setLocationRelativeTo(null);
 
-        JPanel panel = new JPanel(new GridLayout(3, 1, 10, 10));
-        panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
 
         JButton btnCrearAnimal = new JButton("Crear Animal");
         JButton btnCrearUsuario = new JButton("Crear Usuario");
@@ -44,11 +47,32 @@ public class VentanaPrincipal extends JFrame {
         btnCrearUsuario.addActionListener(e -> mostrarDialogoCrearUsuario());
         btnCrearAdopcion.addActionListener(e -> mostrarDialogoCrearAdopcion());
 
-        panel.add(btnCrearAnimal);
-        panel.add(btnCrearUsuario);
-        panel.add(btnCrearAdopcion);
+        panelBotones.add(btnCrearAnimal);
+        panelBotones.add(btnCrearUsuario);
+        panelBotones.add(btnCrearAdopcion);
+
+        JTabbedPane tabs = new JTabbedPane();
+        tabs.addTab("Animales", new JScrollPane(new JList<>(animalListModel)));
+        tabs.addTab("Visitadores", new JScrollPane(new JList<>(visitadorListModel)));
+        tabs.addTab("Veterinarios", new JScrollPane(new JList<>(veterinarioListModel)));
+
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.add(panelBotones, BorderLayout.NORTH);
+        panel.add(tabs, BorderLayout.CENTER);
 
         setContentPane(panel);
+        refrescarListas();
+    }
+
+    private void refrescarListas() {
+        animalListModel.clear();
+        animalController.listarAnimales().forEach(animalListModel::addElement);
+
+        visitadorListModel.clear();
+        usuarioController.listarVisitadores().forEach(visitadorListModel::addElement);
+
+        veterinarioListModel.clear();
+        usuarioController.listarVeterinarios().forEach(veterinarioListModel::addElement);
     }
 
     private void mostrarDialogoCrearAnimal() {
@@ -99,6 +123,7 @@ public class VentanaPrincipal extends JFrame {
                     : new FabricaAnimalSalvaje();
 
             Animal animal = animalController.registrarAnimal(fabrica, nombre, especie, altura, peso, edad, condicionMedica);
+            refrescarListas();
             JOptionPane.showMessageDialog(this, "Animal creado:\n" + animal,
                     "Éxito", JOptionPane.INFORMATION_MESSAGE);
         } catch (NumberFormatException ex) {
@@ -173,6 +198,7 @@ public class VentanaPrincipal extends JFrame {
             if ("Visitador".equals(tipoCombo.getSelectedItem())) {
                 Visitador visitador = usuarioController.registrarVisitador(nombre, apellido, email, telefono,
                         (EstadoCivil) estadoCivilCombo.getSelectedItem(), (Ocupacion) ocupacionCombo.getSelectedItem());
+                refrescarListas();
                 JOptionPane.showMessageDialog(this, "Visitador creado:\n" + visitador,
                         "Éxito", JOptionPane.INFORMATION_MESSAGE);
             } else {
@@ -180,6 +206,7 @@ public class VentanaPrincipal extends JFrame {
                 String especialidad = especialidadField.getText().trim();
                 Veterinario veterinario = usuarioController.registrarVeterinario(nombre, apellido, email, telefono,
                         matricula, especialidad);
+                refrescarListas();
                 JOptionPane.showMessageDialog(this, "Veterinario creado:\n" + veterinario,
                         "Éxito", JOptionPane.INFORMATION_MESSAGE);
             }
@@ -251,6 +278,7 @@ public class VentanaPrincipal extends JFrame {
 
         try {
             adopcionController.registrarAdopcion(animal1, animal2, adoptante, responsable);
+            refrescarListas();
             JOptionPane.showMessageDialog(this, "Adopción registrada con éxito.",
                     "Éxito", JOptionPane.INFORMATION_MESSAGE);
         } catch (IllegalStateException ex) {
