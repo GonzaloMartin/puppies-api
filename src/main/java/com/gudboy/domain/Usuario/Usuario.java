@@ -26,4 +26,9 @@ public class Usuario {
     public String getTelefono() {
         return telefono;
     }
+
+    @Override
+    public String toString() {
+        return nombre + " " + apellido;
+    }
 }

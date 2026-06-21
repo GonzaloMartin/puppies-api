@@ -6,6 +6,8 @@ public class Veterinario extends Usuario {
 
     public Veterinario(String nombre, String apellido, String email, String telefono, int matriculaProfesional, String especialidad) {
         super(nombre, apellido, email, telefono);
+        this.matriculaProfesional = matriculaProfesional;
+        this.especialidad = especialidad;
     }
     
     public int getMatriculaProfesional() {

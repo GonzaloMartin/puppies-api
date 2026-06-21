@@ -1,4 +1,5 @@
 package com.gudboy.domain.animal.model;
+import java.util.ArrayList;
 import java.util.List;
 
 import com.gudboy.domain.Usuario.Veterinario;
@@ -10,6 +11,7 @@ public class Adopcion {
     private Veterinario responsable;
 
     public Adopcion(Animal animal1, Animal animal2, Visitador adoptante, Veterinario responsable) {
+        this.animales = new ArrayList<>();
         this.animales.add(animal1);
         if (animal2 != null) {
             this.animales.add(animal2);

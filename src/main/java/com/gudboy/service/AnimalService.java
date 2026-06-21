@@ -4,6 +4,8 @@ import com.gudboy.domain.animal.factory.FabricaAnimal;
 import com.gudboy.domain.animal.model.Animal;
 import com.gudboy.repository.IAnimalRepository;
 
+import java.util.List;
+
 /**
  * Capa de servicio para la lógica de negocio relacionada con animales.
  */
@@ -24,5 +26,9 @@ public class AnimalService {
         Animal animal = fabrica.crearAnimal(nombre, especie, altura, peso, edad, condicionMedica);
         animalRepository.guardar(animal);
         return animal;
+    }
+
+    public List<Animal> listarAnimales() {
+        return animalRepository.listarTodos();
     }
 }
