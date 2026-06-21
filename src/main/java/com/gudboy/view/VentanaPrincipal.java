@@ -11,6 +11,7 @@ import com.gudboy.domain.animal.factory.FabricaAnimal;
 import com.gudboy.domain.animal.factory.FabricaAnimalDomestico;
 import com.gudboy.domain.animal.factory.FabricaAnimalSalvaje;
 import com.gudboy.domain.animal.model.Animal;
+import com.gudboy.domain.animal.model.AnimalDomestico;
 
 import javax.swing.*;
 import java.awt.*;
@@ -40,16 +41,22 @@ public class VentanaPrincipal extends JFrame {
         JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
 
         JButton btnCrearAnimal = new JButton("Crear Animal");
-        JButton btnCrearUsuario = new JButton("Crear Usuario");
+        JButton btnCrearVisitador = new JButton("Crear Visitador");
+        JButton btnCrearVeterinario = new JButton("Crear Veterinario");
         JButton btnCrearAdopcion = new JButton("Crear Adopción");
+        JButton btnCambiarEstadoSalud = new JButton("Cambiar Estado de Salud");
 
         btnCrearAnimal.addActionListener(e -> mostrarDialogoCrearAnimal());
-        btnCrearUsuario.addActionListener(e -> mostrarDialogoCrearUsuario());
+        btnCrearVisitador.addActionListener(e -> mostrarDialogoCrearVisitador());
+        btnCrearVeterinario.addActionListener(e -> mostrarDialogoCrearVeterinario());
         btnCrearAdopcion.addActionListener(e -> mostrarDialogoCrearAdopcion());
+        btnCambiarEstadoSalud.addActionListener(e -> mostrarDialogoCambiarEstadoSalud());
 
         panelBotones.add(btnCrearAnimal);
-        panelBotones.add(btnCrearUsuario);
+        panelBotones.add(btnCrearVisitador);
+        panelBotones.add(btnCrearVeterinario);
         panelBotones.add(btnCrearAdopcion);
+        panelBotones.add(btnCambiarEstadoSalud);
 
         JTabbedPane tabs = new JTabbedPane();
         tabs.addTab("Animales", new JScrollPane(new JList<>(animalListModel)));
@@ -134,52 +141,38 @@ public class VentanaPrincipal extends JFrame {
         }
     }
 
-    private void mostrarDialogoCrearUsuario() {
+    private void mostrarDialogoCrearVisitador() {
         JTextField nombreField = new JTextField();
         JTextField apellidoField = new JTextField();
         JTextField emailField = new JTextField();
         JTextField telefonoField = new JTextField();
-        JComboBox<String> tipoCombo = new JComboBox<>(new String[]{"Visitador", "Veterinario"});
-
         JComboBox<EstadoCivil> estadoCivilCombo = new JComboBox<>(EstadoCivil.values());
         JComboBox<Ocupacion> ocupacionCombo = new JComboBox<>(Ocupacion.values());
-        JPanel panelVisitador = new JPanel(new GridLayout(2, 2, 5, 5));
-        panelVisitador.add(new JLabel("Estado civil:"));
-        panelVisitador.add(estadoCivilCombo);
-        panelVisitador.add(new JLabel("Ocupación:"));
-        panelVisitador.add(ocupacionCombo);
+        JCheckBox otrasMascotasCheck = new JCheckBox();
+        JTextField motivoAdopcionField = new JTextField();
+        JTextField animalesInteresField = new JTextField();
 
-        JTextField matriculaField = new JTextField();
-        JTextField especialidadField = new JTextField();
-        JPanel panelVeterinario = new JPanel(new GridLayout(2, 2, 5, 5));
-        panelVeterinario.add(new JLabel("Matrícula profesional:"));
-        panelVeterinario.add(matriculaField);
-        panelVeterinario.add(new JLabel("Especialidad:"));
-        panelVeterinario.add(especialidadField);
+        JPanel form = new JPanel(new GridLayout(9, 2, 5, 5));
+        form.add(new JLabel("Nombre:"));
+        form.add(nombreField);
+        form.add(new JLabel("Apellido:"));
+        form.add(apellidoField);
+        form.add(new JLabel("Email:"));
+        form.add(emailField);
+        form.add(new JLabel("Teléfono:"));
+        form.add(telefonoField);
+        form.add(new JLabel("Estado civil:"));
+        form.add(estadoCivilCombo);
+        form.add(new JLabel("Ocupación:"));
+        form.add(ocupacionCombo);
+        form.add(new JLabel("¿Tiene otras mascotas?"));
+        form.add(otrasMascotasCheck);
+        form.add(new JLabel("Motivo de adopción:"));
+        form.add(motivoAdopcionField);
+        form.add(new JLabel("Animales de interés:"));
+        form.add(animalesInteresField);
 
-        CardLayout cardLayout = new CardLayout();
-        JPanel panelEspecifico = new JPanel(cardLayout);
-        panelEspecifico.add(panelVisitador, "Visitador");
-        panelEspecifico.add(panelVeterinario, "Veterinario");
-        tipoCombo.addItemListener(e -> cardLayout.show(panelEspecifico, (String) tipoCombo.getSelectedItem()));
-
-        JPanel datosComunes = new JPanel(new GridLayout(5, 2, 5, 5));
-        datosComunes.add(new JLabel("Tipo:"));
-        datosComunes.add(tipoCombo);
-        datosComunes.add(new JLabel("Nombre:"));
-        datosComunes.add(nombreField);
-        datosComunes.add(new JLabel("Apellido:"));
-        datosComunes.add(apellidoField);
-        datosComunes.add(new JLabel("Email:"));
-        datosComunes.add(emailField);
-        datosComunes.add(new JLabel("Teléfono:"));
-        datosComunes.add(telefonoField);
-
-        JPanel form = new JPanel(new BorderLayout(5, 5));
-        form.add(datosComunes, BorderLayout.NORTH);
-        form.add(panelEspecifico, BorderLayout.CENTER);
-
-        int resultado = JOptionPane.showConfirmDialog(this, form, "Crear Usuario",
+        int resultado = JOptionPane.showConfirmDialog(this, form, "Crear Visitador",
                 JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
         if (resultado != JOptionPane.OK_OPTION) {
             return;
@@ -195,21 +188,63 @@ public class VentanaPrincipal extends JFrame {
                 throw new IllegalArgumentException("Nombre y apellido son obligatorios.");
             }
 
-            if ("Visitador".equals(tipoCombo.getSelectedItem())) {
-                Visitador visitador = usuarioController.registrarVisitador(nombre, apellido, email, telefono,
-                        (EstadoCivil) estadoCivilCombo.getSelectedItem(), (Ocupacion) ocupacionCombo.getSelectedItem());
-                refrescarListas();
-                JOptionPane.showMessageDialog(this, "Visitador creado:\n" + visitador,
-                        "Éxito", JOptionPane.INFORMATION_MESSAGE);
-            } else {
-                int matricula = Integer.parseInt(matriculaField.getText().trim());
-                String especialidad = especialidadField.getText().trim();
-                Veterinario veterinario = usuarioController.registrarVeterinario(nombre, apellido, email, telefono,
-                        matricula, especialidad);
-                refrescarListas();
-                JOptionPane.showMessageDialog(this, "Veterinario creado:\n" + veterinario,
-                        "Éxito", JOptionPane.INFORMATION_MESSAGE);
+            Visitador visitador = usuarioController.registrarVisitador(nombre, apellido, email, telefono,
+                    (EstadoCivil) estadoCivilCombo.getSelectedItem(), (Ocupacion) ocupacionCombo.getSelectedItem(),
+                    motivoAdopcionField.getText().trim(), animalesInteresField.getText().trim(),
+                    otrasMascotasCheck.isSelected());
+            refrescarListas();
+            JOptionPane.showMessageDialog(this, "Visitador creado:\n" + visitador,
+                    "Éxito", JOptionPane.INFORMATION_MESSAGE);
+        } catch (IllegalArgumentException ex) {
+            JOptionPane.showMessageDialog(this, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void mostrarDialogoCrearVeterinario() {
+        JTextField nombreField = new JTextField();
+        JTextField apellidoField = new JTextField();
+        JTextField emailField = new JTextField();
+        JTextField telefonoField = new JTextField();
+        JTextField matriculaField = new JTextField();
+        JTextField especialidadField = new JTextField();
+
+        JPanel form = new JPanel(new GridLayout(6, 2, 5, 5));
+        form.add(new JLabel("Nombre:"));
+        form.add(nombreField);
+        form.add(new JLabel("Apellido:"));
+        form.add(apellidoField);
+        form.add(new JLabel("Email:"));
+        form.add(emailField);
+        form.add(new JLabel("Teléfono:"));
+        form.add(telefonoField);
+        form.add(new JLabel("Matrícula profesional:"));
+        form.add(matriculaField);
+        form.add(new JLabel("Especialidad:"));
+        form.add(especialidadField);
+
+        int resultado = JOptionPane.showConfirmDialog(this, form, "Crear Veterinario",
+                JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+        if (resultado != JOptionPane.OK_OPTION) {
+            return;
+        }
+
+        try {
+            String nombre = nombreField.getText().trim();
+            String apellido = apellidoField.getText().trim();
+            String email = emailField.getText().trim();
+            String telefono = telefonoField.getText().trim();
+
+            if (nombre.isEmpty() || apellido.isEmpty()) {
+                throw new IllegalArgumentException("Nombre y apellido son obligatorios.");
             }
+
+            int matricula = Integer.parseInt(matriculaField.getText().trim());
+            String especialidad = especialidadField.getText().trim();
+            Veterinario veterinario = usuarioController.registrarVeterinario(nombre, apellido, email, telefono,
+                    matricula, especialidad);
+            refrescarListas();
+            JOptionPane.showMessageDialog(this, "Veterinario creado:\n" + veterinario,
+                    "Éxito", JOptionPane.INFORMATION_MESSAGE);
         } catch (NumberFormatException ex) {
             JOptionPane.showMessageDialog(this, "La matrícula profesional debe ser un número entero.",
                     "Error", JOptionPane.ERROR_MESSAGE);
@@ -218,9 +253,45 @@ public class VentanaPrincipal extends JFrame {
         }
     }
 
+    private void mostrarDialogoCambiarEstadoSalud() {
+        List<Animal> animales = animalController.listarAnimales();
+        if (animales.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Todavía no hay animales registrados.",
+                    "Faltan datos", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        JComboBox<Animal> animalCombo = new JComboBox<>(animales.toArray(new Animal[0]));
+        JComboBox<String> accionCombo = new JComboBox<>(
+                new String[]{"Poner en tratamiento", "Disponibilizar (marcar sano)"});
+
+        JPanel form = new JPanel(new GridLayout(2, 2, 5, 5));
+        form.add(new JLabel("Animal:"));
+        form.add(animalCombo);
+        form.add(new JLabel("Acción:"));
+        form.add(accionCombo);
+
+        int resultado = JOptionPane.showConfirmDialog(this, form, "Cambiar Estado de Salud",
+                JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+        if (resultado != JOptionPane.OK_OPTION) {
+            return;
+        }
+
+        Animal animal = (Animal) animalCombo.getSelectedItem();
+        if ("Poner en tratamiento".equals(accionCombo.getSelectedItem())) {
+            animalController.ponerEnTratamiento(animal);
+        } else {
+            animalController.disponibilizar(animal);
+        }
+        refrescarListas();
+        JOptionPane.showMessageDialog(this, "Estado de salud actualizado:\n" + animal,
+                "Éxito", JOptionPane.INFORMATION_MESSAGE);
+    }
+
     private void mostrarDialogoCrearAdopcion() {
-        List<Animal> animales = animalController.listarAnimales().stream()
+        List<AnimalDomestico> animales = animalController.listarAnimales().stream()
                 .filter(Animal::esAdoptable)
+                .map(AnimalDomestico.class::cast)
                 .toList();
         List<Visitador> visitadores = usuarioController.listarVisitadores();
         List<Veterinario> veterinarios = usuarioController.listarVeterinarios();
@@ -233,8 +304,8 @@ public class VentanaPrincipal extends JFrame {
             return;
         }
 
-        JComboBox<Animal> animal1Combo = new JComboBox<>(animales.toArray(new Animal[0]));
-        JComboBox<Animal> animal2Combo = new JComboBox<>(animales.toArray(new Animal[0]));
+        JComboBox<AnimalDomestico> animal1Combo = new JComboBox<>(animales.toArray(new AnimalDomestico[0]));
+        JComboBox<AnimalDomestico> animal2Combo = new JComboBox<>(animales.toArray(new AnimalDomestico[0]));
         animal2Combo.insertItemAt(null, 0);
         animal2Combo.setSelectedIndex(0);
         animal2Combo.setRenderer(new DefaultListCellRenderer() {
@@ -265,8 +336,8 @@ public class VentanaPrincipal extends JFrame {
             return;
         }
 
-        Animal animal1 = (Animal) animal1Combo.getSelectedItem();
-        Animal animal2 = (Animal) animal2Combo.getSelectedItem();
+        AnimalDomestico animal1 = (AnimalDomestico) animal1Combo.getSelectedItem();
+        AnimalDomestico animal2 = (AnimalDomestico) animal2Combo.getSelectedItem();
         Visitador adoptante = (Visitador) adoptanteCombo.getSelectedItem();
         Veterinario responsable = (Veterinario) responsableCombo.getSelectedItem();
 

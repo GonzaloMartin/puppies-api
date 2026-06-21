@@ -22,10 +22,7 @@ public class AnimalDomestico extends Animal {
         estadoAdopcion.Disponibilizar();
     }
 
-    public void setEstadoAdopcion(IEstadoAdopcion estadoAdopcion) {
-        this.estadoAdopcion = estadoAdopcion;
-    }
-
+    public void setEstadoAdopcion(IEstadoAdopcion estadoAdopcion) { this.estadoAdopcion = estadoAdopcion; }
     /** Los animales domésticos son adoptables SÓLO si están sanos y no fueron adoptados ya. */
     @Override
     public boolean esAdoptable() {

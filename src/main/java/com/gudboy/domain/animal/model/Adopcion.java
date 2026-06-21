@@ -6,11 +6,11 @@ import com.gudboy.domain.Usuario.Veterinario;
 import com.gudboy.domain.Usuario.Visitador;
 
 public class Adopcion {
-    private List<Animal> animales;
+    private List<AnimalDomestico> animales;
     private Visitador adoptante;
     private Veterinario responsable;
 
-    public Adopcion(Animal animal1, Animal animal2, Visitador adoptante, Veterinario responsable) {
+    public Adopcion(AnimalDomestico animal1, AnimalDomestico animal2, Visitador adoptante, Veterinario responsable) {
         this.animales = new ArrayList<>();
         this.animales.add(animal1);
         if (animal2 != null) {
@@ -24,7 +24,7 @@ public class Adopcion {
         this.responsable = nuevoResponsable;
     }
 
-    public List<Animal> getAnimales() {
+    public List<AnimalDomestico> getAnimales() {
         return animales;
     }
     public Visitador getAdoptante() {

@@ -31,4 +31,14 @@ public class AnimalService {
     public List<Animal> listarAnimales() {
         return animalRepository.listarTodos();
     }
+
+    public void ponerEnTratamiento(Animal animal) {
+        animal.ponerEnTratamiento();
+        animalRepository.actualizar(animal);
+    }
+
+    public void disponibilizar(Animal animal) {
+        animal.disponibilizar();
+        animalRepository.actualizar(animal);
+    }
 }

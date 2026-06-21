@@ -17,8 +17,10 @@ public class UsuarioController {
     }
 
     public Visitador registrarVisitador(String nombre, String apellido, String email, String telefono,
-                                         EstadoCivil estadoCivil, Ocupacion ocupacion) {
-        return usuarioService.registrarVisitador(nombre, apellido, email, telefono, estadoCivil, ocupacion);
+                                         EstadoCivil estadoCivil, Ocupacion ocupacion,
+                                         String motivoAdopcion, String animalesInteres, boolean otrasMascotas) {
+        return usuarioService.registrarVisitador(nombre, apellido, email, telefono, estadoCivil, ocupacion,
+                motivoAdopcion, animalesInteres, otrasMascotas);
     }
 
     public Veterinario registrarVeterinario(String nombre, String apellido, String email, String telefono,

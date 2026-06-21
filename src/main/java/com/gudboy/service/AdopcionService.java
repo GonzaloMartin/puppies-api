@@ -2,7 +2,6 @@ package com.gudboy.service;
 
 import java.util.List;
 
-import com.gudboy.domain.animal.model.Animal;
 import com.gudboy.domain.animal.model.AnimalDomestico;
 import com.gudboy.repository.IAdopcionRepository;
 import com.gudboy.domain.Usuario.Veterinario;
@@ -17,12 +16,10 @@ public class AdopcionService {
         this.adopcionRepository = adopcionRepository;
     }
 
-    public void RegistrarAdopcion(Animal animal1, Animal animal2, Visitador adoptante, Veterinario responsable) {
-        if (animal1 instanceof AnimalDomestico animalDomestico) {
-            animalDomestico.adoptar();
-        }
-        if (animal2 instanceof AnimalDomestico animalDomestico) {
-            animalDomestico.adoptar();
+    public void RegistrarAdopcion(AnimalDomestico animal1, AnimalDomestico animal2, Visitador adoptante, Veterinario responsable) {
+        animal1.adoptar();
+        if (animal2 != null) {
+            animal2.adoptar();
         }
         Adopcion adopcion = new Adopcion(animal1, animal2, adoptante, responsable);
         GuardarAdopcion(adopcion);

@@ -40,4 +40,12 @@ public class AnimalController {
     public List<Animal> listarAnimales() {
         return animalService.listarAnimales();
     }
+
+    public void ponerEnTratamiento(Animal animal) {
+        animalService.ponerEnTratamiento(animal);
+    }
+
+    public void disponibilizar(Animal animal) {
+        animalService.disponibilizar(animal);
+    }
 }

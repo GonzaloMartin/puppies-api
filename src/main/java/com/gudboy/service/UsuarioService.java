@@ -18,8 +18,10 @@ public class UsuarioService {
     }
 
     public Visitador registrarVisitador(String nombre, String apellido, String email, String telefono,
-                                         EstadoCivil estadoCivil, Ocupacion ocupacion) {
-        Visitador visitador = new Visitador(nombre, apellido, email, telefono, estadoCivil, ocupacion);
+                                         EstadoCivil estadoCivil, Ocupacion ocupacion,
+                                         String motivoAdopcion, String animalesInteres, boolean otrasMascotas) {
+        Visitador visitador = new Visitador(nombre, apellido, email, telefono, estadoCivil, ocupacion,
+                motivoAdopcion, animalesInteres, otrasMascotas);
         usuarioRepository.guardar(visitador);
         return visitador;
     }
