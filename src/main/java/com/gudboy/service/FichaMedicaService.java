@@ -1,4 +1,4 @@
-package com.gudboy.service;
+/*package com.gudboy.service;
 
 import com.gudboy.domain.animal.model.Animal;
 import com.gudboy.domain.fichaMedica.exportador.Exportador;
@@ -44,3 +44,4 @@ public class FichaMedicaService {
         return repository.listarTodas();
     }
 }
+*/

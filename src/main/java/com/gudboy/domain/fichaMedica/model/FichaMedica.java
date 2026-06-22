@@ -1,4 +1,4 @@
-package com.gudboy.domain.fichaMedica.model;
+/*package com.gudboy.domain.fichaMedica.model;
 
 import com.gudboy.domain.animal.model.Animal;
 import com.gudboy.domain.fichaMedica.exportador.Exportador;
@@ -49,4 +49,4 @@ public class FichaMedica {
     public int getEdad()                 { return edad; }
     public Animal getAnimal()            { return animal; }
     public HistorialClinico getHistorial() { return historial; }
-}
+}*/
