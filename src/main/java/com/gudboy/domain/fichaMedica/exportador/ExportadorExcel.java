@@ -1,4 +1,4 @@
-/*package com.gudboy.domain.fichaMedica.exportador;
+package com.gudboy.domain.fichaMedica.exportador;
 
 import com.gudboy.domain.fichaMedica.model.FichaMedica;
 
@@ -17,4 +17,3 @@ public class ExportadorExcel implements Exportador {
 
     public String getNombreHoja() { return nombreHoja; }
 }
-*/

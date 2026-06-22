@@ -1,4 +1,4 @@
-/*package com.gudboy.repository;
+package com.gudboy.repository;
 
 import com.gudboy.domain.fichaMedica.model.FichaMedica;
 
@@ -32,4 +32,4 @@ public class FichaMedicaRepositoryEnMemoria implements IFichaMedicaRepository {
     public List<FichaMedica> listarTodas() {
         return new ArrayList<>(fichas.values());
     }
-}*/
+}

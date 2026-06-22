@@ -1,4 +1,4 @@
-/*package com.gudboy.repository;
+package com.gudboy.repository;
 
 import com.gudboy.domain.fichaMedica.model.FichaMedica;
 
@@ -12,4 +12,3 @@ public interface IFichaMedicaRepository {
     Optional<FichaMedica> buscarPorId(UUID id);
     List<FichaMedica> listarTodas();
 }
-*/

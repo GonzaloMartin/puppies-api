@@ -1,4 +1,4 @@
-/*package com.gudboy.domain.fichaMedica.exportador;
+package com.gudboy.domain.fichaMedica.exportador;
 
 import com.gudboy.domain.fichaMedica.model.FichaMedica;
 
@@ -16,4 +16,4 @@ public class ExportadorPDF implements Exportador {
     }
 
     public String getTamanoPagina() { return tamanoPagina; }
-}*/
+}

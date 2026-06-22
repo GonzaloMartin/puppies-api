@@ -1,4 +1,4 @@
-/*package com.gudboy.controller;
+package com.gudboy.controller;
 
 import com.gudboy.domain.animal.model.Animal;
 import com.gudboy.domain.fichaMedica.exportador.Exportador;
@@ -36,4 +36,4 @@ public class FichaMedicaController {
     public List<FichaMedica> listarTodas() {
         return fichaMedicaService.listarTodas();
     }
-}*/
+}
