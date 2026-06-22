@@ -2,7 +2,7 @@ package com.gudboy.domain.historialClinico;
 
 import com.gudboy.domain.animal.model.Animal;
 import com.gudboy.domain.comentarioMedico.ComentarioMedico;
-import com.gudboy.domain.tratamiento.model.Tratamiento;
+import com.gudboy.domain.tratamiento.Tratamiento;
 
 import java.util.ArrayList;
 import java.util.UUID;
