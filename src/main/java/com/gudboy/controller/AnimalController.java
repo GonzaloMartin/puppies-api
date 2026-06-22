@@ -4,6 +4,8 @@ import com.gudboy.domain.animal.factory.FabricaAnimal;
 import com.gudboy.domain.animal.model.Animal;
 import com.gudboy.service.AnimalService;
 
+import java.util.List;
+
 /**
  * Controller (capa MVC) para el registro y consulta de animales.
  * Recibe los datos del usuario / API y delega en {@link AnimalService}.
@@ -33,5 +35,17 @@ public class AnimalController {
                                   int edad, String condicionMedica) {
         return animalService.registrarAnimal(fabrica, nombre, especie,
                 altura, peso, edad, condicionMedica);
+    }
+
+    public List<Animal> listarAnimales() {
+        return animalService.listarAnimales();
+    }
+
+    public void ponerEnTratamiento(Animal animal) {
+        animalService.ponerEnTratamiento(animal);
+    }
+
+    public void disponibilizar(Animal animal) {
+        animalService.disponibilizar(animal);
     }
 }

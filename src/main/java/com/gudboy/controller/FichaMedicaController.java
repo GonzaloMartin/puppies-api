@@ -1,8 +1,10 @@
 package com.gudboy.controller;
 
 import com.gudboy.domain.animal.model.Animal;
+import com.gudboy.domain.comentarioMedico.ComentarioMedico;
 import com.gudboy.domain.fichaMedica.exportador.Exportador;
 import com.gudboy.domain.fichaMedica.model.FichaMedica;
+import com.gudboy.domain.tratamiento.Tratamiento;
 import com.gudboy.service.FichaMedicaService;
 
 import java.util.List;
@@ -27,6 +29,14 @@ public class FichaMedicaController {
 
     public void exportarFicha(UUID id, Exportador estrategia) {
         fichaMedicaService.exportarFicha(id, estrategia);
+    }
+
+    public void agregarTratamiento(UUID id, Tratamiento tratamiento) {
+        fichaMedicaService.agregarTratamiento(id, tratamiento);
+    }
+
+    public void agregarComentarioMedico(UUID id, ComentarioMedico comentario) {
+        fichaMedicaService.agregarComentarioMedico(id, comentario);
     }
 
     public Optional<FichaMedica> buscarPorId(UUID id) {

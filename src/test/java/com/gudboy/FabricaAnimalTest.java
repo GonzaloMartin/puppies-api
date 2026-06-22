@@ -40,7 +40,7 @@ class FabricaAnimalTest {
         AnimalDomestico animal = (AnimalDomestico)
                 fabrica.crearAnimal("Loro", "Loro", 0.2, 0.5, 1, "Fractura ala");
 
-        animal.setEnTratamiento(true);
+        animal.ponerEnTratamiento();
 
         assertFalse(animal.esAdoptable(),
                 "Un animal doméstico en tratamiento NO debe ser adoptable");

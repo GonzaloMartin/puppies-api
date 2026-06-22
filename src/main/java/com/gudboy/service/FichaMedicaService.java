@@ -1,8 +1,10 @@
 package com.gudboy.service;
 
 import com.gudboy.domain.animal.model.Animal;
+import com.gudboy.domain.comentarioMedico.ComentarioMedico;
 import com.gudboy.domain.fichaMedica.exportador.Exportador;
 import com.gudboy.domain.fichaMedica.model.FichaMedica;
+import com.gudboy.domain.tratamiento.Tratamiento;
 import com.gudboy.repository.IFichaMedicaRepository;
 
 import java.util.List;
@@ -34,6 +36,20 @@ public class FichaMedicaService {
         FichaMedica ficha = repository.buscarPorId(id)
                 .orElseThrow(() -> new IllegalArgumentException("Ficha no encontrada: " + id));
         ficha.exportar(estrategia);
+    }
+
+    public void agregarTratamiento(UUID id, Tratamiento tratamiento) {
+        FichaMedica ficha = repository.buscarPorId(id)
+                .orElseThrow(() -> new IllegalArgumentException("Ficha no encontrada: " + id));
+        ficha.agregarTratamiento(tratamiento);
+        repository.actualizar(ficha);
+    }
+
+    public void agregarComentarioMedico(UUID id, ComentarioMedico comentario) {
+        FichaMedica ficha = repository.buscarPorId(id)
+                .orElseThrow(() -> new IllegalArgumentException("Ficha no encontrada: " + id));
+        ficha.agregarComentarioMedico(comentario);
+        repository.actualizar(ficha);
     }
 
     public Optional<FichaMedica> buscarPorId(UUID id) {

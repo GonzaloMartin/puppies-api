@@ -1,34 +1,33 @@
 package com.gudboy.domain.animal.model;
 
-import java.util.UUID;
+import com.gudboy.domain.animal.State.EstadoDisponible;
+import com.gudboy.domain.animal.State.EstadoSaludable;
+import com.gudboy.domain.animal.State.IEstadoAdopcion;
 
-public class AnimalDomestico implements Animal {
+public class AnimalDomestico extends Animal {
 
-    private final UUID id;
-    private final String nombre;
-    private final String especie;
-    private final double altura;
-    private final double peso;
-    private final int edad;
-    private final String condicionMedica;
-    private boolean enTratamiento;
+    private IEstadoAdopcion estadoAdopcion;
 
     public AnimalDomestico(String nombre, String especie, double altura,
                            double peso, int edad, String condicionMedica) {
-        this.id = UUID.randomUUID();
-        this.nombre = nombre;
-        this.especie = especie;
-        this.altura = altura;
-        this.peso = peso;
-        this.edad = edad;
-        this.condicionMedica = condicionMedica;
-        this.enTratamiento = false;
+        super(nombre, especie, altura, peso, edad, condicionMedica);
+        this.estadoAdopcion = new EstadoDisponible(this);
     }
 
-    /** Los animales domésticos son adoptables SÓLO si no están en tratamiento. */
+    public void adoptar() {
+        estadoAdopcion.Adoptar();
+    }
+
+    public void disponibilizarAdopcion() {
+        estadoAdopcion.Disponibilizar();
+    }
+
+    public void setEstadoAdopcion(IEstadoAdopcion estadoAdopcion) { this.estadoAdopcion = estadoAdopcion; }
+    /** Los animales domésticos son adoptables SÓLO si están sanos y no fueron adoptados ya. */
     @Override
     public boolean esAdoptable() {
-        return !enTratamiento;
+        return getEstadoDeSalud() instanceof EstadoSaludable
+                && estadoAdopcion instanceof EstadoDisponible;
     }
 
     @Override
@@ -36,26 +35,11 @@ public class AnimalDomestico implements Animal {
         return "DOMESTICO";
     }
 
-    // --- getters ---
-
-    @Override public UUID   getId()            { return id; }
-    @Override public String getNombre()        { return nombre; }
-    @Override public double getAltura()        { return altura; }
-    @Override public double getPeso()          { return peso; }
-    @Override public int    getEdad()          { return edad; }
-    @Override public String getCondicionMedica() { return condicionMedica; }
-
-    public String getEspecie()               { return especie; }
-    public boolean isEnTratamiento()         { return enTratamiento; }
-    public void setEnTratamiento(boolean enTratamiento) {
-        this.enTratamiento = enTratamiento;
-    }
-
     @Override
     public String toString() {
         return "AnimalDomestico{" +
-                "nombre='" + nombre + '\'' +
-                ", especie='" + especie + '\'' +
+                "nombre='" + getNombre() + '\'' +
+                ", especie='" + getEspecie() + '\'' +
                 ", adoptable=" + esAdoptable() +
                 '}';
     }

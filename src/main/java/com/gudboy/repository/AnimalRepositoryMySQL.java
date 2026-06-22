@@ -1,5 +1,6 @@
 package com.gudboy.repository;
 
+import com.gudboy.domain.animal.State.EstadoEnTratamiento;
 import com.gudboy.domain.animal.model.Animal;
 import com.gudboy.domain.animal.model.AnimalDomestico;
 import com.gudboy.domain.animal.model.AnimalSalvaje;
@@ -33,13 +34,13 @@ public class AnimalRepositoryMySQL implements IAnimalRepository {
         String sql = "UPDATE animal SET nombre=?, especie=?, tipo_animal=?, altura=?, peso=?, edad=?, condicion_medica=?, en_tratamiento=?, habitat_natural=? WHERE id=?";
         try (PreparedStatement ps = conn().prepareStatement(sql)) {
             ps.setString(1, animal.getNombre());
-            ps.setString(2, especie(animal));
+            ps.setString(2, animal.getEspecie());
             ps.setString(3, animal.getTipoAnimal());
             ps.setDouble(4, animal.getAltura());
             ps.setDouble(5, animal.getPeso());
             ps.setInt(6, animal.getEdad());
-            ps.setString(7, animal.getCondicionMedica());
-            ps.setBoolean(8, animal instanceof AnimalDomestico && ((AnimalDomestico) animal).isEnTratamiento());
+            ps.setString(7, animal.getEstadoDeSalud().getClass().getSimpleName());
+            ps.setBoolean(8, animal.getEstadoDeSalud() instanceof EstadoEnTratamiento);
             ps.setString(9, animal instanceof AnimalSalvaje ? ((AnimalSalvaje) animal).getHabitatNatural() : null);
             ps.setString(10, animal.getId().toString());
             ps.executeUpdate();
@@ -74,43 +75,36 @@ public class AnimalRepositoryMySQL implements IAnimalRepository {
         return lista;
     }
 
-    // --- helpers ---
-
     private void setAnimalParams(PreparedStatement ps, Animal animal) throws SQLException {
         ps.setString(1, animal.getId().toString());
         ps.setString(2, animal.getNombre());
-        ps.setString(3, especie(animal));
+        ps.setString(3, animal.getEspecie());
         ps.setString(4, animal.getTipoAnimal());
         ps.setDouble(5, animal.getAltura());
         ps.setDouble(6, animal.getPeso());
         ps.setInt(7, animal.getEdad());
-        ps.setString(8, animal.getCondicionMedica());
-        ps.setBoolean(9, animal instanceof AnimalDomestico && ((AnimalDomestico) animal).isEnTratamiento());
+        ps.setString(8, animal.getEstadoDeSalud().getClass().getSimpleName());
+        ps.setBoolean(9, animal.getEstadoDeSalud() instanceof EstadoEnTratamiento);
         ps.setString(10, animal instanceof AnimalSalvaje ? ((AnimalSalvaje) animal).getHabitatNatural() : null);
     }
 
     private Animal mapear(ResultSet rs) throws SQLException {
-        String tipo = rs.getString("tipo_animal");
-        String nombre = rs.getString("nombre");
+        String tipo    = rs.getString("tipo_animal");
+        String nombre  = rs.getString("nombre");
         String especie = rs.getString("especie");
-        double altura = rs.getDouble("altura");
-        double peso = rs.getDouble("peso");
-        int edad = rs.getInt("edad");
+        double altura  = rs.getDouble("altura");
+        double peso    = rs.getDouble("peso");
+        int    edad    = rs.getInt("edad");
         String condicion = rs.getString("condicion_medica");
+        boolean enTratamiento = rs.getBoolean("en_tratamiento");
 
         if ("DOMESTICO".equals(tipo)) {
             AnimalDomestico a = new AnimalDomestico(nombre, especie, altura, peso, edad, condicion);
-            a.setEnTratamiento(rs.getBoolean("en_tratamiento"));
+            if (enTratamiento) a.ponerEnTratamiento();
             return a;
         } else {
             return new AnimalSalvaje(nombre, especie, altura, peso, edad, condicion,
                     rs.getString("habitat_natural"));
         }
-    }
-
-    private String especie(Animal animal) {
-        if (animal instanceof AnimalDomestico) return ((AnimalDomestico) animal).getEspecie();
-        if (animal instanceof AnimalSalvaje)   return ((AnimalSalvaje) animal).getEspecie();
-        return "";
     }
 }
