@@ -2,7 +2,7 @@ package com.gudboy.domain.fichaMedica.model;
 
 import com.gudboy.domain.animal.model.Animal;
 import com.gudboy.domain.fichaMedica.exportador.Exportador;
-import com.gudboy.domain.historialClinico.model.HistorialClinico;
+import com.gudboy.domain.historialClinico.HistorialClinico;
 
 import java.util.UUID;
 

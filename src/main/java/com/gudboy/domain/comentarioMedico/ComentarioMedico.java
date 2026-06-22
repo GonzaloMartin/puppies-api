@@ -17,7 +17,7 @@ public class ComentarioMedico {
         this.fecha = fecha;
     }
 
-    public void setVeterinario(Veterinario v){
+    private void setVeterinario(Veterinario v){
         this.veterinario = v;
     }
 
@@ -25,7 +25,7 @@ public class ComentarioMedico {
         return veterinario;
     }
 
-    public void setCasillaComentario(String casillaComentario) {
+    private void setCasillaComentario(String casillaComentario) {
         this.casillaComentario = casillaComentario;
     }
 
@@ -37,7 +37,7 @@ public class ComentarioMedico {
         return comentarioID;
     }
 
-    public void setFecha(Date fecha) {
+    private void setFecha(Date fecha) {
         this.fecha = fecha;
     }
 
