@@ -2,6 +2,7 @@ package com.gudboy.repository;
 
 import com.gudboy.domain.alarma.model.Alarma;
 import com.gudboy.domain.tratamiento.TipoTratamiento;
+import com.gudboy.infrastructure.ConexionMySQL;
 
 import java.sql.*;
 import java.time.LocalDateTime;
@@ -11,17 +12,14 @@ import java.util.UUID;
 
 public class AlarmaRepository implements IAlarmaRepository {
 
-    private final Connection connection; // Tu "DatabaseContext"
-
-    public AlarmaRepository(Connection connection) {
-        this.connection = connection;
+    private Connection conn() {
+        return ConexionMySQL.getInstancia().getConnection();
     }
 
     @Override
     public void add(Alarma alarma) {
         String sql = "INSERT INTO alarmas (id_animal, titulo, descripcion, frecuencia_dias, fecha_proximo_disparo, estado, acciones, completada) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            // CORRECCIÓN AQUÍ: setString en lugar de setInt, convirtiendo el UUID a String
+        try (PreparedStatement stmt = conn().prepareStatement(sql)) {
             stmt.setString(1, alarma.getIdAnimal().toString());
             stmt.setString(2, alarma.getTitulo());
             stmt.setString(3, alarma.getDescripcion());
@@ -44,7 +42,7 @@ public class AlarmaRepository implements IAlarmaRepository {
     @Override
     public void remove(Alarma alarma) {
         String sql = "DELETE FROM alarmas WHERE id = ?";
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+        try (PreparedStatement stmt = conn().prepareStatement(sql)) {
             stmt.setInt(1, alarma.getId());
             stmt.executeUpdate();
         } catch (SQLException e) {
@@ -55,7 +53,7 @@ public class AlarmaRepository implements IAlarmaRepository {
     @Override
     public Alarma getById(int id) {
         String sql = "SELECT * FROM alarmas WHERE id = ?";
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+        try (PreparedStatement stmt = conn().prepareStatement(sql)) {
             stmt.setInt(1, id);
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
@@ -71,7 +69,7 @@ public class AlarmaRepository implements IAlarmaRepository {
     public List<Alarma> getAll() {
         List<Alarma> alarmas = new ArrayList<>();
         String sql = "SELECT * FROM alarmas";
-        try (Statement stmt = connection.createStatement();
+        try (Statement stmt = conn().createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
             while (rs.next()) {
                 alarmas.add(mapResultSetToAlarma(rs));
@@ -85,7 +83,7 @@ public class AlarmaRepository implements IAlarmaRepository {
     @Override
     public void update(Alarma alarma) {
         String sql = "UPDATE alarmas SET id_animal = ?, titulo = ?, descripcion = ?, estado = ?, acciones = ?, completada = ?, fecha_completado = ? WHERE id = ?";
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+        try (PreparedStatement stmt = conn().prepareStatement(sql)) {
             // CORRECCIÓN AQUÍ TAMBIÉN: setString en lugar de setInt
             stmt.setString(1, alarma.getIdAnimal().toString());
             stmt.setString(2, alarma.getTitulo());

@@ -14,7 +14,7 @@ import java.util.UUID;
  */
 public abstract class Animal {
 
-    private final UUID id = UUID.randomUUID();
+    private UUID id = UUID.randomUUID();
     private final String nombre;
     private final String especie;
     private final double altura;
@@ -42,6 +42,7 @@ public abstract class Animal {
     public abstract String getTipoAnimal();
 
     public UUID   getId()               { return id; }
+    public void   setId(UUID id)        { this.id = id; }
     public String getNombre()          { return nombre; }
     public String getEspecie()         { return especie; }
     public double getAltura()          { return altura; }

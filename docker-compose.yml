@@ -3,6 +3,7 @@ services:
     image: mysql:8.0
     container_name: gudboy_db
     restart: unless-stopped
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
     environment:
       MYSQL_ROOT_PASSWORD: gudboy123
       MYSQL_DATABASE: gudboy
@@ -10,7 +11,8 @@ services:
       - "3306:3306"
     volumes:
       - gudboy_data:/var/lib/mysql
-      - ./src/main/resources/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+      - ./src/main/resources/schema.sql:/docker-entrypoint-initdb.d/01_schema.sql
+      - ./src/main/resources/seed.sql:/docker-entrypoint-initdb.d/02_seed.sql
 
 volumes:
   gudboy_data:

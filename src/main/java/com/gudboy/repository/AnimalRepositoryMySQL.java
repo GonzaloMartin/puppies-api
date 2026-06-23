@@ -89,6 +89,7 @@ public class AnimalRepositoryMySQL implements IAnimalRepository {
     }
 
     private Animal mapear(ResultSet rs) throws SQLException {
+        UUID   id      = UUID.fromString(rs.getString("id"));
         String tipo    = rs.getString("tipo_animal");
         String nombre  = rs.getString("nombre");
         String especie = rs.getString("especie");
@@ -100,11 +101,14 @@ public class AnimalRepositoryMySQL implements IAnimalRepository {
 
         if ("DOMESTICO".equals(tipo)) {
             AnimalDomestico a = new AnimalDomestico(nombre, especie, altura, peso, edad, condicion);
+            a.setId(id);
             if (enTratamiento) a.ponerEnTratamiento();
             return a;
         } else {
-            return new AnimalSalvaje(nombre, especie, altura, peso, edad, condicion,
+            AnimalSalvaje a = new AnimalSalvaje(nombre, especie, altura, peso, edad, condicion,
                     rs.getString("habitat_natural"));
+            a.setId(id);
+            return a;
         }
     }
 }

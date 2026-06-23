@@ -79,12 +79,20 @@ public class FichaMedicaRepositoryMySQL implements IFichaMedicaRepository {
 
     @Override
     public FichaMedica getByAnimalId(UUID idAnimal) {
+        String sql = "SELECT * FROM ficha_medica WHERE animal_id = ?";
+        try (PreparedStatement ps = conn().prepareStatement(sql)) {
+            ps.setString(1, idAnimal.toString());
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) return mapear(rs);
+        } catch (SQLException e) {
+            throw new RuntimeException("Error al buscar ficha por animal", e);
+        }
         return null;
     }
 
     @Override
     public void update(FichaMedica ficha) {
-
+        actualizar(ficha);
     }
 
     private FichaMedica mapear(ResultSet rs) throws SQLException {

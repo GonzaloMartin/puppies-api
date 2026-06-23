@@ -35,11 +35,14 @@ public class FichaMedicaRepositoryEnMemoria implements IFichaMedicaRepository {
 
     @Override
     public FichaMedica getByAnimalId(UUID idAnimal) {
-        return null;
+        return fichas.values().stream()
+                .filter(f -> f.getAnimal().getId().equals(idAnimal))
+                .findFirst()
+                .orElse(null);
     }
 
     @Override
     public void update(FichaMedica ficha) {
-
+        actualizar(ficha);
     }
 }

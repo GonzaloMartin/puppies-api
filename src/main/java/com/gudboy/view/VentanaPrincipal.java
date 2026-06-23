@@ -3,6 +3,7 @@ package com.gudboy.view;
 import com.gudboy.controller.AdopcionController;
 import com.gudboy.controller.AlarmaController;
 import com.gudboy.controller.AnimalController;
+import com.gudboy.controller.FichaMedicaController;
 import com.gudboy.controller.UsuarioController;
 import com.gudboy.domain.Usuario.EstadoCivil;
 import com.gudboy.domain.Usuario.Ocupacion;
@@ -38,6 +39,7 @@ public class VentanaPrincipal extends JFrame implements  IAlarmaObserver {
     private final UsuarioController usuarioController;
     private final AdopcionController adopcionController;
     private final AlarmaController alarmaController;
+    private final FichaMedicaController fichaMedicaController;
 
     private final DefaultListModel<Animal> animalListModel = new DefaultListModel<>();
     private final DefaultListModel<Visitador> visitadorListModel = new DefaultListModel<>();
@@ -45,12 +47,14 @@ public class VentanaPrincipal extends JFrame implements  IAlarmaObserver {
     private final DefaultListModel<Alarma> alarmaListModel = new DefaultListModel<>();
 
     public VentanaPrincipal(AnimalController animalController, UsuarioController usuarioController,
-                            AdopcionController adopcionController, AlarmaController alarmaController) {
+                            AdopcionController adopcionController, AlarmaController alarmaController,
+                            FichaMedicaController fichaMedicaController) {
         super("Puppies - Refugio de animales");
         this.animalController = animalController;
         this.usuarioController = usuarioController;
         this.adopcionController = adopcionController;
         this.alarmaController = alarmaController;
+        this.fichaMedicaController = fichaMedicaController;
         this.alarmaController.suscribirVista(this);
 
 
@@ -62,7 +66,7 @@ public class VentanaPrincipal extends JFrame implements  IAlarmaObserver {
         setSize(850, 600);
         setLocationRelativeTo(null);
 
-        JPanel panelBotones = new JPanel(new GridLayout(2, 4, 10, 10));
+        JPanel panelBotones = new JPanel(new GridLayout(3, 4, 10, 10));
         panelBotones.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10)); // Margen estético para que no se pegue a los bordes
 
         JButton btnCrearAnimal = new JButton("Crear Animal");
@@ -71,8 +75,9 @@ public class VentanaPrincipal extends JFrame implements  IAlarmaObserver {
         JButton btnCrearAdopcion = new JButton("Crear Adopción");
         JButton btnCambiarEstadoSalud = new JButton("Cambiar Estado de Salud");
         JButton btnCrearAlarma = new JButton("Crear Alarma");
-        JButton btnModificarAlarma = new JButton("Modificar Alarma"); // NUEVO
+        JButton btnModificarAlarma = new JButton("Modificar Alarma");
         JButton btnCompletarAlarma = new JButton("Completar Alarma");
+        JButton btnCrearFicha = new JButton("Crear Ficha Médica");
 
         btnCrearAnimal.addActionListener(e -> mostrarDialogoCrearAnimal());
         btnCrearVisitador.addActionListener(e -> mostrarDialogoCrearVisitador());
@@ -80,8 +85,9 @@ public class VentanaPrincipal extends JFrame implements  IAlarmaObserver {
         btnCrearAdopcion.addActionListener(e -> mostrarDialogoCrearAdopcion());
         btnCambiarEstadoSalud.addActionListener(e -> mostrarDialogoCambiarEstadoSalud());
         btnCrearAlarma.addActionListener(e -> mostrarDialogoCrearAlarma());
-        btnModificarAlarma.addActionListener(e -> mostrarDialogoModificarAlarma()); // NUEVO
+        btnModificarAlarma.addActionListener(e -> mostrarDialogoModificarAlarma());
         btnCompletarAlarma.addActionListener(e -> mostrarDialogoCompletarAlarma());
+        btnCrearFicha.addActionListener(e -> mostrarDialogoCrearFichaMedica());
 
         panelBotones.add(btnCrearAnimal);
         panelBotones.add(btnCrearVisitador);
@@ -89,8 +95,9 @@ public class VentanaPrincipal extends JFrame implements  IAlarmaObserver {
         panelBotones.add(btnCrearAdopcion);
         panelBotones.add(btnCambiarEstadoSalud);
         panelBotones.add(btnCrearAlarma);
-        panelBotones.add(btnModificarAlarma); // NUEVO
+        panelBotones.add(btnModificarAlarma);
         panelBotones.add(btnCompletarAlarma);
+        panelBotones.add(btnCrearFicha);
 
         JTabbedPane tabs = new JTabbedPane();
         tabs.addTab("Animales", new JScrollPane(new JList<>(animalListModel)));
@@ -147,7 +154,7 @@ public class VentanaPrincipal extends JFrame implements  IAlarmaObserver {
         JTextField alturaField = new JTextField();
         JTextField pesoField = new JTextField();
         JTextField edadField = new JTextField();
-        JTextField condicionMedicaField = new JTextField();
+        JComboBox<String> condicionCombo = new JComboBox<>(new String[]{"Saludable", "En tratamiento"});
         JComboBox<String> tipoCombo = new JComboBox<>(new String[]{"Doméstico", "Salvaje"});
 
         JPanel form = new JPanel(new GridLayout(7, 2, 5, 5));
@@ -162,7 +169,7 @@ public class VentanaPrincipal extends JFrame implements  IAlarmaObserver {
         form.add(new JLabel("Edad:"));
         form.add(edadField);
         form.add(new JLabel("Condición médica:"));
-        form.add(condicionMedicaField);
+        form.add(condicionCombo);
         form.add(new JLabel("Tipo:"));
         form.add(tipoCombo);
 
@@ -178,7 +185,7 @@ public class VentanaPrincipal extends JFrame implements  IAlarmaObserver {
             double altura = Double.parseDouble(alturaField.getText().trim());
             double peso = Double.parseDouble(pesoField.getText().trim());
             int edad = Integer.parseInt(edadField.getText().trim());
-            String condicionMedica = condicionMedicaField.getText().trim();
+            String condicionMedica = (String) condicionCombo.getSelectedItem();
 
             if (nombre.isEmpty() || especie.isEmpty()) {
                 throw new IllegalArgumentException("Nombre y especie son obligatorios.");
@@ -189,6 +196,9 @@ public class VentanaPrincipal extends JFrame implements  IAlarmaObserver {
                     : new FabricaAnimalSalvaje();
 
             Animal animal = animalController.registrarAnimal(fabrica, nombre, especie, altura, peso, edad, condicionMedica);
+            if ("En tratamiento".equals(condicionMedica)) {
+                animalController.ponerEnTratamiento(animal);
+            }
             refrescarListasEstaticas();
             JOptionPane.showMessageDialog(this, "Animal creado:\n" + animal,
                     "Éxito", JOptionPane.INFORMATION_MESSAGE);
@@ -553,6 +563,36 @@ public class VentanaPrincipal extends JFrame implements  IAlarmaObserver {
             } else {
                 JOptionPane.showMessageDialog(this, "Debe seleccionar una alarma y un veterinario válido.", "Error", JOptionPane.ERROR_MESSAGE);
             }
+        }
+    }
+
+    private void mostrarDialogoCrearFichaMedica() {
+        List<Animal> animales = animalController.listarAnimales();
+        if (animales.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "No hay animales registrados.",
+                    "Faltan datos", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        JComboBox<Animal> animalCombo = new JComboBox<>(animales.toArray(new Animal[0]));
+
+        JPanel form = new JPanel(new GridLayout(1, 2, 5, 5));
+        form.add(new JLabel("Animal:"));
+        form.add(animalCombo);
+
+        int resultado = JOptionPane.showConfirmDialog(this, form, "Crear Ficha Médica",
+                JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+        if (resultado != JOptionPane.OK_OPTION) return;
+
+        Animal animal = (Animal) animalCombo.getSelectedItem();
+        try {
+            fichaMedicaController.crearFicha(animal);
+            JOptionPane.showMessageDialog(this,
+                    "Ficha médica creada para: " + animal.getNombre(),
+                    "Éxito", JOptionPane.INFORMATION_MESSAGE);
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Error al crear ficha: " + ex.getMessage(),
+                    "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
