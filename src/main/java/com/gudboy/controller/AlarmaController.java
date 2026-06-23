@@ -2,6 +2,7 @@ package com.gudboy.controller;
 
 import com.gudboy.domain.alarma.model.Alarma;
 import com.gudboy.service.AlarmaService;
+import com.gudboy.domain.alarma.observer.IAlarmaObserver;
 
 import java.util.List;
 
@@ -11,6 +12,15 @@ public class AlarmaController {
 
     public AlarmaController(AlarmaService service) {
         this.service = service;
+    }
+
+    public void suscribirVista(IAlarmaObserver observer) {
+        service.suscribir(observer);
+    }
+
+    // --- CAMBIO: Método opcional pero recomendado para desuscribir ---
+    public void desuscribirVista(IAlarmaObserver observer) {
+        service.desuscribir(observer);
     }
 
     public List<Alarma> getAll() {
@@ -43,5 +53,9 @@ public class AlarmaController {
 
     public void verificarEstadoAlarmas() {
         service.verificarEstadoAlarmas();
+    }
+
+    public void atenderAlarma(int id, String comentario, boolean tratamientoFinalizado) {
+        service.atenderAlarma(id, comentario, tratamientoFinalizado);
     }
 }

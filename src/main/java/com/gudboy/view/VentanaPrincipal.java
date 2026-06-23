@@ -16,15 +16,21 @@ import com.gudboy.domain.animal.model.AnimalDomestico;
 import com.gudboy.domain.alarma.model.Alarma;
 import com.gudboy.domain.tratamiento.TipoTratamiento;
 
+import com.gudboy.domain.alarma.observer.IAlarmaObserver;
+import com.gudboy.domain.tratamiento.TipoTratamiento;
+
 
 import javax.swing.*;
 import java.awt.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.Calendar;
+import java.time.ZoneId;
+import java.util.Date;
 import java.util.List;
 
-public class VentanaPrincipal extends JFrame {
+public class VentanaPrincipal extends JFrame implements  IAlarmaObserver {
 
     private final AnimalController animalController;
     private final UsuarioController usuarioController;
@@ -37,12 +43,13 @@ public class VentanaPrincipal extends JFrame {
     private final DefaultListModel<Alarma> alarmaListModel = new DefaultListModel<>();
 
     public VentanaPrincipal(AnimalController animalController, UsuarioController usuarioController,
-                             AdopcionController adopcionController,AlarmaController alarmaController) {
+                            AdopcionController adopcionController, AlarmaController alarmaController) {
         super("Puppies - Refugio de animales");
         this.animalController = animalController;
         this.usuarioController = usuarioController;
         this.adopcionController = adopcionController;
         this.alarmaController = alarmaController;
+        this.alarmaController.suscribirVista(this);
 
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(850, 600);
@@ -57,6 +64,7 @@ public class VentanaPrincipal extends JFrame {
         JButton btnCrearAdopcion = new JButton("Crear Adopción");
         JButton btnCambiarEstadoSalud = new JButton("Cambiar Estado de Salud");
         JButton btnCrearAlarma = new JButton("Crear Alarma");
+        JButton btnModificarAlarma = new JButton("Modificar Alarma"); // NUEVO
         JButton btnCompletarAlarma = new JButton("Completar Alarma");
 
         btnCrearAnimal.addActionListener(e -> mostrarDialogoCrearAnimal());
@@ -65,6 +73,7 @@ public class VentanaPrincipal extends JFrame {
         btnCrearAdopcion.addActionListener(e -> mostrarDialogoCrearAdopcion());
         btnCambiarEstadoSalud.addActionListener(e -> mostrarDialogoCambiarEstadoSalud());
         btnCrearAlarma.addActionListener(e -> mostrarDialogoCrearAlarma());
+        btnModificarAlarma.addActionListener(e -> mostrarDialogoModificarAlarma()); // NUEVO
         btnCompletarAlarma.addActionListener(e -> mostrarDialogoCompletarAlarma());
 
         panelBotones.add(btnCrearAnimal);
@@ -73,6 +82,7 @@ public class VentanaPrincipal extends JFrame {
         panelBotones.add(btnCrearAdopcion);
         panelBotones.add(btnCambiarEstadoSalud);
         panelBotones.add(btnCrearAlarma);
+        panelBotones.add(btnModificarAlarma); // NUEVO
         panelBotones.add(btnCompletarAlarma);
 
         JTabbedPane tabs = new JTabbedPane();
@@ -86,8 +96,19 @@ public class VentanaPrincipal extends JFrame {
         panel.add(tabs, BorderLayout.CENTER);
 
         setContentPane(panel);
-        refrescarListas();
+
+
+        refrescarListasEstaticas();
+        refrescarListaAlarmas();
+        iniciarVerificadorAlarmas();
     }
+
+    //@Override
+    public void actualizarEstado(Alarma alarma) {
+        // Aseguramos que la actualización de la UI ocurra en el hilo de Swing (EDT)
+        SwingUtilities.invokeLater(this::refrescarListaAlarmas);
+    }
+
 
     private void iniciarVerificadorAlarmas() {
         Timer timer = new Timer(60000, e -> alarmaController.verificarEstadoAlarmas());
@@ -95,7 +116,8 @@ public class VentanaPrincipal extends JFrame {
         timer.start();
     }
 
-    private void refrescarListas() {
+
+    private void refrescarListasEstaticas() {
         animalListModel.clear();
         animalController.listarAnimales().forEach(animalListModel::addElement);
 
@@ -104,6 +126,12 @@ public class VentanaPrincipal extends JFrame {
 
         veterinarioListModel.clear();
         usuarioController.listarVeterinarios().forEach(veterinarioListModel::addElement);
+    }
+
+    // --- CAMBIO: Método específico para refrescar las alarmas (usado por el Observer) ---
+    private void refrescarListaAlarmas() {
+        alarmaListModel.clear();
+        alarmaController.getAll().forEach(alarmaListModel::addElement);
     }
 
     private void mostrarDialogoCrearAnimal() {
@@ -154,7 +182,7 @@ public class VentanaPrincipal extends JFrame {
                     : new FabricaAnimalSalvaje();
 
             Animal animal = animalController.registrarAnimal(fabrica, nombre, especie, altura, peso, edad, condicionMedica);
-            refrescarListas();
+            refrescarListasEstaticas();
             JOptionPane.showMessageDialog(this, "Animal creado:\n" + animal,
                     "Éxito", JOptionPane.INFORMATION_MESSAGE);
         } catch (NumberFormatException ex) {
@@ -216,7 +244,7 @@ public class VentanaPrincipal extends JFrame {
                     (EstadoCivil) estadoCivilCombo.getSelectedItem(), (Ocupacion) ocupacionCombo.getSelectedItem(),
                     motivoAdopcionField.getText().trim(), animalesInteresField.getText().trim(),
                     otrasMascotasCheck.isSelected());
-            refrescarListas();
+            refrescarListasEstaticas();
             JOptionPane.showMessageDialog(this, "Visitador creado:\n" + visitador,
                     "Éxito", JOptionPane.INFORMATION_MESSAGE);
         } catch (IllegalArgumentException ex) {
@@ -266,7 +294,7 @@ public class VentanaPrincipal extends JFrame {
             String especialidad = especialidadField.getText().trim();
             Veterinario veterinario = usuarioController.registrarVeterinario(nombre, apellido, email, telefono,
                     matricula, especialidad);
-            refrescarListas();
+            refrescarListasEstaticas();
             JOptionPane.showMessageDialog(this, "Veterinario creado:\n" + veterinario,
                     "Éxito", JOptionPane.INFORMATION_MESSAGE);
         } catch (NumberFormatException ex) {
@@ -307,7 +335,7 @@ public class VentanaPrincipal extends JFrame {
         } else {
             animalController.disponibilizar(animal);
         }
-        refrescarListas();
+        refrescarListasEstaticas();
         JOptionPane.showMessageDialog(this, "Estado de salud actualizado:\n" + animal,
                 "Éxito", JOptionPane.INFORMATION_MESSAGE);
     }
@@ -372,19 +400,38 @@ public class VentanaPrincipal extends JFrame {
 
         try {
             adopcionController.registrarAdopcion(animal1, animal2, adoptante, responsable);
-            refrescarListas();
+            refrescarListasEstaticas();
             JOptionPane.showMessageDialog(this, "Adopción registrada con éxito.",
                     "Éxito", JOptionPane.INFORMATION_MESSAGE);
         } catch (IllegalStateException ex) {
             JOptionPane.showMessageDialog(this, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
-        }
+    }
 
     private void mostrarDialogoCrearAlarma() {
         JTextField tituloField = new JTextField();
         JTextField descripcionField = new JTextField();
-        JTextField frecuenciaField = new JTextField();
-        JTextField fechaField = new JTextField("yyyy-MM-dd HH:mm");
+        JTextField frecuenciaField = new JTextField("1"); // Default 1 día
+
+        // --- Configuración del Selector de Fecha (JSpinner) ---
+        // 1. Definir el rango: Hoy hasta 50 años adelante
+        Calendar calendar = Calendar.getInstance();
+        Date initDate = calendar.getTime(); // Valor inicial: Ahora
+        calendar.add(Calendar.YEAR, -100); // Límite inferior (no relevante pero necesario para el modelo)
+        Date earliestDate = calendar.getTime();
+        calendar.add(Calendar.YEAR, 150); // Límite superior: Hoy + 50 años (aproximado)
+        Date latestDate = calendar.getTime();
+
+        // 2. Crear el modelo de fecha
+        SpinnerDateModel dateModel = new SpinnerDateModel(initDate, earliestDate, latestDate, Calendar.YEAR);
+        JSpinner datetimeSpinner = new JSpinner(dateModel);
+
+        // 3. Configurar el editor para mostrar Fecha y Hora completa (hh:mm:ss)
+        JSpinner.DateEditor dateEditor = new JSpinner.DateEditor(datetimeSpinner, "dd/MM/yyyy HH:mm:ss");
+        datetimeSpinner.setEditor(dateEditor);
+
+        // El JSpinner ya soporta la rueda del ratón y teclas arriba/abajo nativamente.
+
         JComboBox<TipoTratamiento> tipoCombo = new JComboBox<>(TipoTratamiento.values());
 
         JPanel form = new JPanel(new GridLayout(5, 2, 5, 5));
@@ -394,8 +441,8 @@ public class VentanaPrincipal extends JFrame {
         form.add(descripcionField);
         form.add(new JLabel("Frecuencia (Días):"));
         form.add(frecuenciaField);
-        form.add(new JLabel("Fecha de Disparo:"));
-        form.add(fechaField);
+        form.add(new JLabel("Fecha de Disparo (use scroll):"));
+        form.add(datetimeSpinner); // Añadir el Spinner en lugar del TextField
         form.add(new JLabel("Tipo Tratamiento:"));
         form.add(tipoCombo);
 
@@ -408,60 +455,144 @@ public class VentanaPrincipal extends JFrame {
             String titulo = tituloField.getText().trim();
             String descripcion = descripcionField.getText().trim();
             int frecuencia = Integer.parseInt(frecuenciaField.getText().trim());
-            LocalDateTime fechaDisparo = LocalDateTime.parse(fechaField.getText().trim(), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
             TipoTratamiento tipo = (TipoTratamiento) tipoCombo.getSelectedItem();
 
             if (titulo.isEmpty()) {
                 throw new IllegalArgumentException("El título es obligatorio.");
             }
 
+            // --- Convertir java.util.Date (del Spinner) a LocalDateTime ---
+            Date spinnerDate = (Date) datetimeSpinner.getValue();
+            LocalDateTime fechaDisparo = spinnerDate.toInstant()
+                    .atZone(ZoneId.systemDefault())
+                    .toLocalDateTime();
+
             Alarma nuevaAlarma = new Alarma(0, titulo, descripcion, frecuencia, fechaDisparo, tipo);
             alarmaController.create(nuevaAlarma);
 
-            refrescarListas();
+            // --- CAMBIO: Ya no llamamos a refrescarListas() manualmente ---
+            // El AlarmaService notificará y actualizarEstado() se ejecutará automáticamente.
+
             JOptionPane.showMessageDialog(this, "Alarma creada con éxito.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
 
         } catch (NumberFormatException ex) {
             JOptionPane.showMessageDialog(this, "La frecuencia debe ser un número entero.", "Error", JOptionPane.ERROR_MESSAGE);
-        } catch (DateTimeParseException ex) {
-            JOptionPane.showMessageDialog(this, "Formato de fecha inválido. Usa yyyy-MM-dd HH:mm", "Error", JOptionPane.ERROR_MESSAGE);
         } catch (IllegalArgumentException ex) {
             JOptionPane.showMessageDialog(this, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
-        private void mostrarDialogoCompletarAlarma() {
-            // Filtrar solo las alarmas que no están completadas
-            List<Alarma> alarmasActivas = alarmaController.getAll().stream()
-                    .filter(a -> !a.isCompletada())
-                    .toList();
+    private void mostrarDialogoCompletarAlarma() {
+        List<Alarma> alarmasActivas = alarmaController.getAll().stream()
+                .filter(a -> !a.isCompletada() && !a.getEstado().equals("FINALIZADO"))
+                .toList();
 
-            if (alarmasActivas.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "No hay alarmas pendientes por completar.",
-                        "Información", JOptionPane.INFORMATION_MESSAGE);
-                return;
+        if (alarmasActivas.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "No hay alarmas pendientes por atender.", "Información", JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+
+        JComboBox<Alarma> alarmaCombo = new JComboBox<>(alarmasActivas.toArray(new Alarma[0]));
+        JTextField comentarioField = new JTextField();
+        JCheckBox finalizadoCheck = new JCheckBox("Marcar tratamiento como FINALIZADO");
+
+        JPanel form = new JPanel(new GridLayout(3, 2, 5, 5));
+        form.add(new JLabel("Seleccionar Alarma:"));
+        form.add(alarmaCombo);
+        form.add(new JLabel("Comentario/Registro:"));
+        form.add(comentarioField);
+        form.add(new JLabel("Estado del tratamiento:"));
+        form.add(finalizadoCheck);
+
+        int resultado = JOptionPane.showConfirmDialog(this, form, "Atender Alarma",
+                JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+
+        if (resultado == JOptionPane.OK_OPTION) {
+            Alarma alarmaSeleccionada = (Alarma) alarmaCombo.getSelectedItem();
+            if (alarmaSeleccionada != null) {
+                String comentario = comentarioField.getText().trim();
+                boolean finalizado = finalizadoCheck.isSelected();
+
+                // Usamos el nuevo flujo robusto
+                alarmaController.atenderAlarma(alarmaSeleccionada.getId(), comentario, finalizado);
+
+                JOptionPane.showMessageDialog(this, "Alarma atendida y registrada.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
             }
+        }
+    }
 
-            JComboBox<Alarma> alarmaCombo = new JComboBox<>(alarmasActivas.toArray(new Alarma[0]));
+    private void mostrarDialogoModificarAlarma() {
+        List<Alarma> alarmas = alarmaController.getAll();
+        if (alarmas.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "No hay alarmas creadas para modificar.", "Información", JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
 
-            JPanel form = new JPanel(new GridLayout(1, 2, 5, 5));
-            form.add(new JLabel("Seleccionar Alarma:"));
-            form.add(alarmaCombo);
+        // Paso 1: Elegir qué alarma modificar
+        JComboBox<Alarma> seleccionCombo = new JComboBox<>(alarmas.toArray(new Alarma[0]));
+        int eleccion = JOptionPane.showConfirmDialog(this, seleccionCombo, "Seleccione la alarma a modificar", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
 
-            int resultado = JOptionPane.showConfirmDialog(this, form, "Completar Alarma",
-                    JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+        if (eleccion != JOptionPane.OK_OPTION) return;
 
-            if (resultado == JOptionPane.OK_OPTION) {
-                Alarma alarmaSeleccionada = (Alarma) alarmaCombo.getSelectedItem();
-                if (alarmaSeleccionada != null) {
-                    alarmaController.marcarCompletado(alarmaSeleccionada.getId());
-                    refrescarListas();
-                    JOptionPane.showMessageDialog(this, "Alarma marcada como completada.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
-                }
+        Alarma alarmaSeleccionada = (Alarma) seleccionCombo.getSelectedItem();
+        if (alarmaSeleccionada == null) return;
+
+        // Paso 2: Mostrar el formulario con los datos cargados
+        JTextField tituloField = new JTextField(alarmaSeleccionada.getTitulo());
+        JTextField descripcionField = new JTextField(alarmaSeleccionada.getDescripcion());
+        JTextField frecuenciaField = new JTextField(String.valueOf(alarmaSeleccionada.getFrecuenciaDias()));
+
+        // Cargar la fecha actual de la alarma en el JSpinner
+        SpinnerDateModel dateModel = new SpinnerDateModel();
+        JSpinner datetimeSpinner = new JSpinner(dateModel);
+        JSpinner.DateEditor dateEditor = new JSpinner.DateEditor(datetimeSpinner, "dd/MM/yyyy HH:mm:ss");
+        datetimeSpinner.setEditor(dateEditor);
+
+        Date fechaOriginal = Date.from(alarmaSeleccionada.getFechaProximoDisparoOriginal().atZone(ZoneId.systemDefault()).toInstant());
+        datetimeSpinner.setValue(fechaOriginal);
+
+        JComboBox<TipoTratamiento> tipoCombo = new JComboBox<>(TipoTratamiento.values());
+        tipoCombo.setSelectedItem(alarmaSeleccionada.getTipoTratamiento());
+
+        JPanel form = new JPanel(new GridLayout(5, 2, 5, 5));
+        form.add(new JLabel("Título:"));
+        form.add(tituloField);
+        form.add(new JLabel("Descripción:"));
+        form.add(descripcionField);
+        form.add(new JLabel("Frecuencia (Días):"));
+        form.add(frecuenciaField);
+        form.add(new JLabel("Fecha de Disparo:"));
+        form.add(datetimeSpinner);
+        form.add(new JLabel("Tipo Tratamiento:"));
+        form.add(tipoCombo);
+
+        int resultadoEdicion = JOptionPane.showConfirmDialog(this, form, "Modificar Alarma", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+
+        if (resultadoEdicion == JOptionPane.OK_OPTION) {
+            try {
+                // Actualizamos el objeto seleccionado
+                alarmaSeleccionada.setTitulo(tituloField.getText().trim());
+                alarmaSeleccionada.setDescripcion(descripcionField.getText().trim());
+                alarmaSeleccionada.setFrecuenciaDias(Integer.parseInt(frecuenciaField.getText().trim()));
+                alarmaSeleccionada.setTipoTratamiento((TipoTratamiento) tipoCombo.getSelectedItem());
+
+                Date spinnerDate = (Date) datetimeSpinner.getValue();
+                alarmaSeleccionada.setFechaProximoDisparo(spinnerDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime());
+
+                // Guardamos en el controlador
+                alarmaController.update(alarmaSeleccionada.getId(), alarmaSeleccionada);
+
+                // NOTA: Como la clase VentanaPrincipal es un Observer, no hace falta recargar la lista manualmente.
+                // Sin embargo, debes asegurarte de que AlarmaService.actualizarAlarma llame a notificarObservadores()
+
+                JOptionPane.showMessageDialog(this, "Alarma modificada con éxito.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
+
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(this, "La frecuencia debe ser un número entero.", "Error", JOptionPane.ERROR_MESSAGE);
             }
         }
 
 
-
     }
 
+}

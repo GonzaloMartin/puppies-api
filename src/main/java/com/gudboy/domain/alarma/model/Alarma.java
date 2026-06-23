@@ -61,9 +61,6 @@ public class Alarma {
     public boolean isCompletada() { return completada; }
     public String getEstado() { return estado; }
 
-    public void setTitulo(String titulo) {
-    }
-
     public String getDescripcion() {
         return descripcion;
     }
@@ -83,5 +80,17 @@ public class Alarma {
     @Override
     public String toString() {
         return titulo + " - " + estado + (completada ? " (Completada)" : " (Próximo: " + fechaProximoDisparo + ")");
+    }
+
+    // REEMPLAZAR EL SETTER VACÍO ACTUAL POR ESTOS:
+    public void setTitulo(String titulo) { this.titulo = titulo; }
+    public void setDescripcion(String descripcion) { this.descripcion = descripcion; }
+    public void setFrecuenciaDias(int frecuenciaDias) { this.frecuenciaDias = frecuenciaDias; }
+    public void setFechaProximoDisparo(LocalDateTime fechaProximoDisparo) { this.fechaProximoDisparo = fechaProximoDisparo; }
+    public void setTipoTratamiento(TipoTratamiento tipoTratamiento) { this.tipoTratamiento = tipoTratamiento; }
+
+    // AÑADIR ESTE GETTER (Lo necesitamos para el JSpinner de la UI):
+    public LocalDateTime getFechaProximoDisparoOriginal() {
+        return fechaProximoDisparo;
     }
 }
