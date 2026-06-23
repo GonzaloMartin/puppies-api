@@ -9,11 +9,20 @@ public class Veterinario extends Usuario {
         this.matriculaProfesional = matriculaProfesional;
         this.especialidad = especialidad;
     }
-    
+
+    public Veterinario() {
+        super();
+
+    }
+
     public int getMatriculaProfesional() {
         return matriculaProfesional;
     }
     public String getEspecialidad() {
         return especialidad;
+    }
+
+    public int getMatricula() {
+        return matriculaProfesional;
     }
 }

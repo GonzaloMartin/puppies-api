@@ -8,6 +8,7 @@ import com.gudboy.domain.Usuario.EstadoCivil;
 import com.gudboy.domain.Usuario.Ocupacion;
 import com.gudboy.domain.Usuario.Veterinario;
 import com.gudboy.domain.Usuario.Visitador;
+import com.gudboy.domain.alarma.observer.PushNotificationObserver;
 import com.gudboy.domain.animal.factory.FabricaAnimal;
 import com.gudboy.domain.animal.factory.FabricaAnimalDomestico;
 import com.gudboy.domain.animal.factory.FabricaAnimalSalvaje;
@@ -27,6 +28,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.Calendar;
 import java.time.ZoneId;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -50,6 +52,11 @@ public class VentanaPrincipal extends JFrame implements  IAlarmaObserver {
         this.adopcionController = adopcionController;
         this.alarmaController = alarmaController;
         this.alarmaController.suscribirVista(this);
+
+
+        // 2. NUEVO: Instancias el Observer de notificaciones y lo suscribes
+        PushNotificationObserver pushObserver = new PushNotificationObserver(usuarioController);
+        this.alarmaController.suscribirVista(pushObserver);
 
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(850, 600);
@@ -413,41 +420,48 @@ public class VentanaPrincipal extends JFrame implements  IAlarmaObserver {
         JTextField descripcionField = new JTextField();
         JTextField frecuenciaField = new JTextField("1"); // Default 1 día
 
-        // --- Configuración del Selector de Fecha (JSpinner) ---
-        // 1. Definir el rango: Hoy hasta 50 años adelante
+        // 1. Configuración del Selector de Fecha (JSpinner) - Restaurado
         Calendar calendar = Calendar.getInstance();
-        Date initDate = calendar.getTime(); // Valor inicial: Ahora
-        calendar.add(Calendar.YEAR, -100); // Límite inferior (no relevante pero necesario para el modelo)
+        Date initDate = calendar.getTime();
+        calendar.add(Calendar.YEAR, -100);
         Date earliestDate = calendar.getTime();
-        calendar.add(Calendar.YEAR, 150); // Límite superior: Hoy + 50 años (aproximado)
+        calendar.add(Calendar.YEAR, 150);
         Date latestDate = calendar.getTime();
-
-        // 2. Crear el modelo de fecha
         SpinnerDateModel dateModel = new SpinnerDateModel(initDate, earliestDate, latestDate, Calendar.YEAR);
         JSpinner datetimeSpinner = new JSpinner(dateModel);
-
-        // 3. Configurar el editor para mostrar Fecha y Hora completa (hh:mm:ss)
         JSpinner.DateEditor dateEditor = new JSpinner.DateEditor(datetimeSpinner, "dd/MM/yyyy HH:mm:ss");
         datetimeSpinner.setEditor(dateEditor);
 
-        // El JSpinner ya soporta la rueda del ratón y teclas arriba/abajo nativamente.
+        // 2. Selector de Animal
+        List<Animal> animales = animalController.listarAnimales();
+        if (animales.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "No hay animales registrados. Debe crear un animal antes de asignar una alarma.", "Advertencia", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        JComboBox<Animal> animalCombo = new JComboBox<>(animales.toArray(new Animal[0]));
 
-        JComboBox<TipoTratamiento> tipoCombo = new JComboBox<>(TipoTratamiento.values());
+        // 3. Selector múltiple de Acciones (Tratamientos)
+        JList<TipoTratamiento> accionesList = new JList<>(TipoTratamiento.values());
+        accionesList.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+        JScrollPane scrollAcciones = new JScrollPane(accionesList);
+        scrollAcciones.setPreferredSize(new Dimension(150, 60));
 
-        JPanel form = new JPanel(new GridLayout(5, 2, 5, 5));
+        // 4. Armado del Formulario
+        JPanel form = new JPanel(new GridLayout(6, 2, 5, 5));
+        form.add(new JLabel("Animal a tratar:"));
+        form.add(animalCombo);
         form.add(new JLabel("Título:"));
         form.add(tituloField);
         form.add(new JLabel("Descripción:"));
         form.add(descripcionField);
         form.add(new JLabel("Frecuencia (Días):"));
         form.add(frecuenciaField);
-        form.add(new JLabel("Fecha de Disparo (use scroll):"));
-        form.add(datetimeSpinner); // Añadir el Spinner en lugar del TextField
-        form.add(new JLabel("Tipo Tratamiento:"));
-        form.add(tipoCombo);
+        form.add(new JLabel("Fecha Disparo:"));
+        form.add(datetimeSpinner);
+        form.add(new JLabel("Acciones (Ctrl/Cmd para múltiple):"));
+        form.add(scrollAcciones);
 
-        int resultado = JOptionPane.showConfirmDialog(this, form, "Crear Alarma",
-                JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+        int resultado = JOptionPane.showConfirmDialog(this, form, "Crear Alarma", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
 
         if (resultado != JOptionPane.OK_OPTION) return;
 
@@ -455,10 +469,16 @@ public class VentanaPrincipal extends JFrame implements  IAlarmaObserver {
             String titulo = tituloField.getText().trim();
             String descripcion = descripcionField.getText().trim();
             int frecuencia = Integer.parseInt(frecuenciaField.getText().trim());
-            TipoTratamiento tipo = (TipoTratamiento) tipoCombo.getSelectedItem();
+
+            Animal animalSeleccionado = (Animal) animalCombo.getSelectedItem();
+            List<TipoTratamiento> accionesSeleccionadas = accionesList.getSelectedValuesList();
 
             if (titulo.isEmpty()) {
                 throw new IllegalArgumentException("El título es obligatorio.");
+            }
+
+            if (animalSeleccionado == null || accionesSeleccionadas.isEmpty()) {
+                throw new IllegalArgumentException("Debe seleccionar un animal y al menos una acción.");
             }
 
             // --- Convertir java.util.Date (del Spinner) a LocalDateTime ---
@@ -467,11 +487,9 @@ public class VentanaPrincipal extends JFrame implements  IAlarmaObserver {
                     .atZone(ZoneId.systemDefault())
                     .toLocalDateTime();
 
-            Alarma nuevaAlarma = new Alarma(0, titulo, descripcion, frecuencia, fechaDisparo, tipo);
+            // Usamos el constructor actualizado (id=0 autoincremental, idAnimal, titulo, desc, frec, fecha, lista_acciones)
+            Alarma nuevaAlarma = new Alarma(0, animalSeleccionado.getId(), titulo, descripcion, frecuencia, fechaDisparo, accionesSeleccionadas);
             alarmaController.create(nuevaAlarma);
-
-            // --- CAMBIO: Ya no llamamos a refrescarListas() manualmente ---
-            // El AlarmaService notificará y actualizarEstado() se ejecutará automáticamente.
 
             JOptionPane.showMessageDialog(this, "Alarma creada con éxito.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
 
@@ -483,6 +501,7 @@ public class VentanaPrincipal extends JFrame implements  IAlarmaObserver {
     }
 
     private void mostrarDialogoCompletarAlarma() {
+        // 1. Obtener alarmas activas
         List<Alarma> alarmasActivas = alarmaController.getAll().stream()
                 .filter(a -> !a.isCompletada() && !a.getEstado().equals("FINALIZADO"))
                 .toList();
@@ -492,13 +511,25 @@ public class VentanaPrincipal extends JFrame implements  IAlarmaObserver {
             return;
         }
 
+        // 2. Obtener veterinarios registrados para la trazabilidad
+        List<Veterinario> veterinarios = usuarioController.listarVeterinarios();
+        if (veterinarios.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "No hay veterinarios registrados. Es obligatorio registrar al menos un veterinario para atender una alarma.", "Advertencia", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        // 3. Configurar componentes de la UI
         JComboBox<Alarma> alarmaCombo = new JComboBox<>(alarmasActivas.toArray(new Alarma[0]));
+        JComboBox<Veterinario> vetCombo = new JComboBox<>(veterinarios.toArray(new Veterinario[0]));
         JTextField comentarioField = new JTextField();
         JCheckBox finalizadoCheck = new JCheckBox("Marcar tratamiento como FINALIZADO");
 
-        JPanel form = new JPanel(new GridLayout(3, 2, 5, 5));
+        // 4. Armar el formulario
+        JPanel form = new JPanel(new GridLayout(4, 2, 5, 5)); // Modificado a 4 filas
         form.add(new JLabel("Seleccionar Alarma:"));
         form.add(alarmaCombo);
+        form.add(new JLabel("Atendido por (Veterinario):"));
+        form.add(vetCombo);
         form.add(new JLabel("Comentario/Registro:"));
         form.add(comentarioField);
         form.add(new JLabel("Estado del tratamiento:"));
@@ -509,14 +540,18 @@ public class VentanaPrincipal extends JFrame implements  IAlarmaObserver {
 
         if (resultado == JOptionPane.OK_OPTION) {
             Alarma alarmaSeleccionada = (Alarma) alarmaCombo.getSelectedItem();
-            if (alarmaSeleccionada != null) {
+            Veterinario vetSeleccionado = (Veterinario) vetCombo.getSelectedItem();
+
+            if (alarmaSeleccionada != null && vetSeleccionado != null) {
                 String comentario = comentarioField.getText().trim();
                 boolean finalizado = finalizadoCheck.isSelected();
 
-                // Usamos el nuevo flujo robusto
-                alarmaController.atenderAlarma(alarmaSeleccionada.getId(), comentario, finalizado);
+                // Llamamos al controller inyectando al veterinario responsable
+                alarmaController.atenderAlarma(alarmaSeleccionada.getId(), comentario, finalizado, vetSeleccionado);
 
-                JOptionPane.showMessageDialog(this, "Alarma atendida y registrada.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Alarma atendida y registrada exitosamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
+            } else {
+                JOptionPane.showMessageDialog(this, "Debe seleccionar una alarma y un veterinario válido.", "Error", JOptionPane.ERROR_MESSAGE);
             }
         }
     }
@@ -552,7 +587,7 @@ public class VentanaPrincipal extends JFrame implements  IAlarmaObserver {
         datetimeSpinner.setValue(fechaOriginal);
 
         JComboBox<TipoTratamiento> tipoCombo = new JComboBox<>(TipoTratamiento.values());
-        tipoCombo.setSelectedItem(alarmaSeleccionada.getTipoTratamiento());
+        tipoCombo.setSelectedItem(alarmaSeleccionada.getAcciones());
 
         JPanel form = new JPanel(new GridLayout(5, 2, 5, 5));
         form.add(new JLabel("Título:"));
@@ -574,7 +609,7 @@ public class VentanaPrincipal extends JFrame implements  IAlarmaObserver {
                 alarmaSeleccionada.setTitulo(tituloField.getText().trim());
                 alarmaSeleccionada.setDescripcion(descripcionField.getText().trim());
                 alarmaSeleccionada.setFrecuenciaDias(Integer.parseInt(frecuenciaField.getText().trim()));
-                alarmaSeleccionada.setTipoTratamiento((TipoTratamiento) tipoCombo.getSelectedItem());
+                alarmaSeleccionada.setAcciones(Collections.singletonList((TipoTratamiento) tipoCombo.getSelectedItem()));
 
                 Date spinnerDate = (Date) datetimeSpinner.getValue();
                 alarmaSeleccionada.setFechaProximoDisparo(spinnerDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime());

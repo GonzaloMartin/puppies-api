@@ -1,7 +1,8 @@
 package com.gudboy;
 
+import com.gudboy.domain.Usuario.Veterinario;
+import com.gudboy.domain.alarma.IHistorialClinicoService;
 import com.gudboy.domain.alarma.model.Alarma;
-import com.gudboy.domain.alarma.observer.IAlarmaObserver;
 import com.gudboy.domain.tratamiento.TipoTratamiento;
 import com.gudboy.repository.AlarmaRepositoryEnMemoria;
 import com.gudboy.service.AlarmaService;
@@ -11,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -18,12 +20,31 @@ public class AlarmaTest {
 
     private AlarmaService alarmaService;
     private AlarmaRepositoryEnMemoria repository;
+    private IHistorialClinicoService historialMock;
+    private Veterinario veterinarioDummy;
 
     @BeforeEach
     void setUp() {
-        // Reiniciamos el repositorio y el servicio antes de cada test para tener un entorno limpio
+        // 1. Preparamos el repositorio en memoria
         repository = new AlarmaRepositoryEnMemoria();
-        alarmaService = new AlarmaService(repository);
+
+        // 2. Simulamos el servicio de historial clínico para aislar el test de la BD
+        historialMock = (idAnimal, detalle, veterinario) -> {
+            // No hacemos nada, solo simulamos que el contrato se cumple y no lanza excepciones
+        };
+
+        // 3. Instanciamos el servicio inyectando ambas dependencias
+        alarmaService = new AlarmaService(repository, historialMock);
+
+        // 4. Preparamos un Veterinario de prueba para la trazabilidad
+        // Nota: Si tu clase Veterinario no tiene este constructor o setters, ajusta esto a tu modelo real.
+        // Aquí usamos un objeto anónimo básico para sortear la validación de la firma.
+        veterinarioDummy = new Veterinario() {
+            @Override
+            public String getNombre() { return "Juan"; }
+            @Override
+            public String getApellido() { return "Perez"; }
+        };
     }
 
     // ==========================================
@@ -33,7 +54,7 @@ public class AlarmaTest {
     @Test
     void reprogramarAlarma_DebeIncrementarFechaSegunFrecuencia() {
         LocalDateTime fechaInicial = LocalDateTime.of(2026, 6, 1, 10, 0);
-        Alarma alarma = new Alarma(1, "Antiparasitario", "Dosis mensual", 30, fechaInicial, TipoTratamiento.COLOCAR_ANTIPARASITARIOS);
+        Alarma alarma = new Alarma(1, UUID.randomUUID(), "Antiparasitario", "Dosis mensual", 30, fechaInicial, List.of(TipoTratamiento.COLOCAR_ANTIPARASITARIOS));
 
         alarma.reprogramar();
 
@@ -45,7 +66,7 @@ public class AlarmaTest {
 
     @Test
     void marcarCompletado_DebeCambiarEstadoYFlag() {
-        Alarma alarma = new Alarma(1, "Control Nutricional", "Revisión de dieta", 1, LocalDateTime.now(), TipoTratamiento.CHEQUEAR_NUTRICION);
+        Alarma alarma = new Alarma(1, UUID.randomUUID(), "Control Nutricional", "Revisión de dieta", 1, LocalDateTime.now(), List.of(TipoTratamiento.CHEQUEAR_NUTRICION));
 
         alarma.marcarCompletado();
 
@@ -55,7 +76,7 @@ public class AlarmaTest {
 
     @Test
     void marcarTratamientoFinalizado_DebeCambiarEstadoAFinalizadoYCompletada() {
-        Alarma alarma = new Alarma(1, "Control final", "Alta médica", 1, LocalDateTime.now(), TipoTratamiento.CONTROL_DE_PARASITOS);
+        Alarma alarma = new Alarma(1, UUID.randomUUID(), "Control final", "Alta médica", 1, LocalDateTime.now(), List.of(TipoTratamiento.CONTROL_DE_PARASITOS));
 
         alarma.marcarTratamientoFinalizado();
 
@@ -64,30 +85,30 @@ public class AlarmaTest {
     }
 
     @Test
-    void escribirComentario_DebeConcatenarElComentarioALaDescripcion() {
-        Alarma alarma = new Alarma(1, "Peso", "Controlar peso", 1, LocalDateTime.now(), TipoTratamiento.COMPROBAR_PESO_TAMANIO);
+    void escribirComentario_DebeConcatenarElComentarioALaDescripcionConFirma() {
+        Alarma alarma = new Alarma(1, UUID.randomUUID(), "Peso", "Controlar peso", 1, LocalDateTime.now(), List.of(TipoTratamiento.COMPROBAR_PESO_TAMANIO));
 
-        alarma.escribirComentario("Pesa 15kg, todo en orden");
+        alarma.escribirComentario("Pesa 15kg, todo en orden", veterinarioDummy);
 
         assertTrue(alarma.getDescripcion().contains("Controlar peso"), "Debe mantener la descripción original.");
-        assertTrue(alarma.getDescripcion().contains("Nota: Pesa 15kg, todo en orden"), "Debe incluir el comentario formateado.");
+        assertTrue(alarma.getDescripcion().contains("Nota (Juan Perez): Pesa 15kg, todo en orden"), "Debe incluir el comentario formateado con la firma del veterinario.");
     }
 
     @Test
     void verificarFecha_DebeRetornarTrueSiLaFechaEstaVencida() {
         LocalDateTime fechaPasada = LocalDateTime.now().minusDays(1);
-        Alarma alarmaVencida = new Alarma(1, "Vacuna", "Aplicar dosis anual", 365, fechaPasada, TipoTratamiento.COLOCAR_VACUNA);
+        Alarma alarmaVencida = new Alarma(1, UUID.randomUUID(), "Vacuna", "Aplicar dosis anual", 365, fechaPasada, List.of(TipoTratamiento.COLOCAR_VACUNA));
 
         assertTrue(alarmaVencida.verificarFecha(), "Debe retornar true porque la fecha programada ya pasó.");
     }
 
     // ==========================================
-    // 2. TESTS DE SERVICIO Y ARQUITECTURA (OBSERVER)
+    // 2. TESTS DE SERVICIO Y ARQUITECTURA (OBSERVER & HISTORIAL)
     // ==========================================
 
     @Test
     void crearAlarma_DebePersistirseEnElRepositorio() {
-        Alarma nuevaAlarma = new Alarma(0, "Test DB", "Prueba de guardado", 1, LocalDateTime.now(), TipoTratamiento.CONTROL_DE_PARASITOS);
+        Alarma nuevaAlarma = new Alarma(0, UUID.randomUUID(), "Test DB", "Prueba de guardado", 1, LocalDateTime.now(), List.of(TipoTratamiento.CONTROL_DE_PARASITOS));
 
         alarmaService.crearAlarma(nuevaAlarma);
 
@@ -99,7 +120,7 @@ public class AlarmaTest {
     @Test
     void actualizarAlarma_DebePersistirCambiosYNotificarAlObserver() {
         // 1. Arrange
-        Alarma alarma = new Alarma(0, "Original", "Desc", 1, LocalDateTime.now(), TipoTratamiento.CONTROL_DE_PARASITOS);
+        Alarma alarma = new Alarma(0, UUID.randomUUID(), "Original", "Desc", 1, LocalDateTime.now(), List.of(TipoTratamiento.CONTROL_DE_PARASITOS));
         alarmaService.crearAlarma(alarma);
         Alarma guardada = alarmaService.obtenerTodas().get(0);
 
@@ -119,7 +140,7 @@ public class AlarmaTest {
     @Test
     void atenderAlarma_SinFinalizar_DebeMarcarCompletadaAgregarComentarioYNotificar() {
         // 1. Arrange
-        Alarma alarma = new Alarma(0, "Revisión", "Control de rutina", 1, LocalDateTime.now(), TipoTratamiento.CHEQUEAR_NUTRICION);
+        Alarma alarma = new Alarma(0, UUID.randomUUID(), "Revisión", "Control de rutina", 1, LocalDateTime.now(), List.of(TipoTratamiento.CHEQUEAR_NUTRICION));
         alarmaService.crearAlarma(alarma);
         int idGenerado = alarmaService.obtenerTodas().get(0).getId();
 
@@ -127,19 +148,20 @@ public class AlarmaTest {
         alarmaService.suscribir(a -> fueNotificado[0] = true);
 
         // 2. Act (false = no finaliza el tratamiento)
-        alarmaService.atenderAlarma(idGenerado, "Todo normal", false);
+        alarmaService.atenderAlarma(idGenerado, "Todo normal", false, veterinarioDummy);
 
         // 3. Assert
         Alarma atendida = alarmaService.obtenerAlarma(idGenerado);
         assertEquals("COMPLETADA", atendida.getEstado());
         assertTrue(atendida.getDescripcion().contains("Todo normal"), "El comentario debió guardarse.");
+        assertTrue(atendida.getDescripcion().contains("Juan Perez"), "La firma del veterinario debe estar registrada.");
         assertTrue(fueNotificado[0], "El observer debió ser notificado.");
     }
 
     @Test
     void atenderAlarma_ConFinalizar_DebeMarcarFinalizadoYNotificar() {
         // 1. Arrange
-        Alarma alarma = new Alarma(0, "Cura", "Última dosis", 1, LocalDateTime.now(), TipoTratamiento.COLOCAR_ANTIPARASITARIOS);
+        Alarma alarma = new Alarma(0, UUID.randomUUID(), "Cura", "Última dosis", 1, LocalDateTime.now(), List.of(TipoTratamiento.COLOCAR_ANTIPARASITARIOS));
         alarmaService.crearAlarma(alarma);
         int idGenerado = alarmaService.obtenerTodas().get(0).getId();
 
@@ -147,7 +169,7 @@ public class AlarmaTest {
         alarmaService.suscribir(a -> fueNotificado[0] = true);
 
         // 2. Act (true = finaliza el tratamiento)
-        alarmaService.atenderAlarma(idGenerado, "Paciente dado de alta", true);
+        alarmaService.atenderAlarma(idGenerado, "Paciente dado de alta", true, veterinarioDummy);
 
         // 3. Assert
         Alarma atendida = alarmaService.obtenerAlarma(idGenerado);
@@ -159,10 +181,10 @@ public class AlarmaTest {
     @Test
     void verificarEstadoAlarmas_SoloDebeNotificarAlarmasVencidasYNoCompletadas() {
         // 1. Arrange
-        alarmaService.crearAlarma(new Alarma(0, "Vencida", "Debe disparar", 1, LocalDateTime.now().minusHours(1), TipoTratamiento.COLOCAR_ANTIPARASITARIOS));
-        alarmaService.crearAlarma(new Alarma(0, "Futura", "No debe disparar", 1, LocalDateTime.now().plusDays(1), TipoTratamiento.CONTROL_DE_PARASITOS));
+        alarmaService.crearAlarma(new Alarma(0, UUID.randomUUID(), "Vencida", "Debe disparar", 1, LocalDateTime.now().minusHours(1), List.of(TipoTratamiento.COLOCAR_ANTIPARASITARIOS)));
+        alarmaService.crearAlarma(new Alarma(0, UUID.randomUUID(), "Futura", "No debe disparar", 1, LocalDateTime.now().plusDays(1), List.of(TipoTratamiento.CONTROL_DE_PARASITOS)));
 
-        Alarma completada = new Alarma(0, "Completada", "Ya se hizo", 1, LocalDateTime.now().minusHours(2), TipoTratamiento.CHEQUEAR_NUTRICION);
+        Alarma completada = new Alarma(0, UUID.randomUUID(), "Completada", "Ya se hizo", 1, LocalDateTime.now().minusHours(2), List.of(TipoTratamiento.CHEQUEAR_NUTRICION));
         completada.marcarCompletado();
         alarmaService.crearAlarma(completada);
 

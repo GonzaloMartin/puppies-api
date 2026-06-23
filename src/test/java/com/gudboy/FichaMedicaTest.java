@@ -17,6 +17,8 @@ import com.gudboy.service.FichaMedicaService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -30,6 +32,16 @@ class FichaMedicaTest {
         @Override public void actualizar(FichaMedica f)  { store.put(f.getFichaMedicaId(), f); }
         @Override public Optional<FichaMedica> buscarPorId(UUID id) { return Optional.ofNullable(store.get(id)); }
         @Override public List<FichaMedica> listarTodas() { return new ArrayList<>(store.values()); }
+
+        @Override
+        public FichaMedica getByAnimalId(UUID idAnimal) {
+            return null;
+        }
+
+        @Override
+        public void update(FichaMedica ficha) {
+
+        }
     }
 
     private FichaMedicaService service;
@@ -144,7 +156,8 @@ class FichaMedicaTest {
     void agregarComentarioMedico_aparece_enHistorial() {
         FichaMedica ficha = service.crearFicha(perro);
         Veterinario vet = new Veterinario("Ana", "López", "ana@gudboy.com", "1234", 99, "Clínica");
-        ComentarioMedico comentario = new ComentarioMedico(vet, "Animal en buen estado", new java.util.Date());
+        ComentarioMedico comentario;
+        comentario = new ComentarioMedico(vet, "Animal en buen estado", LocalDateTime.now());
 
         service.agregarComentarioMedico(ficha.getFichaMedicaId(), comentario);
 

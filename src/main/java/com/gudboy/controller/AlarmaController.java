@@ -55,7 +55,8 @@ public class AlarmaController {
         service.verificarEstadoAlarmas();
     }
 
-    public void atenderAlarma(int id, String comentario, boolean tratamientoFinalizado) {
-        service.atenderAlarma(id, comentario, tratamientoFinalizado);
+    // Reemplaza el método actual por este
+    public void atenderAlarma(int id, String comentario, boolean tratamientoFinalizado, com.gudboy.domain.Usuario.Veterinario veterinario) {
+        service.atenderAlarma(id, comentario, tratamientoFinalizado, veterinario);
     }
 }

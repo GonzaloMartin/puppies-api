@@ -77,6 +77,16 @@ public class FichaMedicaRepositoryMySQL implements IFichaMedicaRepository {
         return lista;
     }
 
+    @Override
+    public FichaMedica getByAnimalId(UUID idAnimal) {
+        return null;
+    }
+
+    @Override
+    public void update(FichaMedica ficha) {
+
+    }
+
     private FichaMedica mapear(ResultSet rs) throws SQLException {
         UUID animalId = UUID.fromString(rs.getString("animal_id"));
         Animal animal = animalRepository.buscarPorId(animalId)

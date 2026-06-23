@@ -11,4 +11,8 @@ public interface IFichaMedicaRepository {
     void actualizar(FichaMedica ficha);
     Optional<FichaMedica> buscarPorId(UUID id);
     List<FichaMedica> listarTodas();
+
+    FichaMedica getByAnimalId(UUID idAnimal);
+
+    void update(FichaMedica ficha);
 }

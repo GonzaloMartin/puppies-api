@@ -1,5 +1,7 @@
 package com.gudboy.service;
 
+import com.gudboy.domain.Usuario.Veterinario;
+import com.gudboy.domain.alarma.IHistorialClinicoService;
 import com.gudboy.domain.animal.model.Animal;
 import com.gudboy.domain.comentarioMedico.ComentarioMedico;
 import com.gudboy.domain.fichaMedica.exportador.Exportador;
@@ -7,11 +9,12 @@ import com.gudboy.domain.fichaMedica.model.FichaMedica;
 import com.gudboy.domain.tratamiento.Tratamiento;
 import com.gudboy.repository.IFichaMedicaRepository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-public class FichaMedicaService {
+public class FichaMedicaService implements IHistorialClinicoService {
 
     private final IFichaMedicaRepository repository;
 
@@ -58,5 +61,29 @@ public class FichaMedicaService {
 
     public List<FichaMedica> listarTodas() {
         return repository.listarTodas();
+    }
+
+    @Override
+    public void registrarAtencion(UUID idAnimal, String detalle, Veterinario veterinario) {
+        // 1. Buscar la Ficha Médica correspondiente a ese animal en la base de datos
+        FichaMedica ficha = repository.getByAnimalId(idAnimal);
+
+        if (ficha != null) {
+            // 2. Crear el objeto ComentarioMedico
+            // (Asumo este constructor basado en las buenas prácticas, ajustalo a la clase real de tu compañero)
+            ComentarioMedico nuevoComentario = new ComentarioMedico(
+                    veterinario,
+                    detalle,
+                    LocalDateTime.now()
+            );
+
+            // 3. Inyectar el comentario en el historial interno de la Ficha Médica
+            ficha.agregarComentarioMedico(nuevoComentario);
+
+            // 4. Persistir los cambios en la base de datos
+            repository.update(ficha);
+        } else {
+            System.err.println("Error: No se encontró una ficha médica para el animal con ID: " + idAnimal);
+        }
     }
 }

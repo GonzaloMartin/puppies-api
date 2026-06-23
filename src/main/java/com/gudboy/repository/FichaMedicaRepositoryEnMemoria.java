@@ -32,4 +32,14 @@ public class FichaMedicaRepositoryEnMemoria implements IFichaMedicaRepository {
     public List<FichaMedica> listarTodas() {
         return new ArrayList<>(fichas.values());
     }
+
+    @Override
+    public FichaMedica getByAnimalId(UUID idAnimal) {
+        return null;
+    }
+
+    @Override
+    public void update(FichaMedica ficha) {
+
+    }
 }

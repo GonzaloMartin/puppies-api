@@ -1,6 +1,7 @@
 package com.gudboy.domain.comentarioMedico;
 import com.gudboy.domain.Usuario.Veterinario;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.UUID;
 
@@ -8,9 +9,9 @@ public class ComentarioMedico {
     private final UUID comentarioID;
     private Veterinario veterinario;
     private String casillaComentario;
-    private Date fecha;
+    private LocalDateTime fecha;
 
-    public ComentarioMedico(Veterinario veterinario, String casillaComentario, Date fecha){
+    public ComentarioMedico(Veterinario veterinario, String casillaComentario, LocalDateTime fecha){
         this.comentarioID = UUID.randomUUID();
         this.veterinario = veterinario;
         this.casillaComentario = casillaComentario;
@@ -37,15 +38,15 @@ public class ComentarioMedico {
         return comentarioID;
     }
 
-    private void setFecha(Date fecha) {
+    private void setFecha(LocalDateTime fecha) {
         this.fecha = fecha;
     }
 
-    public Date getFecha() {
+    public LocalDateTime getFecha() {
         return fecha;
     }
 
-    public void modificarComentario(Veterinario veterinario, String casillaComentario, Date fecha){
+    public void modificarComentario(Veterinario veterinario, String casillaComentario, LocalDateTime fecha){
         setVeterinario(veterinario);
         setCasillaComentario(casillaComentario);
         setFecha(fecha);

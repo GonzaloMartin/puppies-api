@@ -1,8 +1,10 @@
 package com.gudboy.domain.alarma.model;
 
 import com.gudboy.domain.tratamiento.TipoTratamiento;
-
+import com.gudboy.domain.Usuario.Veterinario; // Necesario para registrar quién atiende
+import java.util.List;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 public class Alarma {
     private int id;
@@ -11,19 +13,22 @@ public class Alarma {
     private int frecuenciaDias;
     private LocalDateTime fechaProximoDisparo;
     private String estado;
-    private TipoTratamiento tipoTratamiento;
     private boolean completada;
     private LocalDateTime fechaCompletado;
+    private List<TipoTratamiento> acciones; // Multiplicidad de acciones
+    private UUID idAnimal; // Vinculación con el paciente
 
-    public Alarma(int id, String titulo, String descripcion, int frecuenciaDias, LocalDateTime fechaProximoDisparo, TipoTratamiento tipoTratamiento) {
+    public Alarma(int id, UUID idAnimal,String titulo, String descripcion, int frecuenciaDias, LocalDateTime fechaProximoDisparo, List<TipoTratamiento> acciones) {
         this.id = id;
+        this.idAnimal = idAnimal;
         this.titulo = titulo;
         this.descripcion = descripcion;
         this.frecuenciaDias = frecuenciaDias;
         this.fechaProximoDisparo = fechaProximoDisparo;
-        this.tipoTratamiento = tipoTratamiento;
+        this.acciones = acciones;
         this.estado = "ACTIVA";
         this.completada = false;
+
     }
 
     // Constructor vacío para uso del Repository
@@ -45,8 +50,9 @@ public class Alarma {
         this.fechaCompletado = LocalDateTime.now();
     }
 
-    public void escribirComentario(String comentario) {
-        this.descripcion = this.descripcion + " | Nota: " + comentario;
+    public void escribirComentario(String comentario, Veterinario veterinario) {
+        String firma = (veterinario != null) ? veterinario.getNombre() + " " + veterinario.getApellido() : "Desconocido";
+        this.descripcion = this.descripcion + " | Nota (" + firma + "): " + comentario;
     }
 
     public void marcarTratamientoFinalizado() {
@@ -69,13 +75,15 @@ public class Alarma {
         return frecuenciaDias;
     }
 
+    public UUID getIdAnimal() { return idAnimal; }
+    public void setIdAnimal(UUID idAnimal) { this.idAnimal = idAnimal; }
+    public List<TipoTratamiento> getAcciones() { return acciones; }
+    public void setAcciones(List<TipoTratamiento> acciones) { this.acciones = acciones; }
+
     public String getFechaProximoDisparo() {
         return fechaProximoDisparo.toString();
     }
 
-    public TipoTratamiento getTipoTratamiento() {
-        return tipoTratamiento;
-    }
 
     @Override
     public String toString() {
@@ -87,10 +95,18 @@ public class Alarma {
     public void setDescripcion(String descripcion) { this.descripcion = descripcion; }
     public void setFrecuenciaDias(int frecuenciaDias) { this.frecuenciaDias = frecuenciaDias; }
     public void setFechaProximoDisparo(LocalDateTime fechaProximoDisparo) { this.fechaProximoDisparo = fechaProximoDisparo; }
-    public void setTipoTratamiento(TipoTratamiento tipoTratamiento) { this.tipoTratamiento = tipoTratamiento; }
+
 
     // AÑADIR ESTE GETTER (Lo necesitamos para el JSpinner de la UI):
     public LocalDateTime getFechaProximoDisparoOriginal() {
         return fechaProximoDisparo;
     }
+
+    public void setEstado(String estado) {
+    }
+
+    public void setCompletada(boolean completada) {
+    }
+
+
 }

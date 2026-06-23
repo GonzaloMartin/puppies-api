@@ -13,6 +13,8 @@ public class Usuario {
         this.telefono = telefono;
     }
 
+    public Usuario(){}
+
     public String getNombre() {
         return nombre;
     }
