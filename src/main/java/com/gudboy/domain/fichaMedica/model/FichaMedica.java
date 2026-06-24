@@ -1,5 +1,6 @@
 package com.gudboy.domain.fichaMedica.model;
 
+import com.gudboy.domain.Usuario.Veterinario;
 import com.gudboy.domain.animal.model.Animal;
 import com.gudboy.domain.comentarioMedico.ComentarioMedico;
 import com.gudboy.domain.fichaMedica.exportador.Exportador;
@@ -24,7 +25,7 @@ public class FichaMedica {
         this.peso = animal.getPeso();
         this.altura = (float) animal.getAltura();
         this.edad = animal.getEdad();
-        this.historial = new HistorialClinico(animal, new ArrayList<>(), new ArrayList<>());
+        this.historial = new HistorialClinico(animal);
     }
 
     public String obtenerDatosTecnicos() {
@@ -44,11 +45,11 @@ public class FichaMedica {
     }
 
     public void agregarTratamiento(Tratamiento tratamiento) {
-        historial.getListaTratamiento().add(tratamiento);
+        historial.agregarTratamiento(tratamiento);
     }
 
     public void agregarComentarioMedico(ComentarioMedico comentario) {
-        historial.getListaComentario().add(comentario);
+        historial.agregarComentario(comentario);
     }
 
     // --- getters ---

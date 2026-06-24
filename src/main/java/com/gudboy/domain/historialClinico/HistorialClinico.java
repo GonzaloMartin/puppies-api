@@ -8,17 +8,32 @@ import java.util.ArrayList;
 import java.util.UUID;
 
 public class HistorialClinico {
+
     private final UUID historialID;
-    private Animal animal;
-    private ArrayList<Tratamiento> listaTratamiento;
-    private ArrayList<ComentarioMedico> listaComentario;
+    private final Animal animal;
 
+    private final ArrayList<Tratamiento> listaTratamiento;
+    private final ArrayList<ComentarioMedico> listaComentario;
 
-    public HistorialClinico(Animal animal, ArrayList<Tratamiento> listaTratamiento, ArrayList<ComentarioMedico> listaComentario) {
+    public HistorialClinico(Animal animal) {
+
         this.historialID = UUID.randomUUID();
         this.animal = animal;
-        this.listaComentario = listaComentario;
-        this.listaTratamiento = listaTratamiento;
+
+        this.listaTratamiento = new ArrayList<>();
+        this.listaComentario = new ArrayList<>();
+    }
+
+    public void agregarTratamiento(
+            Tratamiento tratamiento) {
+
+        listaTratamiento.add(tratamiento);
+    }
+
+    public void agregarComentario(
+            ComentarioMedico comentario) {
+
+        listaComentario.add(comentario);
     }
 
     public ArrayList<Tratamiento> getListaTratamiento() {
@@ -36,23 +51,4 @@ public class HistorialClinico {
     public Animal getAnimal() {
         return animal;
     }
-
-    private void setAnimal(Animal animal){
-        this.animal = animal;
-    }
-
-    private void setListaTratamiento(ArrayList<Tratamiento> listaTratamiento){
-        this.listaTratamiento = listaTratamiento;
-    }
-
-    private void setListaComentario(ArrayList<ComentarioMedico> listaComentario){
-        this.listaComentario = listaComentario;
-    }
-
-    public void modificarHistorial(Animal animal, ArrayList<Tratamiento> t, ArrayList<ComentarioMedico> c){
-        setAnimal(animal);
-        setListaTratamiento(t);
-        setListaComentario(c);
-    }
-
 }
