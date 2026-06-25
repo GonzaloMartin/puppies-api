@@ -11,9 +11,7 @@ import com.gudboy.domain.seguimiento.adapter.*;
 import com.gudboy.domain.seguimiento.model.*;
 import com.gudboy.domain.seguimiento.observer.*;
 import com.gudboy.domain.seguimiento.service.*;
-import com.gudboy.repository.FichaMedicaRepositoryEnMemoria;
-import com.gudboy.repository.SeguimientoRepositoryEnMemoria;
-import com.gudboy.repository.VisitaRepositoryEnMemoria;
+import com.gudboy.repository.*;
 import com.gudboy.service.SeguimientoService;
 import com.gudboy.service.VisitaService;
 import com.gudboy.controller.*;
@@ -27,9 +25,11 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class SeguimientoTest {
 
+    private static final boolean USE_MYSQL = true;
+
     private SeguimientoService seguimientoService;
-    private FichaMedicaRepositoryEnMemoria fichaMedicaRepository;
-    private VisitaRepositoryEnMemoria visitaRepository;
+    private IFichaMedicaRepository fichaMedicaRepository;
+    private IVisitaRepository visitaRepository;
     private VisitaService visitaService;
     private SeguimientoController seguimientoController;
     private VisitaController visitaController;
@@ -41,41 +41,82 @@ public class SeguimientoTest {
 
     @BeforeEach
     void setUp() {
-        // OPCIÓN POR DEFECTO: En Memoria (Para tests local)
-        SeguimientoRepositoryEnMemoria seguimientoRepository = new SeguimientoRepositoryEnMemoria();
-        fichaMedicaRepository = new FichaMedicaRepositoryEnMemoria();
-        visitaRepository = new VisitaRepositoryEnMemoria();
+        ISeguimientoRepository seguimientoRepository;
+        if (USE_MYSQL) {
+            // Clean up database for a completely clean test run
+            try (java.sql.Statement stmt = com.gudboy.infrastructure.ConexionMySQL.getInstancia().getConnection().createStatement()) {
+                stmt.executeUpdate("DELETE FROM visitas");
+                stmt.executeUpdate("DELETE FROM seguimiento");
+                stmt.executeUpdate("DELETE FROM alarmas");
+                stmt.executeUpdate("DELETE FROM adopcion_animal");
+                stmt.executeUpdate("DELETE FROM adopcion");
+                stmt.executeUpdate("DELETE FROM ficha_medica");
+                stmt.executeUpdate("DELETE FROM animal");
+                stmt.executeUpdate("DELETE FROM usuario");
+            } catch (java.sql.SQLException e) {
+                e.printStackTrace();
+            }
 
-        // OPCIÓN MYSQL:
-        // IAnimalRepository animalRepoMySQL = new AnimalRepositoryMySQL();
-        // IUsuarioRepository usuarioRepoMySQL = new UsuarioRepositoryMySQL();
-        // IAdopcionRepository adopcionRepoMySQL = new AdopcionRepositoryMySQL(animalRepoMySQL, usuarioRepoMySQL);
+            IAnimalRepository animalRepoMySQL = new AnimalRepositoryMySQL();
+            IUsuarioRepository usuarioRepoMySQL = new UsuarioRepositoryMySQL();
+            IAdopcionRepository adopcionRepoMySQL = new AdopcionRepositoryMySQL(animalRepoMySQL, usuarioRepoMySQL);
 
-        // seguimientoRepository = new SeguimientoRepositoryMySQL(adopcionRepoMySQL, usuarioRepoMySQL);
-        // fichaMedicaRepository = new FichaMedicaRepositoryMySQL(animalRepoMySQL);
-        // visitaRepository = new VisitaRepositoryEnMemoria(); // (o custom MySQL si hiciera falta)
+            seguimientoRepository = new SeguimientoRepositoryMySQL(adopcionRepoMySQL, usuarioRepoMySQL);
+            fichaMedicaRepository = new FichaMedicaRepositoryMySQL(animalRepoMySQL);
+            visitaRepository = new VisitaRepositoryMySQL(seguimientoRepository);
+
+            // Create entities for testing
+            animal1 = new AnimalDomestico("Firulais", "Perro", 0.5, 12.0, 3, "SALUDABLE");
+            animal2 = new AnimalDomestico("Michi", "Gato", 0.25, 4.0, 2, "SALUDABLE");
+
+            FichaMedica ficha1 = new FichaMedica(animal1);
+            FichaMedica ficha2 = new FichaMedica(animal2);
+
+            adoptante = new Visitador(
+                    "Gonzalo", "Martin", "gmontalvo@uade.edu.ar", "+5491112345678",
+                    EstadoCivil.SOLTERO, Ocupacion.ESTUDIANTE, "Compañía", "Perros y Gatos", false
+            );
+
+            Veterinario responsableAdopcion = new Veterinario("Juan", "Perez", "juan@gudboy.com", "+5491187654321", 12345, "Clínica general");
+
+            adopcion = new Adopcion(animal1, animal2, adoptante, responsableAdopcion);
+
+            // Persist base entities in MySQL
+            usuarioRepoMySQL.guardar(adoptante);
+            usuarioRepoMySQL.guardar(responsableAdopcion);
+            animalRepoMySQL.guardar(animal1);
+            animalRepoMySQL.guardar(animal2);
+            fichaMedicaRepository.guardar(ficha1);
+            fichaMedicaRepository.guardar(ficha2);
+            adopcionRepoMySQL.guardar(adopcion);
+
+        } else {
+            seguimientoRepository = new SeguimientoRepositoryEnMemoria();
+            fichaMedicaRepository = new FichaMedicaRepositoryEnMemoria();
+            visitaRepository = new VisitaRepositoryEnMemoria();
+
+            animal1 = new AnimalDomestico("Firulais", "Perro", 0.5, 12.0, 3, "SALUDABLE");
+            animal2 = new AnimalDomestico("Michi", "Gato", 0.25, 4.0, 2, "SALUDABLE");
+
+            FichaMedica ficha1 = new FichaMedica(animal1);
+            FichaMedica ficha2 = new FichaMedica(animal2);
+            fichaMedicaRepository.guardar(ficha1);
+            fichaMedicaRepository.guardar(ficha2);
+
+            adoptante = new Visitador(
+                    "Gonzalo", "Martin", "gmontalvo@uade.edu.ar", "+5491112345678",
+                    EstadoCivil.SOLTERO, Ocupacion.ESTUDIANTE, "Compañía", "Perros y Gatos", false
+            );
+
+            Veterinario responsableAdopcion = new Veterinario("Juan", "Perez", "juan@gudboy.com", "+5491187654321", 12345, "Clínica general");
+
+            adopcion = new Adopcion(animal1, animal2, adoptante, responsableAdopcion);
+        }
 
         seguimientoService = new SeguimientoService(seguimientoRepository, fichaMedicaRepository);
         visitaService = new VisitaService(visitaRepository, seguimientoRepository, fichaMedicaRepository);
         seguimientoController = new SeguimientoController(seguimientoService);
         visitaController = new VisitaController(visitaService);
-
-        animal1 = new AnimalDomestico("Firulais", "Perro", 0.5, 12.0, 3, "SALUDABLE");
-        animal2 = new AnimalDomestico("Michi", "Gato", 0.25, 4.0, 2, "SALUDABLE");
-
-        FichaMedica ficha1 = new FichaMedica(animal1);
-        FichaMedica ficha2 = new FichaMedica(animal2);
-        fichaMedicaRepository.guardar(ficha1);
-        fichaMedicaRepository.guardar(ficha2);
-
-        adoptante = new Visitador(
-                "Gonzalo", "Martin", "gmontalvo@uade.edu.ar", "+5491112345678",
-                EstadoCivil.SOLTERO, Ocupacion.ESTUDIANTE, "Compañía", "Perros y Gatos", false
-        );
-
-        Veterinario responsableAdopcion = new Veterinario("Juan", "Perez", "juan@gudboy.com", "+5491187654321", 12345, "Clínica general");
-
-        adopcion = new Adopcion(animal1, animal2, adoptante, responsableAdopcion);
     }
 
     @Test
@@ -141,9 +182,10 @@ public class SeguimientoTest {
 
         seguimientoService.registrarResultadoVisita(visita.getId(), encuestaFavorable, "Excelente cuidado, patio amplio y limpio.", true);
 
-        assertTrue(visita.isCompletada(), "La visita debe quedar marcada como completada");
-        assertNotNull(visita.getFechaReal(), "La fecha real debe estar registrada");
-        assertEquals("Excelente cuidado, patio amplio y limpio.", visita.getComentarios());
+        Visita visitaGuardada = visitaRepository.buscarPorId(visita.getId()).orElse(visita);
+        assertTrue(visitaGuardada.isCompletada(), "La visita debe quedar marcada como completada");
+        assertNotNull(visitaGuardada.getFechaReal(), "La fecha real debe estar registrada");
+        assertEquals("Excelente cuidado, patio amplio y limpio.", visitaGuardada.getComentarios());
 
         FichaMedica fm1 = fichaMedicaRepository.getByAnimalId(animal1.getId());
         FichaMedica fm2 = fichaMedicaRepository.getByAnimalId(animal2.getId());
@@ -165,7 +207,8 @@ public class SeguimientoTest {
 
         seguimientoService.registrarResultadoVisita(visita.getId(), encuestaFinal, "Todo excelente. Seguimiento concluido con éxito.", false);
 
-        assertEquals(EstadoSeguimiento.FINALIZADO, s.getEstado(), "El seguimiento debe estar en estado FINALIZADO");
+        Seguimiento sGuardado = seguimientoService.getById(s.getId()).orElse(s);
+        assertEquals(EstadoSeguimiento.FINALIZADO, sGuardado.getEstado(), "El seguimiento debe estar en estado FINALIZADO");
         assertFalse(seguimientoService.estaActivo(s.getId()), "El seguimiento ya no debe figurar como activo");
     }
 
@@ -195,15 +238,17 @@ public class SeguimientoTest {
         
         // 3. Test VisitaController.marcarCompletada
         visitaController.marcarCompletada(v1.getId());
-        assertTrue(v1.isCompletada(), "La visita 1 debe estar completada");
+        Visita v1Guardada = visitaRepository.buscarPorId(v1.getId()).orElse(v1);
+        assertTrue(v1Guardada.isCompletada(), "La visita 1 debe estar completada");
         
         // 4. Test VisitaController.registrarResultado
         Visita v2 = list.get(1);
         Encuesta encuesta = new Encuesta(CalificacionEnum.BUENO, CalificacionEnum.BUENO, CalificacionEnum.BUENO);
         visitaController.registrarResultado(v2.getId(), encuesta, "Excelente todo", true);
-        assertTrue(v2.isCompletada(), "La visita 2 debe estar completada");
-        assertEquals("Excelente todo", v2.getComentarios());
-        assertTrue(v2.requiereContinuarVisitas());
+        Visita v2Guardada = visitaRepository.buscarPorId(v2.getId()).orElse(v2);
+        assertTrue(v2Guardada.isCompletada(), "La visita 2 debe estar completada");
+        assertEquals("Excelente todo", v2Guardada.getComentarios());
+        assertTrue(v2Guardada.requiereContinuarVisitas());
     }
 
     @Test
@@ -311,7 +356,7 @@ public class SeguimientoTest {
     }
 
     @Test
-    void testUmlStrictOverloadsAndMethods() {
+    void testUmlRelleno() {
         // 1. Test SeguimientoService.crear (overload)
         Seguimiento s = seguimientoService.crear(adopcion, adoptante, DiaSemana.LUNES, "10:00", "12:00", PreferenciaRecordatorio.WHATSAPP);
         assertNotNull(s);
@@ -328,7 +373,8 @@ public class SeguimientoTest {
         Visita v = s.getVisitas().get(0);
         Encuesta encuesta = new Encuesta(CalificacionEnum.BUENO, CalificacionEnum.BUENO, CalificacionEnum.BUENO);
         visitaService.registrarResultado(v, encuesta, "Impecable", true);
-        assertTrue(v.isCompletada());
+        Visita vGuardada = visitaRepository.buscarPorId(v.getId()).orElse(v);
+        assertTrue(vGuardada.isCompletada());
 
         // 4. Test VisitaService.listarPorSeguimiento(Seguimiento) (overload)
         List<Visita> visitas = visitaService.listarPorSeguimiento(s);
@@ -341,11 +387,15 @@ public class SeguimientoTest {
 
         // 6. Test SeguimientoService.finalizar (overload)
         seguimientoService.finalizar(s.getId());
-        assertEquals(EstadoSeguimiento.FINALIZADO, s.getEstado());
+        Seguimiento sGuardado = seguimientoService.getById(s.getId()).orElse(s);
+        assertEquals(EstadoSeguimiento.FINALIZADO, sGuardado.getEstado());
     }
 }
 
 /*
+docker compose down -v
+docker compose up -d
+
 mvn test -Dtest=SeguimientoTest
 mvn test -Dtest=SeguimientoTest -Dverbose=true
  */
