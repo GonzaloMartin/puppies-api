@@ -43,6 +43,10 @@ public class SeguimientoRepositoryMySQL implements ISeguimientoRepository {
 
     @Override
     public void guardar(Seguimiento seguimiento) {
+        if (buscarPorId(seguimiento.getId()).isPresent()) {
+            actualizar(seguimiento);
+            return;
+        }
         String sql = "INSERT INTO seguimiento (id, adopcion_id, responsable_email, dia_semana, horario_desde, horario_hasta, estado, preferencia_recordatorio) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         try {
             int adopcionId = obtenerAdopcionId(seguimiento.getAdopcion());
@@ -111,6 +115,10 @@ public class SeguimientoRepositoryMySQL implements ISeguimientoRepository {
 
     @Override
     public void guardarVisita(Visita visita) {
+        if (buscarVisitaPorId(visita.getId()).isPresent()) {
+            actualizarVisita(visita);
+            return;
+        }
         String sql = "INSERT INTO visitas (id, seguimiento_id, fecha_programada, fecha_real, comentarios, completada, continuar_visitas, estado_general_animal, limpieza_lugar, ambiente) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         try (PreparedStatement ps = conn().prepareStatement(sql)) {
             ps.setString(1, visita.getId().toString());
@@ -175,21 +183,25 @@ public class SeguimientoRepositoryMySQL implements ISeguimientoRepository {
         return Optional.empty();
     }
 
-    @Override
-    public List<Visita> listarVisitasPorSeguimiento(UUID seguimientoId) {
+    private List<Visita> listarVisitasPorSeguimiento(UUID seguimientoId, Seguimiento s) {
         List<Visita> lista = new ArrayList<>();
         String sql = "SELECT * FROM visitas WHERE seguimiento_id = ?";
         try (PreparedStatement ps = conn().prepareStatement(sql)) {
             ps.setString(1, seguimientoId.toString());
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    lista.add(mapearVisita(rs, null));
+                    lista.add(mapearVisita(rs, s));
                 }
             }
         } catch (SQLException e) {
             throw new RuntimeException("Error al listar visitas de seguimiento en MySQL", e);
         }
         return lista;
+    }
+
+    @Override
+    public List<Visita> listarVisitasPorSeguimiento(UUID seguimientoId) {
+        return listarVisitasPorSeguimiento(seguimientoId, null);
     }
 
     private Seguimiento mapear(ResultSet rs) throws SQLException {
@@ -206,7 +218,7 @@ public class SeguimientoRepositoryMySQL implements ISeguimientoRepository {
         Usuario responsable = buscarUsuarioPorEmail(responsableEmail);
 
         Seguimiento s = new Seguimiento(id, adopcion, responsable, diaSemana, horarioDesde, horarioHasta, estado, pref);
-        List<Visita> visitasDeSeguimiento = listarVisitasPorSeguimiento(id);
+        List<Visita> visitasDeSeguimiento = listarVisitasPorSeguimiento(id, s);
         for (Visita v : visitasDeSeguimiento) {
             Visita vConSeguimiento = new Visita(v.getId(), s, v.getFechaProgramada(), v.getFechaReal(), v.getComentarios(), v.isCompletada(), v.isContinuarVisitas());
             if (v.getEncuesta() != null) {

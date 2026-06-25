@@ -23,6 +23,10 @@ public class VisitaRepositoryMySQL implements IVisitaRepository {
 
     @Override
     public void guardar(Visita visita) {
+        if (buscarPorId(visita.getId()).isPresent()) {
+            actualizar(visita);
+            return;
+        }
         String sql = "INSERT INTO visitas (id, seguimiento_id, fecha_programada, fecha_real, comentarios, completada, continuar_visitas, estado_general_animal, limpieza_lugar, ambiente) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         try (PreparedStatement ps = conn().prepareStatement(sql)) {
             ps.setString(1, visita.getId().toString());
