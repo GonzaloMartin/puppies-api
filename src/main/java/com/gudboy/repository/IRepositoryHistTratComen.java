@@ -1,12 +1,14 @@
 package com.gudboy.repository;
 
-import java.util.List;
+import com.gudboy.domain.tratamiento.Tratamiento;
+
+import java.util.ArrayList;
 import java.util.UUID;
 
 public interface IRepositoryHistTratComen<T> {
-    void guardar(T entidad);
-    void actualizar(T entidad);
-    void eliminar(T entidad);
+    void guardar(UUID id);
+    void actualizar(UUID id);
+    void eliminar(UUID id); //ID de el objeto correspondiente. Aplica para todos.
     T buscarPorId(UUID id);
-    List<T> listarTodos();
+    ArrayList<T> listarTodos();
 }
