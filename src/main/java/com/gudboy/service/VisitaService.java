@@ -57,7 +57,7 @@ public class VisitaService {
     }
 
     public void marcarCompletada(Visita visita) {
-        visita.registrarResultado(null, "Completada sin encuesta detallada", true);
+        visita.marcarCompletada();
         visitaRepository.actualizar(visita);
     }
 

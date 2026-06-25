@@ -28,7 +28,6 @@ import static org.junit.jupiter.api.Assertions.*;
 public class SeguimientoTest {
 
     private SeguimientoService seguimientoService;
-    private SeguimientoRepositoryEnMemoria seguimientoRepository;
     private FichaMedicaRepositoryEnMemoria fichaMedicaRepository;
     private VisitaRepositoryEnMemoria visitaRepository;
     private VisitaService visitaService;
@@ -38,13 +37,12 @@ public class SeguimientoTest {
     private AnimalDomestico animal1;
     private AnimalDomestico animal2;
     private Visitador adoptante;
-    private Veterinario responsableAdopcion;
     private Adopcion adopcion;
 
     @BeforeEach
     void setUp() {
         // OPCIÓN POR DEFECTO: En Memoria (Para tests local)
-        seguimientoRepository = new SeguimientoRepositoryEnMemoria();
+        SeguimientoRepositoryEnMemoria seguimientoRepository = new SeguimientoRepositoryEnMemoria();
         fichaMedicaRepository = new FichaMedicaRepositoryEnMemoria();
         visitaRepository = new VisitaRepositoryEnMemoria();
 
@@ -75,7 +73,7 @@ public class SeguimientoTest {
                 EstadoCivil.SOLTERO, Ocupacion.ESTUDIANTE, "Compañía", "Perros y Gatos", false
         );
 
-        responsableAdopcion = new Veterinario("Juan", "Perez", "juan@gudboy.com", "+5491187654321", 12345, "Clínica general");
+        Veterinario responsableAdopcion = new Veterinario("Juan", "Perez", "juan@gudboy.com", "+5491187654321", 12345, "Clínica general");
 
         adopcion = new Adopcion(animal1, animal2, adoptante, responsableAdopcion);
     }
@@ -310,6 +308,40 @@ public class SeguimientoTest {
         visita.notificarRecordatorio();
         assertEquals(1, llamadasSMS[0], "Observer SMS desuscrito NO debió recibir otra notificación");
         assertEquals(2, llamadasEmail[0], "Observer Email aún suscrito debió recibir una segunda notificación");
+    }
+
+    @Test
+    void testUmlStrictOverloadsAndMethods() {
+        // 1. Test SeguimientoService.crear (overload)
+        Seguimiento s = seguimientoService.crear(adopcion, adoptante, DiaSemana.LUNES, "10:00", "12:00", PreferenciaRecordatorio.WHATSAPP);
+        assertNotNull(s);
+        
+        // Let's populate the visitaRepository with the tracking's visits
+        for (Visita v : s.getVisitas()) {
+            visitaRepository.guardar(v);
+        }
+
+        // 2. Test Visita.getObservadores()
+        assertTrue(s.getVisitas().get(0).getObservadores().isEmpty(), "No debería tener observadores inicialmente");
+
+        // 3. Test VisitaService.registrarResultado(Visita, Encuesta, String, boolean) (overload)
+        Visita v = s.getVisitas().get(0);
+        Encuesta encuesta = new Encuesta(CalificacionEnum.BUENO, CalificacionEnum.BUENO, CalificacionEnum.BUENO);
+        visitaService.registrarResultado(v, encuesta, "Impecable", true);
+        assertTrue(v.isCompletada());
+
+        // 4. Test VisitaService.listarPorSeguimiento(Seguimiento) (overload)
+        List<Visita> visitas = visitaService.listarPorSeguimiento(s);
+        assertFalse(visitas.isEmpty());
+
+        // 5. Test VisitaService.correspondeRecordatorio(Visita, LocalDate, int) (overload)
+        Visita vNext = s.getVisitas().get(1);
+        boolean corresponde = visitaService.correspondeRecordatorio(vNext, vNext.getFechaProgramada().minusDays(2), 2);
+        assertTrue(corresponde);
+
+        // 6. Test SeguimientoService.finalizar (overload)
+        seguimientoService.finalizar(s.getId());
+        assertEquals(EstadoSeguimiento.FINALIZADO, s.getEstado());
     }
 }
 
