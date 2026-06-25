@@ -52,6 +52,10 @@ public class FichaMedica {
         historial.agregarComentario(comentario);
     }
 
+    public void registrarVisitaDomicilio(com.gudboy.domain.seguimiento.model.Visita visita) {
+        historial.agregarVisita(visita);
+    }
+
     // --- getters ---
 
     public UUID getFichaMedicaId()       { return fichaMedicaId; }

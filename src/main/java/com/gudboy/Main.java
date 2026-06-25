@@ -26,6 +26,22 @@ public class Main {
         AdopcionService adopcionService = new AdopcionService(adopcionRepository);
         AlarmaService alarmaService = new AlarmaService(alarmaRepository, fichaService);
 
+        // TRABAJO EN MEMORIA:  (HABILITAR CON SWING)
+        // ISeguimientoRepository seguimientoRepository = new com.gudboy.repository.SeguimientoRepositoryEnMemoria();
+        // IVisitaRepository visitaRepository = new com.gudboy.repository.VisitaRepositoryEnMemoria();
+
+        // USO DE MYSQL - SEGUIMIENTO
+        // ISeguimientoRepository seguimientoRepository = new com.gudboy.repository.SeguimientoRepositoryMySQL(adopcionRepository, usuarioRepository);
+        // IVisitaRepository visitaRepository = new com.gudboy.repository.VisitaRepositoryEnMemoria(); // (VisitaRepositoryEnMemoria se usa como auxiliar en ciertos servicios si es necesario)
+
+        // PARA SWING - Servicios y Controladores de SEGUIMIENTO:
+        // SeguimientoService seguimientoService = new SeguimientoService(seguimientoRepository, fichaRepo);
+        // VisitaService visitaService = new VisitaService(visitaRepository, seguimientoRepository, fichaRepo);
+        //
+        // com.gudboy.controller.SeguimientoController seguimientoController = new com.gudboy.controller.SeguimientoController(seguimientoService);
+        // com.gudboy.controller.VisitaController visitaController = new com.gudboy.controller.VisitaController(visitaService);
+
+
         AnimalController animalController = new AnimalController(animalService);
         UsuarioController usuarioController = new UsuarioController(usuarioService);
         AdopcionController adopcionController = new AdopcionController(adopcionService);
