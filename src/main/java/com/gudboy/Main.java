@@ -26,9 +26,9 @@ public class Main {
         AdopcionService adopcionService = new AdopcionService(adopcionRepository);
         AlarmaService alarmaService = new AlarmaService(alarmaRepository, fichaService);
 
-        // TRABAJO EN MEMORIA:
-        ISeguimientoRepository seguimientoRepository = new com.gudboy.repository.SeguimientoRepositoryEnMemoria();
-        IVisitaRepository visitaRepository = new com.gudboy.repository.VisitaRepositoryEnMemoria();
+        // TRABAJO EN MEMORIA:  (HABILITAR CON SWING)
+        // ISeguimientoRepository seguimientoRepository = new com.gudboy.repository.SeguimientoRepositoryEnMemoria();
+        // IVisitaRepository visitaRepository = new com.gudboy.repository.VisitaRepositoryEnMemoria();
 
         // USO DE MYSQL - SEGUIMIENTO
         // ISeguimientoRepository seguimientoRepository = new com.gudboy.repository.SeguimientoRepositoryMySQL(adopcionRepository, usuarioRepository);
