@@ -14,6 +14,7 @@ public class HistorialClinico {
 
     private final ArrayList<Tratamiento> listaTratamiento;
     private final ArrayList<ComentarioMedico> listaComentario;
+    private final ArrayList<com.gudboy.domain.seguimiento.model.Visita> listaVisitas;
 
     public HistorialClinico(Animal animal) {
 
@@ -22,6 +23,7 @@ public class HistorialClinico {
 
         this.listaTratamiento = new ArrayList<>();
         this.listaComentario = new ArrayList<>();
+        this.listaVisitas = new ArrayList<>();
     }
 
     public void agregarTratamiento(
@@ -36,12 +38,21 @@ public class HistorialClinico {
         listaComentario.add(comentario);
     }
 
+    public void agregarVisita(
+            com.gudboy.domain.seguimiento.model.Visita visita) {
+        listaVisitas.add(visita);
+    }
+
     public ArrayList<Tratamiento> getListaTratamiento() {
         return listaTratamiento;
     }
 
     public ArrayList<ComentarioMedico> getListaComentario() {
         return listaComentario;
+    }
+
+    public ArrayList<com.gudboy.domain.seguimiento.model.Visita> getListaVisitas() {
+        return listaVisitas;
     }
 
     public UUID getHistorialID() {
