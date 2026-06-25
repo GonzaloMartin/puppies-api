@@ -3,6 +3,10 @@ package com.gudboy.repository;
 import com.gudboy.domain.animal.model.Animal;
 import com.gudboy.domain.fichaMedica.model.FichaMedica;
 import com.gudboy.infrastructure.ConexionMySQL;
+import com.gudboy.domain.seguimiento.model.Visita;
+import com.gudboy.domain.seguimiento.model.Encuesta;
+import com.gudboy.domain.seguimiento.model.CalificacionEnum;
+import java.time.LocalDate;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -102,6 +106,46 @@ public class FichaMedicaRepositoryMySQL implements IFichaMedicaRepository {
 
         FichaMedica ficha = new FichaMedica(animal);
         ficha.actualizarDatos(rs.getDouble("peso"), rs.getFloat("altura"), rs.getInt("edad"));
+
+        // MÓDULO DE SEGUIMIENTO
+        // Cargar visitas completadas asociadas a este animal para poblar el historial clínico en MySQL
+        String sqlVisitas = "SELECT v.id, v.fecha_programada, v.fecha_real, v.comentarios, v.completada, v.continuar_visitas, " +
+                            "v.estado_general_animal, v.limpieza_lugar, v.ambiente " +
+                            "FROM visitas v " +
+                            "JOIN seguimiento s ON v.seguimiento_id = s.id " +
+                            "JOIN adopcion_animal aa ON s.adopcion_id = aa.adopcion_id " +
+                            "WHERE aa.animal_id = ? AND v.completada = TRUE";
+        try (PreparedStatement ps = conn().prepareStatement(sqlVisitas)) {
+            ps.setString(1, animalId.toString());
+            try (ResultSet rsVisitas = ps.executeQuery()) {
+                while (rsVisitas.next()) {
+                    UUID vId = UUID.fromString(rsVisitas.getString("id"));
+                    LocalDate vFechaProg = rsVisitas.getDate("fecha_programada").toLocalDate();
+                    Date vSqlFechaReal = rsVisitas.getDate("fecha_real");
+                    LocalDate vFechaReal = vSqlFechaReal != null ? vSqlFechaReal.toLocalDate() : null;
+                    String vComentarios = rsVisitas.getString("comentarios");
+                    boolean vCompletada = rsVisitas.getBoolean("completada");
+                    boolean vContinuar = rsVisitas.getBoolean("continuar_visitas");
+
+                    Visita v = new Visita(vId, null, vFechaProg, vFechaReal, vComentarios, vCompletada, vContinuar);
+                    
+                    String estAnimal = rsVisitas.getString("estado_general_animal");
+                    String limpLugar = rsVisitas.getString("limpieza_lugar");
+                    String ambiente = rsVisitas.getString("ambiente");
+                    if (estAnimal != null && limpLugar != null && ambiente != null) {
+                        Encuesta encuesta = new Encuesta(
+                            CalificacionEnum.valueOf(estAnimal),
+                            CalificacionEnum.valueOf(limpLugar),
+                            CalificacionEnum.valueOf(ambiente)
+                        );
+                        v.registrarResultado(encuesta, vComentarios, vContinuar);
+                    }
+                    ficha.registrarVisitaDomicilio(v);
+                }
+            }
+        }
+        // FIN MODULO DE SEGUIMIENTO
+
         return ficha;
     }
 }
