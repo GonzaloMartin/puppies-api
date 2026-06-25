@@ -89,6 +89,7 @@ public class AlarmaService {
 
             if (tratamientoFinalizado) {
                 alarma.marcarTratamientoFinalizado();
+                historialService.finalizarTratamientosActivos(alarma.getIdAnimal(), alarma.getAcciones());
             } else {
                 alarma.marcarCompletado();
             }

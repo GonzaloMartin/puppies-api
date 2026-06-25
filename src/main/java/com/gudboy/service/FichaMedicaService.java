@@ -7,6 +7,7 @@ import com.gudboy.domain.comentarioMedico.ComentarioMedico;
 import com.gudboy.domain.fichaMedica.exportador.Exportador;
 import com.gudboy.domain.fichaMedica.model.FichaMedica;
 import com.gudboy.domain.tratamiento.Tratamiento;
+import com.gudboy.domain.tratamiento.TipoTratamiento;
 import com.gudboy.repository.IFichaMedicaRepository;
 
 import java.time.LocalDateTime;
@@ -84,6 +85,27 @@ public class FichaMedicaService implements IHistorialClinicoService {
             repository.update(ficha);
         } else {
             System.err.println("Error: No se encontró una ficha médica para el animal con ID: " + idAnimal);
+        }
+    }
+
+    @Override
+    public void finalizarTratamientosActivos(UUID idAnimal, List<TipoTratamiento> accionesFinalizadas) {
+        FichaMedica ficha = repository.getByAnimalId(idAnimal);
+        if (ficha != null) {
+            List<Tratamiento> tratamientos = ficha.getHistorial().getListaTratamiento();
+            boolean actualizados = false;
+            
+            for (Tratamiento t : tratamientos) {
+                if (accionesFinalizadas != null && accionesFinalizadas.contains(t.getTipoTratamientoEnum())) {
+                    // El State Pattern se encarga de cambiar el estado internamente a Finalizado
+                    t.finalizarTratamiento();
+                    actualizados = true;
+                }
+            }
+            
+            if (actualizados) {
+                repository.update(ficha);
+            }
         }
     }
 }
