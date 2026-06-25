@@ -17,10 +17,10 @@ public class Main {
         IAnimalRepository animalRepository = new AnimalRepositoryMySQL();
         IUsuarioRepository usuarioRepository = new UsuarioRepositoryMySQL();
         IAdopcionRepository adopcionRepository = new AdopcionRepositoryMySQL(animalRepository, usuarioRepository);
-        IAlarmaRepository alarmaRepository = new AlarmaRepository();
+        IAlarmaRepository alarmaRepository = new AlarmaRepositoryMySql();
         IFichaMedicaRepository fichaRepo = new FichaMedicaRepositoryMySQL(animalRepository);
-        FichaMedicaService fichaService = new FichaMedicaService(fichaRepo);
 
+        FichaMedicaService fichaService = new FichaMedicaService(fichaRepo);
         AnimalService animalService = new AnimalService(animalRepository);
         UsuarioService usuarioService = new UsuarioService(usuarioRepository);
         AdopcionService adopcionService = new AdopcionService(adopcionRepository);
