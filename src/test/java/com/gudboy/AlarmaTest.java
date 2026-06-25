@@ -20,8 +20,23 @@ public class AlarmaTest {
 
     private AlarmaService alarmaService;
     private AlarmaRepositoryEnMemoria repository;
-    private IHistorialClinicoService historialMock;
+    private HistorialClinicoServiceMock historialMock;
     private Veterinario veterinarioDummy;
+
+    class HistorialClinicoServiceMock implements IHistorialClinicoService {
+        boolean registrarAtencionLlamado = false;
+        boolean finalizarTratamientosLlamado = false;
+
+        @Override
+        public void registrarAtencion(UUID idAnimal, String detalle, Veterinario veterinario) {
+            registrarAtencionLlamado = true;
+        }
+
+        @Override
+        public void finalizarTratamientosActivos(UUID idAnimal, List<TipoTratamiento> accionesFinalizadas) {
+            finalizarTratamientosLlamado = true;
+        }
+    }
 
     @BeforeEach
     void setUp() {
@@ -29,9 +44,7 @@ public class AlarmaTest {
         repository = new AlarmaRepositoryEnMemoria();
 
         // 2. Simulamos el servicio de historial clínico para aislar el test de la BD
-        historialMock = (idAnimal, detalle, veterinario) -> {
-            // No hacemos nada, solo simulamos que el contrato se cumple y no lanza excepciones
-        };
+        historialMock = new HistorialClinicoServiceMock();
 
         // 3. Instanciamos el servicio inyectando ambas dependencias
         alarmaService = new AlarmaService(repository, historialMock);
@@ -156,6 +169,8 @@ public class AlarmaTest {
         assertTrue(atendida.getDescripcion().contains("Todo normal"), "El comentario debió guardarse.");
         assertTrue(atendida.getDescripcion().contains("Juan Perez"), "La firma del veterinario debe estar registrada.");
         assertTrue(fueNotificado[0], "El observer debió ser notificado.");
+        assertTrue(historialMock.registrarAtencionLlamado, "Debe registrar la atención en el historial clínico.");
+        assertFalse(historialMock.finalizarTratamientosLlamado, "No debe finalizar tratamientos activos en el historial clínico.");
     }
 
     @Test
@@ -176,6 +191,8 @@ public class AlarmaTest {
         assertEquals("FINALIZADO", atendida.getEstado());
         assertTrue(atendida.getDescripcion().contains("Paciente dado de alta"));
         assertTrue(fueNotificado[0], "El observer debió ser notificado.");
+        assertTrue(historialMock.registrarAtencionLlamado, "Debe registrar la atención en el historial clínico.");
+        assertTrue(historialMock.finalizarTratamientosLlamado, "Debe finalizar tratamientos activos en el historial clínico.");
     }
 
     @Test
