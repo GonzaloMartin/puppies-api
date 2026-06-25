@@ -356,7 +356,7 @@ public class SeguimientoTest {
     }
 
     @Test
-    void testUmlStrictOverloadsAndMethods() {
+    void testUmlRelleno() {
         // 1. Test SeguimientoService.crear (overload)
         Seguimiento s = seguimientoService.crear(adopcion, adoptante, DiaSemana.LUNES, "10:00", "12:00", PreferenciaRecordatorio.WHATSAPP);
         assertNotNull(s);
