@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+@SuppressWarnings("unused")
 public class SeguimientoController {
 
     private final SeguimientoService seguimientoService;

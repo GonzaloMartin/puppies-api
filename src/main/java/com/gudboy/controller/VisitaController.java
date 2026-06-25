@@ -7,6 +7,7 @@ import com.gudboy.service.VisitaService;
 import java.util.List;
 import java.util.UUID;
 
+@SuppressWarnings("unused")
 public class VisitaController {
 
     private final VisitaService visitaService;

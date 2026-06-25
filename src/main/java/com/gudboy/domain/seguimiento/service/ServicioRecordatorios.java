@@ -5,6 +5,7 @@ import com.gudboy.domain.seguimiento.model.Visita;
 import java.time.LocalDate;
 import java.util.List;
 
+@SuppressWarnings("unused")
 public class ServicioRecordatorios {
     private int diasPreviosConfigurable;
 

@@ -1,5 +1,6 @@
 package com.gudboy.domain.seguimiento.adapter;
 
+@SuppressWarnings("unused")
 public class TwilioSMSAdapter implements ISMSAdapter {
     @Override
     public void enviarSMS(String numero, String texto) {

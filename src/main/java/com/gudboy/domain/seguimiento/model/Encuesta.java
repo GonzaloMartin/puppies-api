@@ -1,9 +1,9 @@
 package com.gudboy.domain.seguimiento.model;
 
 public class Encuesta {
-    private CalificacionEnum estadoGeneralAnimal;
-    private CalificacionEnum limpiezaLugar;
-    private CalificacionEnum ambiente;
+    private final CalificacionEnum estadoGeneralAnimal;
+    private final CalificacionEnum limpiezaLugar;
+    private final CalificacionEnum ambiente;
 
     public Encuesta(CalificacionEnum estadoGeneralAnimal, CalificacionEnum limpiezaLugar, CalificacionEnum ambiente) {
         this.estadoGeneralAnimal = estadoGeneralAnimal;

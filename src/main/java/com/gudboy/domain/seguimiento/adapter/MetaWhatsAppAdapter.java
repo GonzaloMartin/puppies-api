@@ -1,5 +1,6 @@
 package com.gudboy.domain.seguimiento.adapter;
 
+@SuppressWarnings("unused")
 public class MetaWhatsAppAdapter implements IWhatsAppAdapter {
     @Override
     public void enviarWhatsApp(String numero, String mensaje) {

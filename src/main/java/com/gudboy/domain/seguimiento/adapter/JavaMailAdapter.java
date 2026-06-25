@@ -1,5 +1,6 @@
 package com.gudboy.domain.seguimiento.adapter;
 
+@SuppressWarnings("unused")
 public class JavaMailAdapter implements IEmailAdapter {
     @Override
     public void enviarEmail(String destinatario, String asunto, String cuerpo) {
