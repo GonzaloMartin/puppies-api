@@ -95,3 +95,23 @@ CREATE TABLE IF NOT EXISTS visitas (
     FOREIGN KEY (seguimiento_id) REFERENCES seguimiento(id)
 );
 
+CREATE TABLE IF NOT EXISTS tratamiento (
+    id           VARCHAR(36)  PRIMARY KEY,
+    ficha_id     VARCHAR(36)  NOT NULL,
+    tipo         VARCHAR(50)  NOT NULL,
+    estado       VARCHAR(20)  NOT NULL DEFAULT 'Pendiente',
+    fecha_inicio DATETIME,
+    fecha_fin    DATETIME,
+    FOREIGN KEY (ficha_id) REFERENCES ficha_medica(id)
+);
+
+CREATE TABLE IF NOT EXISTS comentario_medico (
+    id                VARCHAR(36)  PRIMARY KEY,
+    ficha_id          VARCHAR(36)  NOT NULL,
+    veterinario_email VARCHAR(150),
+    texto             TEXT         NOT NULL,
+    fecha             DATETIME     NOT NULL,
+    FOREIGN KEY (ficha_id)          REFERENCES ficha_medica(id),
+    FOREIGN KEY (veterinario_email) REFERENCES usuario(email)
+);
+

@@ -19,6 +19,10 @@ public class FichaMedicaController {
         this.fichaMedicaService = fichaMedicaService;
     }
 
+    public FichaMedica buscarPorAnimalId(UUID animalId) {
+        return fichaMedicaService.buscarPorAnimalId(animalId);
+    }
+
     public FichaMedica crearFicha(Animal animal) {
         return fichaMedicaService.crearFicha(animal);
     }

@@ -262,15 +262,8 @@ public class SeguimientoRepositoryMySQL implements ISeguimientoRepository {
     }
 
     private Adopcion buscarAdopcionPorId(int id) {
-        return adopcionRepository.listarTodos().stream()
-                .filter(a -> {
-                    try {
-                        return obtenerAdopcionId(a) == id;
-                    } catch (SQLException e) {
-                        return false;
-                    }
-                })
-                .findFirst().orElse(null);
+        // FIX: usar buscarPorId en lugar de iterar con obtenerAdopcionId()
+        return adopcionRepository.buscarPorId(id).orElse(null);
     }
 
     private Usuario buscarUsuarioPorEmail(String email) {

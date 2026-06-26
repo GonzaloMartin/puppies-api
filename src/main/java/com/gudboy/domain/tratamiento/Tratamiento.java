@@ -61,4 +61,9 @@ public class Tratamiento {
         return fechaInicio;
     }
 
+    @Override
+    public String toString() {
+        return String.format("%s [%s]", tipoTratamientoEnum, estado.getClass().getSimpleName());
+    }
+
 }

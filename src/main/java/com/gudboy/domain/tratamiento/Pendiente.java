@@ -16,7 +16,10 @@ public class Pendiente extends EstadoTratamiento {
 
     @Override
     public void finalizar() {
-        throw new IllegalStateException("No se puede finalizar.");
+        // FIX: permite finalizar directamente desde pendiente (sin pasar por EnCurso)
+        tratamiento.setFechaInicio(new Date());
+        tratamiento.setFechaFin(new Date());
+        tratamiento.setEstado(new Finalizado(tratamiento));
     }
 
     @Override
