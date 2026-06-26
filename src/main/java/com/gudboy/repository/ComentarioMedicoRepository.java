@@ -9,18 +9,22 @@ import java.util.UUID;
 
 public class ComentarioMedicoRepository implements IRepositoryHistTratComen<ComentarioMedico>{
 
+    public ArrayList<ComentarioMedico> listarPorHistorial(HistorialClinico historialClinico){
+        return null;
+    }
+
     @Override
     public void guardar(ComentarioMedico entidad) {
 
     }
 
     @Override
-    public void actualizar(ComentarioMedico entidad) {
+    public void actualizar(UUID id) {
 
     }
 
     @Override
-    public void eliminar(ComentarioMedico entidad) {
+    public void eliminar(UUID id) {
 
     }
 
@@ -31,10 +35,6 @@ public class ComentarioMedicoRepository implements IRepositoryHistTratComen<Come
 
     @Override
     public ArrayList<ComentarioMedico> listarTodos() {
-        return null;
-    }
-
-    public ArrayList<ComentarioMedico> listarPorHistorial(HistorialClinico historialClinico){
         return null;
     }
 }

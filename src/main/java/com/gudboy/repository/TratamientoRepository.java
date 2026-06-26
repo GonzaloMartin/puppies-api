@@ -1,5 +1,6 @@
 package com.gudboy.repository;
 
+import com.gudboy.domain.animal.model.Animal;
 import com.gudboy.domain.tratamiento.TipoTratamiento;
 import com.gudboy.domain.tratamiento.Tratamiento;
 
@@ -10,7 +11,7 @@ public class TratamientoRepository implements IRepositoryHistTratComen<Tratamien
 
 
     @Override
-    public void guardar(UUID id) {
+    public void guardar(Tratamiento entidad) {
 
     }
 

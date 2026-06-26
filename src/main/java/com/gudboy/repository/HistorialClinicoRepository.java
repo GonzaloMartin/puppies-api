@@ -14,12 +14,12 @@ public class HistorialClinicoRepository implements IRepositoryHistTratComen<Hist
     }
 
     @Override
-    public void actualizar(HistorialClinico entidad) {
+    public void actualizar(UUID id) {
 
     }
 
     @Override
-    public void eliminar(HistorialClinico entidad) {
+    public void eliminar(UUID id) {
 
     }
 
@@ -30,10 +30,6 @@ public class HistorialClinicoRepository implements IRepositoryHistTratComen<Hist
 
     @Override
     public ArrayList<HistorialClinico> listarTodos() {
-        return null;
-    }
-
-    public HistorialClinico buscarPorAnimal(UUID animalId){
         return null;
     }
 }

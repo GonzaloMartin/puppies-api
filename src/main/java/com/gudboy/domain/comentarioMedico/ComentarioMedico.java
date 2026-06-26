@@ -9,17 +9,13 @@ public class ComentarioMedico {
     private final UUID comentarioID;
     private Veterinario veterinario;
     private String casillaComentario;
-    private LocalDateTime fecha;
+    private Date fecha;
 
-    public ComentarioMedico(Veterinario veterinario, String casillaComentario, LocalDateTime fecha){
+    public ComentarioMedico(Veterinario veterinario, String casillaComentario){
         this.comentarioID = UUID.randomUUID();
         this.veterinario = veterinario;
         this.casillaComentario = casillaComentario;
-        this.fecha = fecha;
-    }
-
-    private void setVeterinario(Veterinario v){
-        this.veterinario = v;
+        this.fecha = new Date();
     }
 
     public Veterinario getVeterinario() {
@@ -38,18 +34,13 @@ public class ComentarioMedico {
         return comentarioID;
     }
 
-    private void setFecha(LocalDateTime fecha) {
-        this.fecha = fecha;
-    }
-
-    public LocalDateTime getFecha() {
+    public Date getFecha() {
         return fecha;
     }
 
-    public void modificarComentario(Veterinario veterinario, String casillaComentario, LocalDateTime fecha){
-        setVeterinario(veterinario);
+    public void modificarComentario(String casillaComentario){
         setCasillaComentario(casillaComentario);
-        setFecha(fecha);
+        this.fecha = new Date();
     }
 
 

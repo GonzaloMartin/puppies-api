@@ -1,6 +1,5 @@
 package com.gudboy.service;
 
-import com.gudboy.domain.animal.model.Animal;
 import com.gudboy.domain.historialClinico.HistorialClinico;
 import com.gudboy.domain.tratamiento.TipoTratamiento;
 import com.gudboy.domain.tratamiento.Tratamiento;
@@ -20,7 +19,7 @@ public class TratamientoService {
         this.histCliRepo = histCliRepo;
     }
 
-    public Tratamiento registrarTratamiento(Animal animal, TipoTratamiento tipo){
+    public Tratamiento registrarTratamiento(UUID animal, TipoTratamiento tipo){
 
         HistorialClinico historialClinico = histCliRepo.buscarPorAnimal(animal.getId());
         Tratamiento tratamiento = new Tratamiento(tipo);
@@ -45,11 +44,18 @@ public class TratamientoService {
         tratamiento.cancelarTratamiento();
     }
 
-    public ArrayList<Tratamiento> obtenerTratamientosActivos(UUID animalId){
+    public ArrayList<Tratamiento> buscarPorTipo(TipoTratamiento tipoTratamiento){
 
-        return tratRepo.obtenerTratamientosActivos(animalId);
+        ArrayList<Tratamiento> lisaTrat = new ArrayList<>();
+        ArrayList<Tratamiento> lista = tratRepo.listarTodos();
+
+        for (int i = 0; i< lista.size(); i++ ){
+            if (tipoTratamiento == lista.get(i).getTipoTratamientoEnum()){
+                lisaTrat.add(lista.get(i));
+            }
+        }
+        return lisaTrat;
+
     }
-
-
 
 }
