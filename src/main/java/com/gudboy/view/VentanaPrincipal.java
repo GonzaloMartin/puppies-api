@@ -473,8 +473,9 @@ public class VentanaPrincipal extends JFrame implements IAlarmaObserver {
         if (animal2 != null && animal2 == animal1) { error("Los dos animales no pueden ser el mismo."); return; }
         try {
             adopcionCtrl.registrarAdopcion(animal1, animal2, (Visitador) adCB.getSelectedItem(), (Veterinario) reCB.getSelectedItem());
-            refrescarTodo(); info("Adopción registrada con éxito.");
+            info("Adopción registrada con éxito.");
         } catch (Exception ex) { error(ex.getMessage()); }
+        finally { refrescarTodo(); } // siempre refrescar: que la UI nunca quede desactualizada respecto al estado real
     }
 
     // ════════════════════════════════════════════════════════════════════════

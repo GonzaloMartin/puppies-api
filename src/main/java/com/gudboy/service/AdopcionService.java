@@ -36,15 +36,30 @@ public class AdopcionService {
             animal2.adoptar();
         }
 
-        // Persistir el nuevo estado de adopción en el repositorio de animales
-        animalRepository.actualizar(animal1);
-        if (animal2 != null) {
-            animalRepository.actualizar(animal2);
-        }
+        try {
+            // Persistir el nuevo estado de adopción en el repositorio de animales
+            animalRepository.actualizar(animal1);
+            if (animal2 != null) {
+                animalRepository.actualizar(animal2);
+            }
 
-        // Guardar la adopción
-        Adopcion adopcion = new Adopcion(animal1, animal2, adoptante, responsable);
-        GuardarAdopcion(adopcion);
+            // Guardar la adopción
+            Adopcion adopcion = new Adopcion(animal1, animal2, adoptante, responsable);
+            GuardarAdopcion(adopcion);
+        } catch (RuntimeException e) {
+            // Si falla el guardado de la adopción, revertimos el estado de los animales
+            // (tanto en memoria como en el repositorio) para que no queden marcados como
+            // "adoptados" sin un registro de Adopcion asociado. Sin este rollback, el animal
+            // quedaba bloqueado para futuras adopciones aunque la UI siguiera mostrándolo
+            // como disponible (porque nunca se refrescaba tras el error).
+            animal1.disponibilizarAdopcion();
+            animalRepository.actualizar(animal1);
+            if (animal2 != null) {
+                animal2.disponibilizarAdopcion();
+                animalRepository.actualizar(animal2);
+            }
+            throw e;
+        }
     }
 
     public void GuardarAdopcion(Adopcion adopcion) {
