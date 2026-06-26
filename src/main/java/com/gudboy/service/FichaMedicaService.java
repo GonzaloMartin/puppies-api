@@ -1,19 +1,19 @@
 package com.gudboy.service;
 
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
 import com.gudboy.domain.Usuario.Veterinario;
 import com.gudboy.domain.alarma.IHistorialClinicoService;
 import com.gudboy.domain.animal.model.Animal;
 import com.gudboy.domain.comentarioMedico.ComentarioMedico;
 import com.gudboy.domain.fichaMedica.exportador.Exportador;
 import com.gudboy.domain.fichaMedica.model.FichaMedica;
-import com.gudboy.domain.tratamiento.Tratamiento;
 import com.gudboy.domain.tratamiento.TipoTratamiento;
+import com.gudboy.domain.tratamiento.Tratamiento;
 import com.gudboy.repository.IFichaMedicaRepository;
-
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
 
 public class FichaMedicaService implements IHistorialClinicoService {
 
@@ -24,6 +24,11 @@ public class FichaMedicaService implements IHistorialClinicoService {
     }
 
     public FichaMedica crearFicha(Animal animal) {
+        FichaMedica existente = repository.getByAnimalId(animal.getId());
+        if (existente != null) {
+            throw new IllegalStateException(
+                "El animal " + animal.getNombre() + " ya tiene una ficha médica creada.");
+        }
         FichaMedica ficha = new FichaMedica(animal);
         repository.guardar(ficha);
         return ficha;

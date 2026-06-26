@@ -1,15 +1,19 @@
 package com.gudboy.repository;
 
-import com.gudboy.domain.alarma.model.Alarma;
-import com.gudboy.domain.tratamiento.TipoTratamiento;
-import com.gudboy.infrastructure.ConexionMySQL;
-
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
+
+import com.gudboy.domain.alarma.model.Alarma;
+import com.gudboy.domain.tratamiento.TipoTratamiento;
+import com.gudboy.infrastructure.ConexionMySQL;
 
 public class AlarmaRepositoryMySql implements IAlarmaRepository {
 
@@ -84,21 +88,25 @@ public class AlarmaRepositoryMySql implements IAlarmaRepository {
 
     @Override
     public void update(Alarma alarma) {
-        String sql = "UPDATE alarmas SET id_animal = ?, titulo = ?, descripcion = ?, estado = ?, acciones = ?, completada = ?, fecha_completado = ? WHERE id = ?";
+        String sql = "UPDATE alarmas SET id_animal = ?, titulo = ?, descripcion = ?, " +
+                "frecuencia_dias = ?, fecha_proximo_disparo = ?, " +
+                "estado = ?, acciones = ?, completada = ?, fecha_completado = ? WHERE id = ?";
         try (PreparedStatement stmt = conn().prepareStatement(sql)) {
             stmt.setString(1, alarma.getIdAnimal().toString());
             stmt.setString(2, alarma.getTitulo());
             stmt.setString(3, alarma.getDescripcion());
-            stmt.setString(4, alarma.getEstado());
+            stmt.setInt(4, alarma.getFrecuenciaDias());
+            stmt.setTimestamp(5, Timestamp.valueOf(alarma.getFechaProximoDisparoOriginal()));
+            stmt.setString(6, alarma.getEstado());
 
             String accionesStr = alarma.getAcciones().stream()
                     .map(Enum::name)
                     .collect(Collectors.joining(","));
-            stmt.setString(5, accionesStr);
+            stmt.setString(7, accionesStr);
 
-            stmt.setBoolean(6, alarma.isCompletada());
-            stmt.setTimestamp(7, alarma.isCompletada() ? Timestamp.valueOf(LocalDateTime.now()) : null);
-            stmt.setInt(8, alarma.getId());
+            stmt.setBoolean(8, alarma.isCompletada());
+            stmt.setTimestamp(9, alarma.isCompletada() ? Timestamp.valueOf(LocalDateTime.now()) : null);
+            stmt.setInt(10, alarma.getId());
             stmt.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException("Error al actualizar la alarma", e);

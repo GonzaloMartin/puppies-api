@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS animal (
 
 CREATE TABLE IF NOT EXISTS ficha_medica (
     id        VARCHAR(36) PRIMARY KEY,
-    animal_id VARCHAR(36) NOT NULL,
+    animal_id VARCHAR(36) NOT NULL UNIQUE,
     peso      DOUBLE      NOT NULL,
     altura    FLOAT       NOT NULL,
     edad      INT         NOT NULL,
@@ -114,4 +114,3 @@ CREATE TABLE IF NOT EXISTS comentario_medico (
     FOREIGN KEY (ficha_id)          REFERENCES ficha_medica(id),
     FOREIGN KEY (veterinario_email) REFERENCES usuario(email)
 );
-
