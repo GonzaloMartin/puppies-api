@@ -655,7 +655,7 @@ public class VentanaPrincipal extends JFrame implements IAlarmaObserver {
 
         try {
             // ComentarioController crea y guarda en su repositorio en memoria
-            ComentarioMedico cm = comenCtrl.agregarComentario(vet, texto);
+            ComentarioMedico cm = new ComentarioMedico(vet, texto, java.time.LocalDateTime.now());
             // También se persiste en la FichaMedica (MySQL) via FichaMedicaController
             FichaMedica fmReal = fichaCtrl.buscarPorAnimalId(fm.getAnimal().getId());
             if (fmReal != null) fichaCtrl.agregarComentarioMedico(fmReal.getFichaMedicaId(), cm);
