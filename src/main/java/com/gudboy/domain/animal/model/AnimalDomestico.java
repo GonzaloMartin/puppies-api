@@ -17,6 +17,7 @@ public class AnimalDomestico extends Animal {
     public void adoptar()               { estadoAdopcion.Adoptar(); }
     public void disponibilizarAdopcion(){ estadoAdopcion.Disponibilizar(); }
     public void setEstadoAdopcion(IEstadoAdopcion e) { this.estadoAdopcion = e; }
+    public IEstadoAdopcion getEstadoAdopcion() { return estadoAdopcion; }
 
     @Override
     public boolean esAdoptable() {

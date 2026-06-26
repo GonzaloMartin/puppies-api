@@ -1,20 +1,23 @@
 package com.gudboy;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
 import com.gudboy.domain.Usuario.EstadoCivil;
 import com.gudboy.domain.Usuario.Ocupacion;
 import com.gudboy.domain.Usuario.Veterinario;
 import com.gudboy.domain.Usuario.Visitador;
+import com.gudboy.domain.animal.factory.FabricaAnimalDomestico;
+import com.gudboy.domain.animal.factory.FabricaAnimalSalvaje;
 import com.gudboy.domain.animal.model.Adopcion;
 import com.gudboy.domain.animal.model.AnimalDomestico;
 import com.gudboy.domain.animal.model.AnimalSalvaje;
-import com.gudboy.domain.animal.factory.FabricaAnimalDomestico;
-import com.gudboy.domain.animal.factory.FabricaAnimalSalvaje;
 import com.gudboy.repository.AdopcionRepositoryEnMemoria;
+import com.gudboy.repository.AnimalRepositoryEnMemoria;
 import com.gudboy.service.AdopcionService;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 public class AdopcionTest {
 
@@ -26,7 +29,7 @@ public class AdopcionTest {
 
     @BeforeEach
     void setUp() {
-        adopcionService = new AdopcionService(new AdopcionRepositoryEnMemoria());
+        adopcionService = new AdopcionService(new AdopcionRepositoryEnMemoria(), new AnimalRepositoryEnMemoria());
         vet = new Veterinario("Ana", "López", "ana@gudboy.com", "111", 1001, "Clínica");
         adoptante = new Visitador("Juan", "Pérez", "juan@mail.com", "222",
                 EstadoCivil.SOLTERO, Ocupacion.EMPLEADO, "Compañía", "Perro", false);

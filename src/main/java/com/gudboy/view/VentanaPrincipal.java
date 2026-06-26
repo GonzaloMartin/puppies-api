@@ -1,6 +1,58 @@
 package com.gudboy.view;
 
-import com.gudboy.controller.*;
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.GridLayout;
+import java.awt.Insets;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import javax.swing.BorderFactory;
+import javax.swing.DefaultListCellRenderer;
+import javax.swing.DefaultListModel;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JDialog;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JSpinner;
+import javax.swing.JSplitPane;
+import javax.swing.JTabbedPane;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
+import javax.swing.ListSelectionModel;
+import javax.swing.SpinnerDateModel;
+import javax.swing.SpinnerNumberModel;
+import javax.swing.SwingUtilities;
+
+import com.gudboy.controller.AdopcionController;
+import com.gudboy.controller.AlarmaController;
+import com.gudboy.controller.AnimalController;
+import com.gudboy.controller.ComentarioController;
+import com.gudboy.controller.FichaMedicaController;
+import com.gudboy.controller.HistorialClinicoController;
+import com.gudboy.controller.SeguimientoController;
+import com.gudboy.controller.TratamientoController;
+import com.gudboy.controller.UsuarioController;
+import com.gudboy.controller.VisitaController;
 import com.gudboy.domain.Usuario.EstadoCivil;
 import com.gudboy.domain.Usuario.Ocupacion;
 import com.gudboy.domain.Usuario.Veterinario;
@@ -8,31 +60,35 @@ import com.gudboy.domain.Usuario.Visitador;
 import com.gudboy.domain.alarma.model.Alarma;
 import com.gudboy.domain.alarma.observer.IAlarmaObserver;
 import com.gudboy.domain.alarma.observer.PushNotificationObserver;
-import com.gudboy.domain.animal.factory.*;
-import com.gudboy.domain.animal.model.*;
+import com.gudboy.domain.animal.factory.FabricaAnimal;
+import com.gudboy.domain.animal.factory.FabricaAnimalDomestico;
+import com.gudboy.domain.animal.factory.FabricaAnimalSalvaje;
+import com.gudboy.domain.animal.model.Adopcion;
+import com.gudboy.domain.animal.model.Animal;
+import com.gudboy.domain.animal.model.AnimalDomestico;
 import com.gudboy.domain.comentarioMedico.ComentarioMedico;
-import com.gudboy.domain.fichaMedica.exportador.*;
+import com.gudboy.domain.fichaMedica.exportador.ExportadorExcel;
+import com.gudboy.domain.fichaMedica.exportador.ExportadorPDF;
 import com.gudboy.domain.fichaMedica.model.FichaMedica;
-import com.gudboy.domain.historialClinico.HistorialClinico;
-import com.gudboy.domain.seguimiento.model.*;
-import com.gudboy.domain.seguimiento.observer.*;
-import com.gudboy.domain.seguimiento.adapter.*;
+import com.gudboy.domain.seguimiento.adapter.JavaMailAdapter;
+import com.gudboy.domain.seguimiento.adapter.MetaWhatsAppAdapter;
+import com.gudboy.domain.seguimiento.adapter.TwilioSMSAdapter;
+import com.gudboy.domain.seguimiento.model.CalificacionEnum;
+import com.gudboy.domain.seguimiento.model.DiaSemana;
+import com.gudboy.domain.seguimiento.model.Encuesta;
+import com.gudboy.domain.seguimiento.model.EstadoSeguimiento;
+import com.gudboy.domain.seguimiento.model.PreferenciaRecordatorio;
+import com.gudboy.domain.seguimiento.model.Seguimiento;
+import com.gudboy.domain.seguimiento.model.Visita;
+import com.gudboy.domain.seguimiento.observer.EmailNotificacion;
+import com.gudboy.domain.seguimiento.observer.INotificacionStrategy;
+import com.gudboy.domain.seguimiento.observer.SMSNotificacion;
+import com.gudboy.domain.seguimiento.observer.WhatsAppNotificacion;
 import com.gudboy.domain.seguimiento.service.ServicioRecordatorios;
-import com.gudboy.domain.tratamiento.*;
-
-import javax.swing.*;
-import java.awt.*;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.Calendar;
-import java.time.ZoneId;
-import java.util.Collections;
-import java.util.Date;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.List;
-import java.util.stream.Collectors;
+import com.gudboy.domain.tratamiento.Cancelado;
+import com.gudboy.domain.tratamiento.Finalizado;
+import com.gudboy.domain.tratamiento.TipoTratamiento;
+import com.gudboy.domain.tratamiento.Tratamiento;
 
 public class VentanaPrincipal extends JFrame implements IAlarmaObserver {
 
@@ -558,13 +614,16 @@ public class VentanaPrincipal extends JFrame implements IAlarmaObserver {
         FichaMedica fm = (FichaMedica) fCB.getSelectedItem();
         TipoTratamiento tipo = (TipoTratamiento) tCB.getSelectedItem();
         try {
-            Tratamiento t = new Tratamiento(tipo);
+            // TratamientoController registra en el repositorio en memoria y en el historial en memoria
+            Tratamiento t = tratCtrl.registrarTratamiento(fm.getAnimal().getId(), tipo);
+            // También lo agregamos a la FichaMedica (persistida en MySQL)
             FichaMedica fmReal = fichaCtrl.buscarPorAnimalId(fm.getAnimal().getId());
             if (fmReal != null) fichaCtrl.agregarTratamiento(fmReal.getFichaMedicaId(), t);
+            // Marcar animal en tratamiento
             animalCtrl.ponerEnTratamiento(fm.getAnimal());
             refrescarTodo();
             info("Tratamiento registrado:\n• Animal: " + fm.getAnimal().getNombre()
-                    + "\n• Tipo: " + tipo + "\n• Estado: Pendiente");
+               + "\n• Tipo: " + tipo + "\n• Estado: Pendiente");
         } catch (Exception ex) { error(ex.getMessage()); }
     }
 
@@ -652,7 +711,7 @@ public class VentanaPrincipal extends JFrame implements IAlarmaObserver {
 
         try {
             // ComentarioController crea y guarda en su repositorio en memoria
-            ComentarioMedico cm = new ComentarioMedico(vet, texto, java.time.LocalDateTime.now());
+            ComentarioMedico cm = comenCtrl.agregarComentario(vet, texto);
             // También se persiste en la FichaMedica (MySQL) via FichaMedicaController
             FichaMedica fmReal = fichaCtrl.buscarPorAnimalId(fm.getAnimal().getId());
             if (fmReal != null) fichaCtrl.agregarComentarioMedico(fmReal.getFichaMedicaId(), cm);

@@ -2,18 +2,18 @@ USE gudboy;
 SET NAMES utf8mb4;
 
 -- Animales domésticos
-INSERT IGNORE INTO animal (id, nombre, especie, tipo_animal, altura, peso, edad, condicion_medica, en_tratamiento, habitat_natural) VALUES
-  ('a1000000-0000-0000-0000-000000000001', 'Firulais', 'Perro',   'DOMESTICO', 0.55, 12.5, 3, 'EstadoSaludable',    false, NULL),
-  ('a1000000-0000-0000-0000-000000000002', 'Michi',    'Gato',    'DOMESTICO', 0.30,  4.2, 5, 'EstadoSaludable',    false, NULL),
-  ('a1000000-0000-0000-0000-000000000003', 'Piolín',   'Canario', 'DOMESTICO', 0.12,  0.2, 1, 'EstadoSaludable',    false, NULL),
-  ('a1000000-0000-0000-0000-000000000004', 'Tomy',     'Tortuga', 'DOMESTICO', 0.20,  1.8, 8, 'EstadoEnTratamiento', true, NULL),
-  ('a1000000-0000-0000-0000-000000000005', 'Loro',     'Loro',    'DOMESTICO', 0.35,  0.9, 4, 'EstadoSaludable',    false, NULL);
+INSERT IGNORE INTO animal (id, nombre, especie, tipo_animal, altura, peso, edad, condicion_medica, en_tratamiento, habitat_natural, adoptado) VALUES
+  ('a1000000-0000-0000-0000-000000000001', 'Firulais', 'Perro',   'DOMESTICO', 0.55, 12.5, 3, 'EstadoSaludable',    false, NULL, false),
+  ('a1000000-0000-0000-0000-000000000002', 'Michi',    'Gato',    'DOMESTICO', 0.30,  4.2, 5, 'EstadoSaludable',    false, NULL, false),
+  ('a1000000-0000-0000-0000-000000000003', 'Piolín',   'Canario', 'DOMESTICO', 0.12,  0.2, 1, 'EstadoSaludable',    false, NULL, false),
+  ('a1000000-0000-0000-0000-000000000004', 'Tomy',     'Tortuga', 'DOMESTICO', 0.20,  1.8, 8, 'EstadoEnTratamiento', true, NULL, false),
+  ('a1000000-0000-0000-0000-000000000005', 'Loro',     'Loro',    'DOMESTICO', 0.35,  0.9, 4, 'EstadoSaludable',    false, NULL, false);
 
 -- Animales salvajes
 INSERT IGNORE INTO animal (id, nombre, especie, tipo_animal, altura, peso, edad, condicion_medica, en_tratamiento, habitat_natural) VALUES
   ('a1000000-0000-0000-0000-000000000006', 'Falco', 'Halcón',   'SALVAJE', 0.40, 1.2, 2, 'EstadoSaludable',     false, 'Sierras cordobesas'),
   ('a1000000-0000-0000-0000-000000000007', 'Pingu', 'Pingüino', 'SALVAJE', 0.50, 4.0, 3, 'EstadoSaludable',     false, 'Costa patagónica'),
-  ('a1000000-0000-0000-0000-000000000008', 'Zorro', 'Zorro',    'SALVAJE', 0.60, 5.0, 4, 'EstadoEnTratamiento', false, 'Pampa húmeda');
+  ('a1000000-0000-0000-0000-000000000008', 'Zorro', 'Zorro',    'SALVAJE', 0.60, 5.0, 4, 'EstadoEnTratamiento', true, 'Pampa húmeda');
 
 -- Fichas médicas
 INSERT IGNORE INTO ficha_medica (id, animal_id, peso, altura, edad) VALUES

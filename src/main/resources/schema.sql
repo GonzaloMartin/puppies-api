@@ -11,7 +11,8 @@ CREATE TABLE IF NOT EXISTS animal (
     edad             INT          NOT NULL,
     condicion_medica VARCHAR(255),
     en_tratamiento   BOOLEAN      DEFAULT FALSE,
-    habitat_natural  VARCHAR(255)
+    habitat_natural  VARCHAR(255),
+    adoptado         BOOLEAN      DEFAULT FALSE
 );
 
 CREATE TABLE IF NOT EXISTS ficha_medica (

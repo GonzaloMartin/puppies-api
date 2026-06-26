@@ -1,12 +1,46 @@
 package com.gudboy;
 
-import com.gudboy.controller.*;
-import com.gudboy.repository.*;
-import com.gudboy.service.*;
-import com.gudboy.view.VentanaPrincipal;
-import com.gudboy.domain.seguimiento.service.ServicioRecordatorios;
-
 import javax.swing.SwingUtilities;
+
+import com.gudboy.controller.AdopcionController;
+import com.gudboy.controller.AlarmaController;
+import com.gudboy.controller.AnimalController;
+import com.gudboy.controller.ComentarioController;
+import com.gudboy.controller.FichaMedicaController;
+import com.gudboy.controller.HistorialClinicoController;
+import com.gudboy.controller.SeguimientoController;
+import com.gudboy.controller.TratamientoController;
+import com.gudboy.controller.UsuarioController;
+import com.gudboy.controller.VisitaController;
+import com.gudboy.domain.seguimiento.service.ServicioRecordatorios;
+import com.gudboy.repository.AdopcionRepositoryMySQL;
+import com.gudboy.repository.AlarmaRepositoryMySql;
+import com.gudboy.repository.AnimalRepositoryMySQL;
+import com.gudboy.repository.ComentarioMedicoRepository;
+import com.gudboy.repository.FichaMedicaRepositoryMySQL;
+import com.gudboy.repository.HistorialClinicoRepository;
+import com.gudboy.repository.IAdopcionRepository;
+import com.gudboy.repository.IAlarmaRepository;
+import com.gudboy.repository.IAnimalRepository;
+import com.gudboy.repository.IFichaMedicaRepository;
+import com.gudboy.repository.ISeguimientoRepository;
+import com.gudboy.repository.IUsuarioRepository;
+import com.gudboy.repository.IVisitaRepository;
+import com.gudboy.repository.SeguimientoRepositoryMySQL;
+import com.gudboy.repository.TratamientoRepository;
+import com.gudboy.repository.UsuarioRepositoryMySQL;
+import com.gudboy.repository.VisitaRepositoryMySQL;
+import com.gudboy.service.AdopcionService;
+import com.gudboy.service.AlarmaService;
+import com.gudboy.service.AnimalService;
+import com.gudboy.service.ComentarioServices;
+import com.gudboy.service.FichaMedicaService;
+import com.gudboy.service.HistorialClinicoService;
+import com.gudboy.service.SeguimientoService;
+import com.gudboy.service.TratamientoService;
+import com.gudboy.service.UsuarioService;
+import com.gudboy.service.VisitaService;
+import com.gudboy.view.VentanaPrincipal;
 
 public class Main {
 
@@ -33,7 +67,7 @@ public class Main {
             FichaMedicaService fichaService       = new FichaMedicaService(fichaRepo);
             AnimalService animalService           = new AnimalService(animalRepository);
             UsuarioService usuarioService         = new UsuarioService(usuarioRepository);
-            AdopcionService adopcionService       = new AdopcionService(adopcionRepository);
+            AdopcionService adopcionService       = new AdopcionService(adopcionRepository,animalRepository);
             AlarmaService alarmaService           = new AlarmaService(alarmaRepository, fichaService);
 
             TratamientoService tratamientoService     = new TratamientoService(tratamientoRepository, historialRepository);

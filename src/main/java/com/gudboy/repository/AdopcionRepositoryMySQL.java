@@ -1,15 +1,19 @@
 package com.gudboy.repository;
 
-import com.gudboy.domain.Usuario.Veterinario;
-import com.gudboy.domain.Usuario.Visitador;
-import com.gudboy.domain.animal.model.AnimalDomestico;
-import com.gudboy.domain.animal.model.Adopcion;
-import com.gudboy.infrastructure.ConexionMySQL;
-
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
+import com.gudboy.domain.Usuario.Veterinario;
+import com.gudboy.domain.Usuario.Visitador;
+import com.gudboy.domain.animal.model.Adopcion;
+import com.gudboy.domain.animal.model.AnimalDomestico;
+import com.gudboy.infrastructure.ConexionMySQL;
 
 public class AdopcionRepositoryMySQL implements IAdopcionRepository {
 

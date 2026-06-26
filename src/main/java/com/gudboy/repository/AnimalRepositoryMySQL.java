@@ -1,16 +1,20 @@
 package com.gudboy.repository;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
 import com.gudboy.domain.animal.State.EstadoEnTratamiento;
 import com.gudboy.domain.animal.model.Animal;
 import com.gudboy.domain.animal.model.AnimalDomestico;
 import com.gudboy.domain.animal.model.AnimalSalvaje;
 import com.gudboy.infrastructure.ConexionMySQL;
-
-import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
 
 public class AnimalRepositoryMySQL implements IAnimalRepository {
 
@@ -20,7 +24,7 @@ public class AnimalRepositoryMySQL implements IAnimalRepository {
 
     @Override
     public void guardar(Animal animal) {
-        String sql = "INSERT INTO animal (id, nombre, especie, tipo_animal, altura, peso, edad, condicion_medica, en_tratamiento, habitat_natural) VALUES (?,?,?,?,?,?,?,?,?,?)";
+        String sql = "INSERT INTO animal (id, nombre, especie, tipo_animal, altura, peso, edad, condicion_medica, en_tratamiento, habitat_natural, adoptado) VALUES (?,?,?,?,?,?,?,?,?,?,?)";
         try (PreparedStatement ps = conn().prepareStatement(sql)) {
             setAnimalParams(ps, animal);
             ps.executeUpdate();
@@ -31,7 +35,7 @@ public class AnimalRepositoryMySQL implements IAnimalRepository {
 
     @Override
     public void actualizar(Animal animal) {
-        String sql = "UPDATE animal SET nombre=?, especie=?, tipo_animal=?, altura=?, peso=?, edad=?, condicion_medica=?, en_tratamiento=?, habitat_natural=? WHERE id=?";
+        String sql = "UPDATE animal SET nombre=?, especie=?, tipo_animal=?, altura=?, peso=?, edad=?, condicion_medica=?, en_tratamiento=?, habitat_natural=?, adoptado=? WHERE id=?";
         try (PreparedStatement ps = conn().prepareStatement(sql)) {
             ps.setString(1, animal.getNombre());
             ps.setString(2, animal.getEspecie());
@@ -42,7 +46,10 @@ public class AnimalRepositoryMySQL implements IAnimalRepository {
             ps.setString(7, animal.getEstadoDeSalud().getClass().getSimpleName());
             ps.setBoolean(8, animal.getEstadoDeSalud() instanceof EstadoEnTratamiento);
             ps.setString(9, animal instanceof AnimalSalvaje ? ((AnimalSalvaje) animal).getHabitatNatural() : null);
-            ps.setString(10, animal.getId().toString());
+            ps.setBoolean(10, animal instanceof AnimalDomestico
+                    && !(((AnimalDomestico) animal).getEstadoAdopcion()
+                            instanceof com.gudboy.domain.animal.State.EstadoDisponible));
+            ps.setString(11, animal.getId().toString());
             ps.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException("Error al actualizar animal", e);
@@ -86,6 +93,9 @@ public class AnimalRepositoryMySQL implements IAnimalRepository {
         ps.setString(8, animal.getEstadoDeSalud().getClass().getSimpleName());
         ps.setBoolean(9, animal.getEstadoDeSalud() instanceof EstadoEnTratamiento);
         ps.setString(10, animal instanceof AnimalSalvaje ? ((AnimalSalvaje) animal).getHabitatNatural() : null);
+        ps.setBoolean(11, animal instanceof AnimalDomestico
+                && !(((AnimalDomestico) animal).getEstadoAdopcion()
+                        instanceof com.gudboy.domain.animal.State.EstadoDisponible));
     }
 
     private Animal mapear(ResultSet rs) throws SQLException {
@@ -98,11 +108,15 @@ public class AnimalRepositoryMySQL implements IAnimalRepository {
         int    edad    = rs.getInt("edad");
         String condicion = rs.getString("condicion_medica");
         boolean enTratamiento = rs.getBoolean("en_tratamiento");
+        boolean adoptado      = rs.getBoolean("adoptado");
 
         if ("DOMESTICO".equals(tipo)) {
             AnimalDomestico a = new AnimalDomestico(nombre, especie, altura, peso, edad, condicion);
             a.setId(id);
             if (enTratamiento) a.ponerEnTratamiento();
+            // Restaurar estado directamente sin pasar por validación de negocio
+            // (esAdoptable ya fue chequeado cuando se adoptó originalmente)
+            if (adoptado) a.setEstadoAdopcion(new com.gudboy.domain.animal.State.EstadoAdoptado(a));
             return a;
         } else {
             AnimalSalvaje a = new AnimalSalvaje(nombre, especie, altura, peso, edad, condicion,
