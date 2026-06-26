@@ -184,6 +184,45 @@ public class FichaMedicaRepositoryMySQL implements IFichaMedicaRepository {
             }
         } catch (SQLException ignored) {}
 
+        // MÓDULO DE SEGUIMIENTO — solo carga si las tablas existen
+        String sqlVisitas = "SELECT v.id, v.fecha_programada, v.fecha_real, v.comentarios, v.completada, v.continuar_visitas, " +
+                            "v.estado_general_animal, v.limpieza_lugar, v.ambiente " +
+                            "FROM visitas v " +
+                            "JOIN seguimiento s ON v.seguimiento_id = s.id " +
+                            "JOIN adopcion_animal aa ON s.adopcion_id = aa.adopcion_id " +
+                            "WHERE aa.animal_id = ? AND v.completada = TRUE";
+        try (PreparedStatement ps = conn().prepareStatement(sqlVisitas)) {
+            ps.setString(1, animalId.toString());
+            try (ResultSet rsVisitas = ps.executeQuery()) {
+                while (rsVisitas.next()) {
+                    UUID vId = UUID.fromString(rsVisitas.getString("id"));
+                    LocalDate vFechaProg = rsVisitas.getDate("fecha_programada").toLocalDate();
+                    Date vSqlFechaReal = rsVisitas.getDate("fecha_real");
+                    LocalDate vFechaReal = vSqlFechaReal != null ? vSqlFechaReal.toLocalDate() : null;
+                    String vComentarios = rsVisitas.getString("comentarios");
+                    boolean vCompletada = rsVisitas.getBoolean("completada");
+                    boolean vContinuar = rsVisitas.getBoolean("continuar_visitas");
+
+                    Visita v = new Visita(vId, null, vFechaProg, vFechaReal, vComentarios, vCompletada, vContinuar);
+
+                    String estAnimal = rsVisitas.getString("estado_general_animal");
+                    String limpLugar = rsVisitas.getString("limpieza_lugar");
+                    String ambiente = rsVisitas.getString("ambiente");
+                    if (estAnimal != null && limpLugar != null && ambiente != null) {
+                        Encuesta encuesta = new Encuesta(
+                            CalificacionEnum.valueOf(estAnimal),
+                            CalificacionEnum.valueOf(limpLugar),
+                            CalificacionEnum.valueOf(ambiente)
+                        );
+                        v.registrarResultado(encuesta, vComentarios, vContinuar);
+                    }
+                    ficha.registrarVisitaDomicilio(v);
+                }
+            }
+        } catch (SQLException ignored) {
+            // tablas de seguimiento aún no creadas
+        }
+
         return ficha;
     }
 }

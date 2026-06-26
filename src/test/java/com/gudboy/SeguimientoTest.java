@@ -62,7 +62,7 @@ public class SeguimientoTest {
             IAdopcionRepository adopcionRepoMySQL = new AdopcionRepositoryMySQL(animalRepoMySQL, usuarioRepoMySQL);
 
             seguimientoRepository = new SeguimientoRepositoryMySQL(adopcionRepoMySQL, usuarioRepoMySQL);
-            fichaMedicaRepository = new FichaMedicaRepositoryMySQL(animalRepoMySQL);
+            fichaMedicaRepository = new FichaMedicaRepositoryMySQL(animalRepoMySQL, usuarioRepoMySQL);
             visitaRepository = new VisitaRepositoryMySQL(seguimientoRepository);
 
             // Creo entidades para probar
