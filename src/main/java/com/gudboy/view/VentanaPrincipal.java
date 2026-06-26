@@ -147,9 +147,14 @@ public class VentanaPrincipal extends JFrame implements IAlarmaObserver {
             @Override public Component getListCellRendererComponent(JList<?> l, Object v, int i, boolean sel, boolean foc) {
                 JLabel lbl = (JLabel) super.getListCellRendererComponent(l, v, i, sel, foc);
                 if (v instanceof Visita vi) {
-                    String est = vi.isCompletada()
-                        ? "✓ Completada el " + vi.getFechaReal()
-                        : "⏳ Pendiente — " + vi.getFechaProgramada();
+                    String est;
+                    if (vi.isCompletada()) {
+                        est = "✓ Completada el " + vi.getFechaReal();
+                    } else if (vi.getSeguimiento() != null && vi.getSeguimiento().getEstado() == EstadoSeguimiento.FINALIZADO) {
+                        est = "❌ Sin efecto (Seguimiento Finalizado) — " + vi.getFechaProgramada();
+                    } else {
+                        est = "⏳ Pendiente — " + vi.getFechaProgramada();
+                    }
                     String enc = "";
                     if (vi.isCompletada() && vi.getEncuesta() != null) {
                         var e = vi.getEncuesta();
@@ -809,12 +814,54 @@ public class VentanaPrincipal extends JFrame implements IAlarmaObserver {
     // HELPERS
     // ════════════════════════════════════════════════════════════════════════
 
-    /** Crea un JPanel de GridLayout 2 col con pares (label, componente). */
+    /** Crea un JPanel de GridBagLayout con pares (label, componente) alineados de forma limpia. */
     private JPanel form(Object... pairs) {
-        JPanel p = new JPanel(new GridLayout(pairs.length / 2, 2, 6, 6));
-        for (Object o : pairs) {
-            if (o instanceof String s) p.add(new JLabel(s));
-            else p.add((Component) o);
+        JPanel p = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(6, 8, 6, 8);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+
+        for (int i = 0; i < pairs.length; i += 2) {
+            Object labelObj = pairs[i];
+            Object compObj = (i + 1 < pairs.length) ? pairs[i + 1] : null;
+
+            int row = i / 2;
+
+            // Columna 1: Etiqueta (Label) o componente izquierdo
+            gbc.gridx = 0;
+            gbc.gridy = row;
+            gbc.weightx = 0.0;
+            gbc.weighty = 0.0;
+            gbc.gridwidth = 1;
+            gbc.anchor = GridBagConstraints.EAST;
+            gbc.fill = GridBagConstraints.NONE;
+
+            if (labelObj instanceof String s) {
+                JLabel lbl = new JLabel(s);
+                p.add(lbl, gbc);
+            } else if (labelObj instanceof Component c) {
+                p.add(c, gbc);
+            }
+
+            // Columna 2: Componente de entrada derecho
+            if (compObj != null) {
+                gbc.gridx = 1;
+                gbc.gridy = row;
+                gbc.weightx = 1.0;
+                gbc.gridwidth = 1;
+                gbc.anchor = GridBagConstraints.WEST;
+
+                if (compObj instanceof Component c) {
+                    if (c instanceof JScrollPane || c instanceof JList || c instanceof JTextArea) {
+                        gbc.fill = GridBagConstraints.BOTH;
+                        gbc.weighty = 1.0;
+                    } else {
+                        gbc.fill = GridBagConstraints.HORIZONTAL;
+                        gbc.weighty = 0.0;
+                    }
+                    p.add(c, gbc);
+                }
+            }
         }
         return p;
     }
