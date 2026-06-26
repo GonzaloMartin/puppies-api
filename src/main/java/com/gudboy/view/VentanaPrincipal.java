@@ -558,16 +558,13 @@ public class VentanaPrincipal extends JFrame implements IAlarmaObserver {
         FichaMedica fm = (FichaMedica) fCB.getSelectedItem();
         TipoTratamiento tipo = (TipoTratamiento) tCB.getSelectedItem();
         try {
-            // TratamientoController registra en el repositorio en memoria y en el historial en memoria
-            Tratamiento t = tratCtrl.registrarTratamiento(fm.getAnimal().getId(), tipo);
-            // También lo agregamos a la FichaMedica (persistida en MySQL)
+            Tratamiento t = new Tratamiento(tipo);
             FichaMedica fmReal = fichaCtrl.buscarPorAnimalId(fm.getAnimal().getId());
             if (fmReal != null) fichaCtrl.agregarTratamiento(fmReal.getFichaMedicaId(), t);
-            // Marcar animal en tratamiento
             animalCtrl.ponerEnTratamiento(fm.getAnimal());
             refrescarTodo();
             info("Tratamiento registrado:\n• Animal: " + fm.getAnimal().getNombre()
-               + "\n• Tipo: " + tipo + "\n• Estado: Pendiente");
+                    + "\n• Tipo: " + tipo + "\n• Estado: Pendiente");
         } catch (Exception ex) { error(ex.getMessage()); }
     }
 
