@@ -17,16 +17,14 @@ import com.gudboy.domain.animal.model.Animal;
 import com.gudboy.domain.animal.model.AnimalDomestico;
 import com.gudboy.domain.alarma.model.Alarma;
 import com.gudboy.domain.tratamiento.TipoTratamiento;
-
 import com.gudboy.domain.alarma.observer.IAlarmaObserver;
-import com.gudboy.domain.tratamiento.TipoTratamiento;
-
+import com.gudboy.domain.fichaMedica.exportador.ExportadorExcel;
+import com.gudboy.domain.fichaMedica.exportador.ExportadorPDF;
+import com.gudboy.domain.fichaMedica.model.FichaMedica;
 
 import javax.swing.*;
 import java.awt.*;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
 import java.util.Calendar;
 import java.time.ZoneId;
 import java.util.Collections;
@@ -78,6 +76,7 @@ public class VentanaPrincipal extends JFrame implements  IAlarmaObserver {
         JButton btnModificarAlarma = new JButton("Modificar Alarma");
         JButton btnCompletarAlarma = new JButton("Completar Alarma");
         JButton btnCrearFicha = new JButton("Crear Ficha Médica");
+        JButton btnExportarFicha = new JButton("Exportar Ficha Médica");
 
         btnCrearAnimal.addActionListener(e -> mostrarDialogoCrearAnimal());
         btnCrearVisitador.addActionListener(e -> mostrarDialogoCrearVisitador());
@@ -88,6 +87,7 @@ public class VentanaPrincipal extends JFrame implements  IAlarmaObserver {
         btnModificarAlarma.addActionListener(e -> mostrarDialogoModificarAlarma());
         btnCompletarAlarma.addActionListener(e -> mostrarDialogoCompletarAlarma());
         btnCrearFicha.addActionListener(e -> mostrarDialogoCrearFichaMedica());
+        btnExportarFicha.addActionListener(e -> mostrarDialogoExportarFichaMedica());
 
         panelBotones.add(btnCrearAnimal);
         panelBotones.add(btnCrearVisitador);
@@ -98,6 +98,7 @@ public class VentanaPrincipal extends JFrame implements  IAlarmaObserver {
         panelBotones.add(btnModificarAlarma);
         panelBotones.add(btnCompletarAlarma);
         panelBotones.add(btnCrearFicha);
+        panelBotones.add(btnExportarFicha);
 
         JTabbedPane tabs = new JTabbedPane();
         tabs.addTab("Animales", new JScrollPane(new JList<>(animalListModel)));
@@ -594,6 +595,74 @@ public class VentanaPrincipal extends JFrame implements  IAlarmaObserver {
             JOptionPane.showMessageDialog(this, "Error al crear ficha: " + ex.getMessage(),
                     "Error", JOptionPane.ERROR_MESSAGE);
         }
+    }
+
+    private void mostrarDialogoExportarFichaMedica() {
+        List<Animal> animales = animalController.listarAnimales();
+        if (animales.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "No hay animales registrados.",
+                    "Faltan datos", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        JComboBox<Animal> animalCombo = new JComboBox<>(animales.toArray(new Animal[0]));
+        JComboBox<String> formatoCombo = new JComboBox<>(new String[]{"PDF", "Excel"});
+
+        JPanel form = new JPanel(new GridLayout(2, 2, 5, 5));
+        form.add(new JLabel("Animal:"));
+        form.add(animalCombo);
+        form.add(new JLabel("Formato:"));
+        form.add(formatoCombo);
+
+        int resultado = JOptionPane.showConfirmDialog(this, form, "Exportar Ficha Médica",
+                JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+        if (resultado != JOptionPane.OK_OPTION) return;
+
+        Animal animal = (Animal) animalCombo.getSelectedItem();
+        try {
+            FichaMedica ficha = fichaMedicaController.listarTodas().stream()
+                    .filter(f -> f.getAnimal().getId().equals(animal.getId()))
+                    .findFirst()
+                    .orElse(null);
+
+            if (ficha == null) {
+                JOptionPane.showMessageDialog(this,
+                        "El animal no tiene ficha médica. Creá una primero.",
+                        "Sin ficha", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            String formato = (String) formatoCombo.getSelectedItem();
+            if ("PDF".equals(formato)) {
+                ficha.exportar(new ExportadorPDF("A4"));
+            } else {
+                ficha.exportar(new ExportadorExcel(animal.getNombre()));
+            }
+
+            mostrarVentanaFicha(ficha, formato);
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Error al exportar: " + ex.getMessage(),
+                    "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void mostrarVentanaFicha(FichaMedica ficha, String formato) {
+        JDialog ventana = new JDialog(this, "Ficha Médica — " + formato, false);
+        ventana.setSize(500, 300);
+        ventana.setLocationRelativeTo(this);
+
+        JTextArea area = new JTextArea();
+        area.setEditable(false);
+        area.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 13));
+        area.setText(
+            "=== FICHA MÉDICA (" + formato + ") ===\n\n" +
+            ficha.obtenerDatosTecnicos() + "\n\n" +
+            "Tratamientos: " + ficha.getHistorial().getListaTratamiento().size() + "\n" +
+            "Comentarios médicos: " + ficha.getHistorial().getListaComentario().size()
+        );
+
+        ventana.add(new JScrollPane(area));
+        ventana.setVisible(true);
     }
 
     private void mostrarDialogoModificarAlarma() {
