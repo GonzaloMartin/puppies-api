@@ -46,7 +46,7 @@ public class Main {
 
     public static void main(String[] args) {
         try {
-            // Establecer Look & Feel nativo del sistema operativo para una interfaz más premium y moderna
+            // Nuevo Look & Feel
             try {
                 javax.swing.UIManager.setLookAndFeel(javax.swing.UIManager.getSystemLookAndFeelClassName());
             } catch (Exception ignored) {}
