@@ -5,6 +5,8 @@ import com.gudboy.controller.AlarmaController;
 import com.gudboy.controller.AnimalController;
 import com.gudboy.controller.FichaMedicaController;
 import com.gudboy.controller.UsuarioController;
+import com.gudboy.controller.SeguimientoController;
+import com.gudboy.controller.VisitaController;
 import com.gudboy.repository.*;
 import com.gudboy.service.*;
 import com.gudboy.view.VentanaPrincipal;
@@ -27,21 +29,16 @@ public class Main {
             AdopcionService adopcionService = new AdopcionService(adopcionRepository);
             AlarmaService alarmaService = new AlarmaService(alarmaRepository, fichaService);
 
-            // TRABAJO EN MEMORIA:  (HABILITAR CON SWING)
-            // ISeguimientoRepository seguimientoRepository = new com.gudboy.repository.SeguimientoRepositoryEnMemoria();
-            // IVisitaRepository visitaRepository = new com.gudboy.repository.VisitaRepositoryEnMemoria();
-
             // USO DE MYSQL - SEGUIMIENTO
-            // ISeguimientoRepository seguimientoRepository = new com.gudboy.repository.SeguimientoRepositoryMySQL(adopcionRepository, usuarioRepository);
-            // IVisitaRepository visitaRepository = new com.gudboy.repository.VisitaRepositoryEnMemoria(); // (VisitaRepositoryEnMemoria se usa como auxiliar en ciertos servicios si es necesario)
+            ISeguimientoRepository seguimientoRepository = new SeguimientoRepositoryMySQL(adopcionRepository, usuarioRepository);
+            IVisitaRepository visitaRepository = new VisitaRepositoryMySQL(seguimientoRepository);
 
-            // PARA SWING - Servicios y Controladores de SEGUIMIENTO:
-            // SeguimientoService seguimientoService = new SeguimientoService(seguimientoRepository, fichaRepo);
-            // VisitaService visitaService = new VisitaService(visitaRepository, seguimientoRepository, fichaRepo);
-            //
-            // com.gudboy.controller.SeguimientoController seguimientoController = new com.gudboy.controller.SeguimientoController(seguimientoService);
-            // com.gudboy.controller.VisitaController visitaController = new com.gudboy.controller.VisitaController(visitaService);
+            // Servicios y Controladores de SEGUIMIENTO:
+            SeguimientoService seguimientoService = new SeguimientoService(seguimientoRepository, fichaRepo);
+            VisitaService visitaService = new VisitaService(visitaRepository, seguimientoRepository, fichaRepo);
 
+            SeguimientoController seguimientoController = new SeguimientoController(seguimientoService);
+            VisitaController visitaController = new VisitaController(visitaService);
 
             AnimalController animalController = new AnimalController(animalService);
             UsuarioController usuarioController = new UsuarioController(usuarioService);
@@ -50,7 +47,7 @@ public class Main {
             FichaMedicaController fichaMedicaController = new FichaMedicaController(fichaService);
 
             SwingUtilities.invokeLater(() ->
-                    new VentanaPrincipal(animalController, usuarioController, adopcionController, alarmaController, fichaMedicaController).setVisible(true));
+                    new VentanaPrincipal(animalController, usuarioController, adopcionController, alarmaController, fichaMedicaController, seguimientoController, visitaController).setVisible(true));
         } catch (Exception e) {
             e.printStackTrace();
             javax.swing.JOptionPane.showMessageDialog(null, 

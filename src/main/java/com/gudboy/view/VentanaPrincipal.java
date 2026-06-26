@@ -5,6 +5,8 @@ import com.gudboy.controller.AlarmaController;
 import com.gudboy.controller.AnimalController;
 import com.gudboy.controller.FichaMedicaController;
 import com.gudboy.controller.UsuarioController;
+import com.gudboy.controller.SeguimientoController;
+import com.gudboy.controller.VisitaController;
 import com.gudboy.domain.Usuario.EstadoCivil;
 import com.gudboy.domain.Usuario.Ocupacion;
 import com.gudboy.domain.Usuario.Veterinario;
@@ -15,12 +17,14 @@ import com.gudboy.domain.animal.factory.FabricaAnimalDomestico;
 import com.gudboy.domain.animal.factory.FabricaAnimalSalvaje;
 import com.gudboy.domain.animal.model.Animal;
 import com.gudboy.domain.animal.model.AnimalDomestico;
+import com.gudboy.domain.animal.model.Adopcion;
 import com.gudboy.domain.alarma.model.Alarma;
 import com.gudboy.domain.tratamiento.TipoTratamiento;
 import com.gudboy.domain.alarma.observer.IAlarmaObserver;
 import com.gudboy.domain.fichaMedica.exportador.ExportadorExcel;
 import com.gudboy.domain.fichaMedica.exportador.ExportadorPDF;
 import com.gudboy.domain.fichaMedica.model.FichaMedica;
+import com.gudboy.domain.seguimiento.model.*;
 
 import javax.swing.*;
 import java.awt.*;
@@ -38,21 +42,32 @@ public class VentanaPrincipal extends JFrame implements  IAlarmaObserver {
     private final AdopcionController adopcionController;
     private final AlarmaController alarmaController;
     private final FichaMedicaController fichaMedicaController;
+    private final SeguimientoController seguimientoController;
+    private final VisitaController visitaController;
+
+    private JList<Seguimiento> listSeguimientos;
+    private JList<Visita> listVisitas;
 
     private final DefaultListModel<Animal> animalListModel = new DefaultListModel<>();
     private final DefaultListModel<Visitador> visitadorListModel = new DefaultListModel<>();
     private final DefaultListModel<Veterinario> veterinarioListModel = new DefaultListModel<>();
     private final DefaultListModel<Alarma> alarmaListModel = new DefaultListModel<>();
+    private final DefaultListModel<Seguimiento> seguimientoListModel = new DefaultListModel<>();
+    private final DefaultListModel<Visita> visitaListModel = new DefaultListModel<>();
 
     public VentanaPrincipal(AnimalController animalController, UsuarioController usuarioController,
                             AdopcionController adopcionController, AlarmaController alarmaController,
-                            FichaMedicaController fichaMedicaController) {
+                            FichaMedicaController fichaMedicaController,
+                            SeguimientoController seguimientoController,
+                            VisitaController visitaController) {
         super("Puppies - Refugio de animales");
         this.animalController = animalController;
         this.usuarioController = usuarioController;
         this.adopcionController = adopcionController;
         this.alarmaController = alarmaController;
         this.fichaMedicaController = fichaMedicaController;
+        this.seguimientoController = seguimientoController;
+        this.visitaController = visitaController;
         this.alarmaController.suscribirVista(this);
 
 
@@ -77,6 +92,8 @@ public class VentanaPrincipal extends JFrame implements  IAlarmaObserver {
         JButton btnCompletarAlarma = new JButton("Completar Alarma");
         JButton btnCrearFicha = new JButton("Crear Ficha Médica");
         JButton btnExportarFicha = new JButton("Exportar Ficha Médica");
+        JButton btnCrearSeguimiento = new JButton("Crear Seguimiento");
+        JButton btnRegistrarVisita = new JButton("Registrar Visita");
 
         btnCrearAnimal.addActionListener(e -> mostrarDialogoCrearAnimal());
         btnCrearVisitador.addActionListener(e -> mostrarDialogoCrearVisitador());
@@ -88,6 +105,8 @@ public class VentanaPrincipal extends JFrame implements  IAlarmaObserver {
         btnCompletarAlarma.addActionListener(e -> mostrarDialogoCompletarAlarma());
         btnCrearFicha.addActionListener(e -> mostrarDialogoCrearFichaMedica());
         btnExportarFicha.addActionListener(e -> mostrarDialogoExportarFichaMedica());
+        btnCrearSeguimiento.addActionListener(e -> mostrarDialogoCrearSeguimiento());
+        btnRegistrarVisita.addActionListener(e -> mostrarDialogoRegistrarVisita());
 
         panelBotones.add(btnCrearAnimal);
         panelBotones.add(btnCrearVisitador);
@@ -99,12 +118,91 @@ public class VentanaPrincipal extends JFrame implements  IAlarmaObserver {
         panelBotones.add(btnCompletarAlarma);
         panelBotones.add(btnCrearFicha);
         panelBotones.add(btnExportarFicha);
+        panelBotones.add(btnCrearSeguimiento);
+        panelBotones.add(btnRegistrarVisita);
+
+        // PANELES PARA DETALLE DE SEGUIMIENTOS
+        JPanel panelSeguimientosTab = new JPanel(new BorderLayout());
+        
+        listSeguimientos = new JList<>(seguimientoListModel);
+        listSeguimientos.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        
+        listVisitas = new JList<>(visitaListModel);
+        listVisitas.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        
+        listSeguimientos.addListSelectionListener(event -> {
+            if (!event.getValueIsAdjusting()) {
+                Seguimiento seleccionado = listSeguimientos.getSelectedValue();
+                visitaListModel.clear();
+                if (seleccionado != null) {
+                    visitaController.listarPorSeguimiento(seleccionado.getId())
+                            .forEach(visitaListModel::addElement);
+                }
+            }
+        });
+
+        // Renderización de seguimientos
+        listSeguimientos.setCellRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+                JLabel label = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                if (value instanceof Seguimiento) {
+                    Seguimiento s = (Seguimiento) value;
+                    String adoptanteNombre = s.getAdopcion().getAdoptante().getNombre() + " " + s.getAdopcion().getAdoptante().getApellido();
+                    String animales = String.join(", ", s.getAdopcion().getAnimales().stream().map(Animal::getNombre).toList());
+                    label.setText(String.format("Seguimiento: %s... | Adoptante: %s | Mascotas: [%s] | Resp: %s | Estado: %s (%s, %s-%s)", 
+                        s.getId().toString().substring(0, 8),
+                        adoptanteNombre, 
+                        animales,
+                        s.getResponsable().getNombre() + " " + s.getResponsable().getApellido(),
+                        s.getEstado(),
+                        s.getDiaSemana(), s.getHorarioDesde(), s.getHorarioHasta()));
+                }
+                return label;
+            }
+        });
+
+        // Renderización de visitas
+        listVisitas.setCellRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+                JLabel label = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                if (value instanceof Visita) {
+                    Visita v = (Visita) value;
+                    String estadoStr = v.isCompletada() ? "COMPLETADA el " + v.getFechaReal() : "PENDIENTE para el " + v.getFechaProgramada();
+                    String resultadoStr = "";
+                    if (v.isCompletada() && v.getEncuesta() != null) {
+                        Encuesta enc = v.getEncuesta();
+                        resultadoStr = String.format(" | Encuesta: [Animal: %s, Limpieza: %s, Ambiente: %s] | Favorable: %s", 
+                            enc.getEstadoGeneralAnimal(), enc.getLimpiezaLugar(), enc.getAmbiente(), enc.esFavorable() ? "SÍ" : "NO");
+                    }
+                    String comentStr = v.getComentarios() != null && !v.getComentarios().isEmpty() ? " | Comentarios: " + v.getComentarios() : "";
+                    label.setText(String.format("Visita %s... | %s%s%s", 
+                        v.getId().toString().substring(0, 8),
+                        estadoStr, resultadoStr, comentStr));
+                }
+                return label;
+            }
+        });
+
+        JPanel panelTopList = new JPanel(new BorderLayout());
+        panelTopList.add(new JLabel(" Seguimientos de Adopciones Activos y Finalizados:"), BorderLayout.NORTH);
+        panelTopList.add(new JScrollPane(listSeguimientos), BorderLayout.CENTER);
+        
+        JPanel panelBottomList = new JPanel(new BorderLayout());
+        panelBottomList.add(new JLabel(" Visitas Domiciliarias del Seguimiento Seleccionado:"), BorderLayout.NORTH);
+        panelBottomList.add(new JScrollPane(listVisitas), BorderLayout.CENTER);
+        
+        JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, panelTopList, panelBottomList);
+        splitPane.setDividerLocation(200);
+        panelSeguimientosTab.add(splitPane, BorderLayout.CENTER);
 
         JTabbedPane tabs = new JTabbedPane();
         tabs.addTab("Animales", new JScrollPane(new JList<>(animalListModel)));
         tabs.addTab("Visitadores", new JScrollPane(new JList<>(visitadorListModel)));
         tabs.addTab("Veterinarios", new JScrollPane(new JList<>(veterinarioListModel)));
         tabs.addTab("Alarmas", new JScrollPane(new JList<>(alarmaListModel)));
+        tabs.addTab("Seguimientos", panelSeguimientosTab);
 
         JPanel panel = new JPanel(new BorderLayout());
         panel.add(panelBotones, BorderLayout.NORTH);
@@ -141,12 +239,208 @@ public class VentanaPrincipal extends JFrame implements  IAlarmaObserver {
 
         veterinarioListModel.clear();
         usuarioController.listarVeterinarios().forEach(veterinarioListModel::addElement);
+
+        refrescarListaSeguimientos();
+    }
+
+    private void refrescarListaSeguimientos() {
+        seguimientoListModel.clear();
+        visitaListModel.clear();
+        seguimientoController.listarTodos().forEach(seguimientoListModel::addElement);
     }
 
     // --- CAMBIO: Método específico para refrescar las alarmas (usado por el Observer) ---
     private void refrescarListaAlarmas() {
         alarmaListModel.clear();
         alarmaController.getAll().forEach(alarmaListModel::addElement);
+    }
+
+    private void mostrarDialogoCrearSeguimiento() {
+        List<Adopcion> adopciones = adopcionController.listarTodos();
+        if (adopciones.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "No hay adopciones registradas para realizar seguimiento.", "Advertencia", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        List<Visitador> visitadores = usuarioController.listarVisitadores();
+        if (visitadores.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "No hay visitadores registrados en el sistema.", "Advertencia", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        // 1. Selector de Adopción
+        JComboBox<Adopcion> adopcionCombo = new JComboBox<>(adopciones.toArray(new Adopcion[0]));
+        adopcionCombo.setRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+                JLabel label = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                if (value instanceof Adopcion) {
+                    Adopcion a = (Adopcion) value;
+                    String animales = String.join(", ", a.getAnimales().stream().map(Animal::getNombre).toList());
+                    label.setText(String.format("Adoptante: %s | Mascotas: [%s]", a.getAdoptante().toString(), animales));
+                }
+                return label;
+            }
+        });
+
+        // 2. Selector de Responsable (Visitadores)
+        JComboBox<Visitador> responsableCombo = new JComboBox<>(visitadores.toArray(new Visitador[0]));
+
+        // 3. Selector de Día de la Semana
+        JComboBox<DiaSemana> diaCombo = new JComboBox<>(DiaSemana.values());
+
+        // 4. Campos de Franja Horaria
+        JTextField horarioDesdeField = new JTextField("09:00");
+        JTextField horarioHastaField = new JTextField("12:00");
+
+        // 5. Selector de Canal de Recordatorio
+        JComboBox<PreferenciaRecordatorio> recordatorioCombo = new JComboBox<>(PreferenciaRecordatorio.values());
+
+        // 6. Campo para cantidad de visitas iniciales
+        JTextField cantVisitasField = new JTextField("3");
+
+        JPanel form = new JPanel(new GridLayout(7, 2, 5, 5));
+        form.add(new JLabel("Adopción asociada:"));
+        form.add(adopcionCombo);
+        form.add(new JLabel("Responsable de visitas (Visitador):"));
+        form.add(responsableCombo);
+        form.add(new JLabel("Día semanal de visita:"));
+        form.add(diaCombo);
+        form.add(new JLabel("Horario Desde (hh:mm):"));
+        form.add(horarioDesdeField);
+        form.add(new JLabel("Horario Hasta (hh:mm):"));
+        form.add(horarioHastaField);
+        form.add(new JLabel("Preferencia de Recordatorio:"));
+        form.add(recordatorioCombo);
+        form.add(new JLabel("Cantidad visitas iniciales:"));
+        form.add(cantVisitasField);
+
+        int resultado = JOptionPane.showConfirmDialog(this, form, "Crear Seguimiento Post-Adopción",
+                JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+        
+        if (resultado != JOptionPane.OK_OPTION) {
+            return;
+        }
+
+        try {
+            Adopcion adopcionSeleccionada = (Adopcion) adopcionCombo.getSelectedItem();
+            Visitador responsableSeleccionado = (Visitador) responsableCombo.getSelectedItem();
+            DiaSemana diaSeleccionado = (DiaSemana) diaCombo.getSelectedItem();
+            String horarioDesde = horarioDesdeField.getText().trim();
+            String horarioHasta = horarioHastaField.getText().trim();
+            PreferenciaRecordatorio recordatorioSeleccionado = (PreferenciaRecordatorio) recordatorioCombo.getSelectedItem();
+            int cantVisitas = Integer.parseInt(cantVisitasField.getText().trim());
+
+            if (horarioDesde.isEmpty() || horarioHasta.isEmpty()) {
+                throw new IllegalArgumentException("La franja horaria es obligatoria.");
+            }
+            if (cantVisitas <= 0) {
+                throw new IllegalArgumentException("La cantidad de visitas iniciales debe ser mayor a cero.");
+            }
+
+            Seguimiento nuevoSeguimiento = seguimientoController.crearSeguimiento(
+                    adopcionSeleccionada,
+                    responsableSeleccionado,
+                    diaSeleccionado,
+                    horarioDesde,
+                    horarioHasta,
+                    recordatorioSeleccionado,
+                    cantVisitas
+            );
+
+            refrescarListaSeguimientos();
+            JOptionPane.showMessageDialog(this, "Seguimiento creado con éxito:\nID: " + nuevoSeguimiento.getId(), "Éxito", JOptionPane.INFORMATION_MESSAGE);
+
+        } catch (NumberFormatException ex) {
+            JOptionPane.showMessageDialog(this, "La cantidad de visitas debe ser un número entero.", "Error de Entrada", JOptionPane.ERROR_MESSAGE);
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, ex.getMessage(), "Error al Crear Seguimiento", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void mostrarDialogoRegistrarVisita() {
+        Visita visitaSeleccionada = listVisitas != null ? listVisitas.getSelectedValue() : null;
+
+        if (visitaSeleccionada == null) {
+            JOptionPane.showMessageDialog(this, 
+                    "Por favor, selecciona una visita pendiente en la pestaña 'Seguimientos'\n" + 
+                    "para poder registrar su resultado.", 
+                    "Visita no Seleccionada", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        if (visitaSeleccionada.isCompletada()) {
+            JOptionPane.showMessageDialog(this, 
+                    "Esta visita ya fue completada el " + visitaSeleccionada.getFechaReal() + ".\n" +
+                    "No se puede registrar nuevamente.", 
+                    "Visita Completada", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        // Formulario de Encuesta
+        JComboBox<CalificacionEnum> estadoAnimalCombo = new JComboBox<>(CalificacionEnum.values());
+        JComboBox<CalificacionEnum> limpiezaCombo = new JComboBox<>(CalificacionEnum.values());
+        JComboBox<CalificacionEnum> ambienteCombo = new JComboBox<>(CalificacionEnum.values());
+        
+        estadoAnimalCombo.setSelectedItem(CalificacionEnum.BUENO);
+        limpiezaCombo.setSelectedItem(CalificacionEnum.BUENO);
+        ambienteCombo.setSelectedItem(CalificacionEnum.BUENO);
+
+        JTextField comentariosField = new JTextField();
+        JCheckBox continuarVisitasCheck = new JCheckBox("¿Es necesario programar más visitas?", true);
+
+        JPanel form = new JPanel(new GridLayout(5, 2, 5, 5));
+        form.add(new JLabel("Estado General de la Mascota:"));
+        form.add(estadoAnimalCombo);
+        form.add(new JLabel("Limpieza del Lugar de Residencia:"));
+        form.add(limpiezaCombo);
+        form.add(new JLabel("Ambiente de Convivencia:"));
+        form.add(ambienteCombo);
+        form.add(new JLabel("Comentarios / Observaciones:"));
+        form.add(comentariosField);
+        form.add(new JLabel("Continuación:"));
+        form.add(continuarVisitasCheck);
+
+        int resultado = JOptionPane.showConfirmDialog(this, form, 
+                "Registrar Resultado de Visita Domiciliaria", 
+                JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+
+        if (resultado != JOptionPane.OK_OPTION) {
+            return;
+        }
+
+        try {
+            CalificacionEnum estado = (CalificacionEnum) estadoAnimalCombo.getSelectedItem();
+            CalificacionEnum limpieza = (CalificacionEnum) limpiezaCombo.getSelectedItem();
+            CalificacionEnum ambiente = (CalificacionEnum) ambienteCombo.getSelectedItem();
+            String comentarios = comentariosField.getText().trim();
+            boolean continuar = continuarVisitasCheck.isSelected();
+
+            Encuesta encuesta = new Encuesta(estado, limpieza, ambiente);
+            
+            seguimientoController.registrarResultadoVisita(
+                    visitaSeleccionada.getId(),
+                    encuesta,
+                    comentarios,
+                    continuar
+            );
+
+            // Refrescamos las vistas
+            refrescarListaSeguimientos();
+            
+            // Tratamos de re-seleccionar el mismo seguimiento para ver los cambios
+            if (listSeguimientos != null && listSeguimientos.getSelectedValue() != null) {
+                Seguimiento seleccionado = listSeguimientos.getSelectedValue();
+                visitaListModel.clear();
+                visitaController.listarPorSeguimiento(seleccionado.getId())
+                        .forEach(visitaListModel::addElement);
+            }
+
+            JOptionPane.showMessageDialog(this, "Resultado de la visita domiciliaria registrado con éxito.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
+
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Error al registrar resultado: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
     }
 
     private void mostrarDialogoCrearAnimal() {
