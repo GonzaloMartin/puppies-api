@@ -1,6 +1,6 @@
-# GudBoy — Sistema de Gestión para Refugio de Mascotas 🐾
+# Puppies — Refugio de Mascotas 🐾
 
-Bienvenido a **GudBoy**, una aplicación Java de escritorio diseñada para automatizar y administrar las operaciones clave en refugios de animales domésticos y clínicas veterinarias. 
+Bienvenido a **Puppies**, una aplicación Java de escritorio diseñada para automatizar y administrar las operaciones clave en refugios de animales domésticos y clínicas veterinarias. 
 
 Este proyecto fue desarrollado utilizando una arquitectura en capas, patrones de diseño (como Repositorios, Servicios, Controladores, Observadores y Adaptadores) y una interfaz de usuario interactiva construida sobre **Java Swing**.
 
