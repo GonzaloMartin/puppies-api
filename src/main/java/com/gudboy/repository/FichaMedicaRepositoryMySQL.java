@@ -1,24 +1,27 @@
 package com.gudboy.repository;
 
-import com.gudboy.repository.IUsuarioRepository;
-import com.gudboy.domain.Usuario.Veterinario;
-import com.gudboy.domain.tratamiento.Tratamiento;
-import com.gudboy.domain.tratamiento.TipoTratamiento;
-import com.gudboy.domain.comentarioMedico.ComentarioMedico;
-import com.gudboy.domain.animal.model.Animal;
-import com.gudboy.domain.fichaMedica.model.FichaMedica;
-import com.gudboy.infrastructure.ConexionMySQL;
-import com.gudboy.domain.seguimiento.model.Visita;
-import com.gudboy.domain.seguimiento.model.Encuesta;
-import com.gudboy.domain.seguimiento.model.CalificacionEnum;
+import java.sql.Connection;
+import java.sql.Date;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.time.LocalDate;
-
-
-import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+
+import com.gudboy.domain.Usuario.Veterinario;
+import com.gudboy.domain.animal.model.Animal;
+import com.gudboy.domain.comentarioMedico.ComentarioMedico;
+import com.gudboy.domain.fichaMedica.model.FichaMedica;
+import com.gudboy.domain.seguimiento.model.CalificacionEnum;
+import com.gudboy.domain.seguimiento.model.Encuesta;
+import com.gudboy.domain.seguimiento.model.Visita;
+import com.gudboy.domain.tratamiento.TipoTratamiento;
+import com.gudboy.domain.tratamiento.Tratamiento;
+import com.gudboy.infrastructure.ConexionMySQL;
 
 public class FichaMedicaRepositoryMySQL implements IFichaMedicaRepository {
 
@@ -144,9 +147,13 @@ public class FichaMedicaRepositoryMySQL implements IFichaMedicaRepository {
         Animal animal = animalRepository.buscarPorId(animalId)
                 .orElseThrow(() -> new RuntimeException("Animal no encontrado: " + animalId));
 
-        FichaMedica ficha = new FichaMedica(animal);
-        ficha.actualizarDatos(rs.getDouble("peso"), rs.getFloat("altura"), rs.getInt("edad"));
-        ficha.setFichaMedicaId(UUID.fromString(rs.getString("id")));
+        FichaMedica ficha = new FichaMedica(
+                UUID.fromString(rs.getString("id")),
+                animal,
+                rs.getDouble("peso"),
+                rs.getFloat("altura"),
+                rs.getInt("edad")
+        );
 
         String sqlTrat = "SELECT * FROM tratamiento WHERE ficha_id = ?";
         try (PreparedStatement psTrat = conn().prepareStatement(sqlTrat)) {

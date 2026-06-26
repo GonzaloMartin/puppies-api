@@ -26,6 +26,16 @@ public class FichaMedica {
         this.historial = new HistorialClinico(animal);
     }
 
+    // Constructor para reconstitución desde persistencia (no genera UUID nuevo)
+    public FichaMedica(UUID id, Animal animal, double peso, float altura, int edad) {
+        this.fichaMedicaId = id;
+        this.animal = animal;
+        this.peso = peso;
+        this.altura = altura;
+        this.edad = edad;
+        this.historial = new HistorialClinico(animal);
+    }
+
     public String obtenerDatosTecnicos() {
         return "Ficha[" + fichaMedicaId + "] " +
                animal.getNombre() + " | " + animal.getTipoAnimal() +
