@@ -1,19 +1,21 @@
 package com.gudboy.repository;
 
+import com.gudboy.domain.animal.model.Adopcion;
 import com.gudboy.domain.seguimiento.model.Seguimiento;
 import com.gudboy.domain.seguimiento.model.Visita;
 
 import java.util.*;
 
 public class SeguimientoRepositoryEnMemoria implements ISeguimientoRepository {
-    private final Map<UUID, Seguimiento> seguimientos = new HashMap<>();
-    private final Map<UUID, Visita> visitas = new HashMap<>();
+
+    private final Map<UUID, Seguimiento> seguimientos = new LinkedHashMap<>();
+    private final Map<UUID, Visita> visitas = new LinkedHashMap<>();
 
     @Override
     public void guardar(Seguimiento seguimiento) {
         seguimientos.put(seguimiento.getId(), seguimiento);
         for (Visita v : seguimiento.getVisitas()) {
-            guardarVisita(v);
+            visitas.put(v.getId(), v);
         }
     }
 
@@ -24,24 +26,11 @@ public class SeguimientoRepositoryEnMemoria implements ISeguimientoRepository {
 
     @Override
     public Optional<Seguimiento> buscarPorId(UUID id) {
-        Seguimiento s = seguimientos.get(id);
-        if (s != null) {
-            s.getVisitas().clear();
-            for (Visita v : listarVisitasPorSeguimiento(id)) {
-                s.agregarVisita(v);
-            }
-        }
-        return Optional.ofNullable(s);
+        return Optional.ofNullable(seguimientos.get(id));
     }
 
     @Override
     public List<Seguimiento> listarTodos() {
-        for (Seguimiento s : seguimientos.values()) {
-            s.getVisitas().clear();
-            for (Visita v : listarVisitasPorSeguimiento(s.getId())) {
-                s.agregarVisita(v);
-            }
-        }
         return new ArrayList<>(seguimientos.values());
     }
 
@@ -64,7 +53,7 @@ public class SeguimientoRepositoryEnMemoria implements ISeguimientoRepository {
     public List<Visita> listarVisitasPorSeguimiento(UUID seguimientoId) {
         List<Visita> result = new ArrayList<>();
         for (Visita v : visitas.values()) {
-            if (v.getSeguimiento().getId().equals(seguimientoId)) {
+            if (v.getSeguimiento() != null && v.getSeguimiento().getId().equals(seguimientoId)) {
                 result.add(v);
             }
         }

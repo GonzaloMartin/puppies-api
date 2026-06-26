@@ -86,4 +86,14 @@ public class Seguimiento {
     public List<Visita> getVisitas() {
         return visitas;
     }
+    @Override
+    public String toString() {
+        String animales = adopcion.getAnimales().stream()
+            .map(a -> a.getNombre()).collect(java.util.stream.Collectors.joining(", "));
+        return String.format("Seg. %s | %s %s | [%s] | %s %s-%s | %s",
+            id.toString().substring(0,8),
+            adopcion.getAdoptante().getNombre(), adopcion.getAdoptante().getApellido(),
+            animales, diaSemana, horarioDesde, horarioHasta, estado);
+    }
+
 }

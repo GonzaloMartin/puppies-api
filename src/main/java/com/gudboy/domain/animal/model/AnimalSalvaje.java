@@ -11,26 +11,14 @@ public class AnimalSalvaje extends Animal {
         this.habitatNatural = habitatNatural;
     }
 
-    /** Los animales salvajes NUNCA son adoptables, sin importar su estado de salud. */
-    @Override
-    public boolean esAdoptable() {
-        return false;
-    }
-
-    @Override
-    public String getTipoAnimal() {
-        return "SALVAJE";
-    }
-
-    public String getHabitatNatural() { return habitatNatural; }
+    @Override public boolean esAdoptable()   { return false; }
+    @Override public String getTipoAnimal()  { return "SALVAJE"; }
+    public String getHabitatNatural()        { return habitatNatural; }
 
     @Override
     public String toString() {
-        return "AnimalSalvaje{" +
-                "nombre='" + getNombre() + '\'' +
-                ", especie='" + getEspecie() + '\'' +
-                ", habitat='" + habitatNatural + '\'' +
-                ", adoptable=false" +
-                '}';
+        String salud = getEstadoDeSalud().getClass().getSimpleName().replace("Estado","");
+        return String.format("[Salvaje] %s (%s) | %d años | %.1f kg | Hábitat: %s | Salud: %s",
+            getNombre(), getEspecie(), getEdad(), getPeso(), habitatNatural, salud);
     }
 }

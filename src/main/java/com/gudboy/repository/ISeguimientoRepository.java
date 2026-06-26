@@ -12,7 +12,6 @@ public interface ISeguimientoRepository {
     void actualizar(Seguimiento seguimiento);
     Optional<Seguimiento> buscarPorId(UUID id);
     List<Seguimiento> listarTodos();
-
     void guardarVisita(Visita visita);
     void actualizarVisita(Visita visita);
     Optional<Visita> buscarVisitaPorId(UUID id);

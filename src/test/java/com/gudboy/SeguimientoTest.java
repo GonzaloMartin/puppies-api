@@ -25,7 +25,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class SeguimientoTest {
 
-    private static final boolean USE_MYSQL = true;
+    private static final boolean USE_MYSQL = false;
 
     private SeguimientoService seguimientoService;
     private IFichaMedicaRepository fichaMedicaRepository;
@@ -62,7 +62,7 @@ public class SeguimientoTest {
             IAdopcionRepository adopcionRepoMySQL = new AdopcionRepositoryMySQL(animalRepoMySQL, usuarioRepoMySQL);
 
             seguimientoRepository = new SeguimientoRepositoryMySQL(adopcionRepoMySQL, usuarioRepoMySQL);
-            fichaMedicaRepository = new FichaMedicaRepositoryMySQL(animalRepoMySQL);
+            fichaMedicaRepository = new FichaMedicaRepositoryMySQL(animalRepoMySQL, usuarioRepoMySQL);
             visitaRepository = new VisitaRepositoryMySQL(seguimientoRepository);
 
             // Creo entidades para probar
