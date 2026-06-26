@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-@SuppressWarnings("unused")
 public class SeguimientoRepositoryMySQL implements ISeguimientoRepository {
 
     private final IAdopcionRepository adopcionRepository;
