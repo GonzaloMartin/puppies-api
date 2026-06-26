@@ -65,7 +65,7 @@ public class SeguimientoTest {
             fichaMedicaRepository = new FichaMedicaRepositoryMySQL(animalRepoMySQL);
             visitaRepository = new VisitaRepositoryMySQL(seguimientoRepository);
 
-            // Create entities for testing
+            // Creo entidades para probar
             animal1 = new AnimalDomestico("Firulais", "Perro", 0.5, 12.0, 3, "SALUDABLE");
             animal2 = new AnimalDomestico("Michi", "Gato", 0.25, 4.0, 2, "SALUDABLE");
 
@@ -81,7 +81,7 @@ public class SeguimientoTest {
 
             adopcion = new Adopcion(animal1, animal2, adoptante, responsableAdopcion);
 
-            // Persist base entities in MySQL
+            // Persistir entities en mySQL
             usuarioRepoMySQL.guardar(adoptante);
             usuarioRepoMySQL.guardar(responsableAdopcion);
             animalRepoMySQL.guardar(animal1);
@@ -220,12 +220,12 @@ public class SeguimientoTest {
 
     @Test
     void testVisitaControllerAndService_UmlStrict() {
-        // 1. Create tracking via SeguimientoController (delegates to SeguimientoService)
+        // 1. Trackear via SeguimientoController (delega a SeguimientoService)
         Seguimiento s = seguimientoController.crearSeguimiento(
                 adopcion, adoptante, DiaSemana.MIERCOLES, "10:00", "12:00", PreferenciaRecordatorio.SMS, 3
         );
         
-        // Let's populate the visitaRepository with the tracking's visits
+        // Guardamos visita en visitaRepository
         for (Visita v : s.getVisitas()) {
             visitaRepository.guardar(v);
         }
@@ -341,7 +341,7 @@ public class SeguimientoTest {
         visita.suscribir(smsStrategy);
         visita.suscribir(emailStrategy);
 
-        // 2. Gatillar y verificar que ambos reciben la actualización
+        // 2. Notificar y validar que ambos reciben la actualización
         visita.notificarRecordatorio();
         assertEquals(1, llamadasSMS[0], "Observer SMS debió recibir 1 notificación");
         assertEquals(1, llamadasEmail[0], "Observer Email debió recibir 1 notificación");
@@ -349,7 +349,7 @@ public class SeguimientoTest {
         // 3. Desuscribir el observer de SMS
         visita.desuscribir(smsStrategy);
 
-        // 4. Gatillar de nuevo y verificar que solo el de Email es notificado por segunda vez
+        // 4. Notificar de nuevo y verificar que solo el de Email es notificado por segunda vez
         visita.notificarRecordatorio();
         assertEquals(1, llamadasSMS[0], "Observer SMS desuscrito NO debió recibir otra notificación");
         assertEquals(2, llamadasEmail[0], "Observer Email aún suscrito debió recibir una segunda notificación");
@@ -357,11 +357,11 @@ public class SeguimientoTest {
 
     @Test
     void testUmlRelleno() {
-        // 1. Test SeguimientoService.crear (overload)
+        // 1. Test SeguimientoService.crear
         Seguimiento s = seguimientoService.crear(adopcion, adoptante, DiaSemana.LUNES, "10:00", "12:00", PreferenciaRecordatorio.WHATSAPP);
         assertNotNull(s);
         
-        // Let's populate the visitaRepository with the tracking's visits
+        // Guardamos visitaRepository
         for (Visita v : s.getVisitas()) {
             visitaRepository.guardar(v);
         }
@@ -369,23 +369,23 @@ public class SeguimientoTest {
         // 2. Test Visita.getObservadores()
         assertTrue(s.getVisitas().get(0).getObservadores().isEmpty(), "No debería tener observadores inicialmente");
 
-        // 3. Test VisitaService.registrarResultado(Visita, Encuesta, String, boolean) (overload)
+        // 3. Test VisitaService.registrarResultado(Visita, Encuesta, String, boolean)
         Visita v = s.getVisitas().get(0);
         Encuesta encuesta = new Encuesta(CalificacionEnum.BUENO, CalificacionEnum.BUENO, CalificacionEnum.BUENO);
         visitaService.registrarResultado(v, encuesta, "Impecable", true);
         Visita vGuardada = visitaRepository.buscarPorId(v.getId()).orElse(v);
         assertTrue(vGuardada.isCompletada());
 
-        // 4. Test VisitaService.listarPorSeguimiento(Seguimiento) (overload)
+        // 4. Test VisitaService.listarPorSeguimiento(Seguimiento)
         List<Visita> visitas = visitaService.listarPorSeguimiento(s);
         assertFalse(visitas.isEmpty());
 
-        // 5. Test VisitaService.correspondeRecordatorio(Visita, LocalDate, int) (overload)
+        // 5. Test VisitaService.correspondeRecordatorio(Visita, LocalDate, int)
         Visita vNext = s.getVisitas().get(1);
         boolean corresponde = visitaService.correspondeRecordatorio(vNext, vNext.getFechaProgramada().minusDays(2), 2);
         assertTrue(corresponde);
 
-        // 6. Test SeguimientoService.finalizar (overload)
+        // 6. Test SeguimientoService.finalizar
         seguimientoService.finalizar(s.getId());
         Seguimiento sGuardado = seguimientoService.getById(s.getId()).orElse(s);
         assertEquals(EstadoSeguimiento.FINALIZADO, sGuardado.getEstado());

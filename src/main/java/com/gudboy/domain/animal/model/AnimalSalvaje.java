@@ -1,9 +1,5 @@
 package com.gudboy.domain.animal.model;
 
-/**
- * Representa un animal salvaje (zorro, pingüino, halcón, etc.).
- * Por su naturaleza, NUNCA puede ser adoptado.
- */
 public class AnimalSalvaje extends Animal {
 
     private final String habitatNatural;

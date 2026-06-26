@@ -107,8 +107,7 @@ public class FichaMedicaRepositoryMySQL implements IFichaMedicaRepository {
         FichaMedica ficha = new FichaMedica(animal);
         ficha.actualizarDatos(rs.getDouble("peso"), rs.getFloat("altura"), rs.getInt("edad"));
 
-        // MÓDULO DE SEGUIMIENTO
-        // Cargar visitas completadas asociadas a este animal para poblar el historial clínico en MySQL
+        // MÓDULO DE SEGUIMIENTO — solo carga si las tablas existen
         String sqlVisitas = "SELECT v.id, v.fecha_programada, v.fecha_real, v.comentarios, v.completada, v.continuar_visitas, " +
                             "v.estado_general_animal, v.limpieza_lugar, v.ambiente " +
                             "FROM visitas v " +
@@ -128,7 +127,7 @@ public class FichaMedicaRepositoryMySQL implements IFichaMedicaRepository {
                     boolean vContinuar = rsVisitas.getBoolean("continuar_visitas");
 
                     Visita v = new Visita(vId, null, vFechaProg, vFechaReal, vComentarios, vCompletada, vContinuar);
-                    
+
                     String estAnimal = rsVisitas.getString("estado_general_animal");
                     String limpLugar = rsVisitas.getString("limpieza_lugar");
                     String ambiente = rsVisitas.getString("ambiente");
@@ -143,8 +142,9 @@ public class FichaMedicaRepositoryMySQL implements IFichaMedicaRepository {
                     ficha.registrarVisitaDomicilio(v);
                 }
             }
+        } catch (SQLException ignored) {
+            // tablas de seguimiento aún no creadas
         }
-        // FIN MODULO DE SEGUIMIENTO
 
         return ficha;
     }

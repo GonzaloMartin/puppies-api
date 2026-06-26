@@ -1,14 +1,12 @@
 package com.gudboy.domain.fichaMedica.model;
 
-import com.gudboy.domain.Usuario.Veterinario;
+import java.util.UUID;
+
 import com.gudboy.domain.animal.model.Animal;
 import com.gudboy.domain.comentarioMedico.ComentarioMedico;
 import com.gudboy.domain.fichaMedica.exportador.Exportador;
 import com.gudboy.domain.historialClinico.HistorialClinico;
 import com.gudboy.domain.tratamiento.Tratamiento;
-
-import java.util.ArrayList;
-import java.util.UUID;
 
 public class FichaMedica {
 

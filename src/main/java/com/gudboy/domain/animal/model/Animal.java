@@ -4,14 +4,6 @@ import com.gudboy.domain.animal.State.EstadoSaludable;
 import com.gudboy.domain.animal.State.IEstadoDeSalud;
 import java.util.UUID;
 
-/**
- * Clase base que representa a cualquier animal del refugio.
- * Tanto animales domésticos como salvajes extienden esta clase.
- *
- * Centraliza los datos comunes y el estado de salud (patrón State), que
- * por tener un campo mutable propio de cada instancia no puede vivir en
- * una interfaz.
- */
 public abstract class Animal {
 
     private UUID id = UUID.randomUUID();

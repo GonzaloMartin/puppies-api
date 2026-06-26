@@ -1,27 +1,33 @@
 package com.gudboy;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
+
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
 import com.gudboy.domain.Usuario.Veterinario;
 import com.gudboy.domain.animal.factory.FabricaAnimalDomestico;
 import com.gudboy.domain.animal.factory.FabricaAnimalSalvaje;
 import com.gudboy.domain.animal.model.Animal;
 import com.gudboy.domain.comentarioMedico.ComentarioMedico;
-import com.gudboy.domain.fichaMedica.exportador.Exportador;
 import com.gudboy.domain.fichaMedica.exportador.ExportadorExcel;
 import com.gudboy.domain.fichaMedica.exportador.ExportadorPDF;
 import com.gudboy.domain.fichaMedica.model.FichaMedica;
-import com.gudboy.domain.tratamiento.Tratamiento;
 import com.gudboy.domain.tratamiento.TipoTratamiento;
+import com.gudboy.domain.tratamiento.Tratamiento;
 import com.gudboy.repository.IFichaMedicaRepository;
 import com.gudboy.service.FichaMedicaService;
-
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.*;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 class FichaMedicaTest {
 
