@@ -66,22 +66,15 @@ public class FichaMedicaService implements IHistorialClinicoService {
 
     @Override
     public void registrarAtencion(UUID idAnimal, String detalle, Veterinario veterinario) {
-        // 1. Buscar la Ficha Médica correspondiente a ese animal en la base de datos
         FichaMedica ficha = repository.getByAnimalId(idAnimal);
 
         if (ficha != null) {
-            // 2. Crear el objeto ComentarioMedico
-            // (Asumo este constructor basado en las buenas prácticas, ajustalo a la clase real de tu compañero)
             ComentarioMedico nuevoComentario = new ComentarioMedico(
                     veterinario,
                     detalle,
                     LocalDateTime.now()
             );
-
-            // 3. Inyectar el comentario en el historial interno de la Ficha Médica
             ficha.agregarComentarioMedico(nuevoComentario);
-
-            // 4. Persistir los cambios en la base de datos
             repository.update(ficha);
         } else {
             System.err.println("Error: No se encontró una ficha médica para el animal con ID: " + idAnimal);

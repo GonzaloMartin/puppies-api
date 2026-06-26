@@ -6,9 +6,6 @@ import com.gudboy.repository.IAnimalRepository;
 
 import java.util.List;
 
-/**
- * Capa de servicio para la lógica de negocio relacionada con animales.
- */
 public class AnimalService {
 
     private final IAnimalRepository animalRepository;
@@ -17,9 +14,6 @@ public class AnimalService {
         this.animalRepository = animalRepository;
     }
 
-    /**
-     * Crea el animal a través de la fábrica y lo persiste en el repositorio.
-     */
     public Animal registrarAnimal(FabricaAnimal fabrica, String nombre, String especie,
                                   double altura, double peso,
                                   int edad, String condicionMedica) {
