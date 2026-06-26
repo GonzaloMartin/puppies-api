@@ -8,7 +8,6 @@ import java.sql.Date;
 import java.time.LocalDate;
 import java.util.*;
 
-@SuppressWarnings("unused")
 public class VisitaRepositoryMySQL implements IVisitaRepository {
 
     private final ISeguimientoRepository seguimientoRepository;
