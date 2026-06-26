@@ -1,11 +1,9 @@
 package com.gudboy.domain.seguimiento.adapter;
 
-@SuppressWarnings("unused")
+/** Adapter real para la API de Meta/WhatsApp (simulado para el TP). */
 public class MetaWhatsAppAdapter implements IWhatsAppAdapter {
     @Override
     public void enviarWhatsApp(String numero, String mensaje) {
-        if ("true".equalsIgnoreCase(System.getProperty("verbose", "false"))) {
-            System.out.println("[Meta WhatsApp] Enviando mensaje a " + numero + ": " + mensaje);
-        }
+        System.out.println("[Meta WhatsApp] → " + numero + ": " + mensaje);
     }
 }

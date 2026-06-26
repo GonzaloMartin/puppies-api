@@ -3,33 +3,31 @@ package com.gudboy.repository;
 import com.gudboy.domain.historialClinico.HistorialClinico;
 
 import java.util.ArrayList;
-import java.util.List;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.UUID;
 
-public class HistorialClinicoRepository implements IRepositoryHistTratComen<HistorialClinico>{
+public class HistorialClinicoRepository {
 
-    @Override
-    public void guardar(HistorialClinico entidad) {
+    private final Map<UUID, HistorialClinico> store = new LinkedHashMap<>();
 
+    public void guardar(HistorialClinico historial) {
+        store.put(historial.getHistorialID(), historial);
     }
 
-    @Override
-    public void actualizar(UUID id) {
-
+    public HistorialClinico buscarPorId(UUID historialId) {
+        return store.get(historialId);
     }
 
-    @Override
-    public void eliminar(UUID id) {
-
+    /** Busca el historial clínico asociado al animal con ese UUID. */
+    public HistorialClinico buscarPorAnimal(UUID animalId) {
+        return store.values().stream()
+                .filter(h -> h.getAnimal().getId().equals(animalId))
+                .findFirst()
+                .orElse(null);
     }
 
-    @Override
-    public HistorialClinico buscarPorId(UUID id) {
-        return null;
-    }
-
-    @Override
     public ArrayList<HistorialClinico> listarTodos() {
-        return null;
+        return new ArrayList<>(store.values());
     }
 }

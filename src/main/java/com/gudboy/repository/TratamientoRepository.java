@@ -1,37 +1,25 @@
 package com.gudboy.repository;
 
-import com.gudboy.domain.animal.model.Animal;
-import com.gudboy.domain.tratamiento.TipoTratamiento;
 import com.gudboy.domain.tratamiento.Tratamiento;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.UUID;
 
-public class TratamientoRepository implements IRepositoryHistTratComen<Tratamiento> {
+public class TratamientoRepository {
 
+    private final Map<UUID, Tratamiento> store = new LinkedHashMap<>();
 
-    @Override
-    public void guardar(Tratamiento entidad) {
-
+    public void guardar(Tratamiento tratamiento) {
+        store.put(tratamiento.getTratamientoID(), tratamiento);
     }
 
-    @Override
-    public void actualizar(UUID id) {
-
-    }
-
-    @Override
-    public void eliminar(UUID id) {
-
-    }
-
-    @Override
     public Tratamiento buscarPorId(UUID id) {
-        return null;
+        return store.get(id);
     }
 
-    @Override
     public ArrayList<Tratamiento> listarTodos() {
-        return null;
+        return new ArrayList<>(store.values());
     }
 }

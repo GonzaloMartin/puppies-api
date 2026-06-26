@@ -1,47 +1,41 @@
 package com.gudboy.domain.comentarioMedico;
-import com.gudboy.domain.Usuario.Veterinario;
 
+import com.gudboy.domain.Usuario.Veterinario;
 import java.time.LocalDateTime;
-import java.util.Date;
 import java.util.UUID;
 
 public class ComentarioMedico {
     private final UUID comentarioID;
     private Veterinario veterinario;
     private String casillaComentario;
-    private Date fecha;
+    private LocalDateTime fecha;
 
-    public ComentarioMedico(Veterinario veterinario, String casillaComentario){
+    /** Constructor original (sin fecha) */
+    public ComentarioMedico(Veterinario veterinario, String casillaComentario) {
         this.comentarioID = UUID.randomUUID();
         this.veterinario = veterinario;
         this.casillaComentario = casillaComentario;
-        this.fecha = new Date();
+        this.fecha = LocalDateTime.now();
     }
 
-    public Veterinario getVeterinario() {
-        return veterinario;
-    }
-
-    private void setCasillaComentario(String casillaComentario) {
+    /** Constructor con fecha explícita (requerido por FichaMedicaService y tests) */
+    public ComentarioMedico(Veterinario veterinario, String casillaComentario, LocalDateTime fecha) {
+        this.comentarioID = UUID.randomUUID();
+        this.veterinario = veterinario;
         this.casillaComentario = casillaComentario;
+        this.fecha = fecha;
     }
 
-    public String getCasillaComentario() {
-        return casillaComentario;
+    public Veterinario getVeterinario() { return veterinario; }
+
+    public String getCasillaComentario() { return casillaComentario; }
+
+    public UUID getComentarioID() { return comentarioID; }
+
+    public LocalDateTime getFecha() { return fecha; }
+
+    public void modificarComentario(String nuevoComenario) {
+        this.casillaComentario = nuevoComenario;
+        this.fecha = LocalDateTime.now();
     }
-
-    public UUID getComentarioID() {
-        return comentarioID;
-    }
-
-    public Date getFecha() {
-        return fecha;
-    }
-
-    public void modificarComentario(String casillaComentario){
-        setCasillaComentario(casillaComentario);
-        this.fecha = new Date();
-    }
-
-
 }

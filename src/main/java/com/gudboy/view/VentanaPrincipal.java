@@ -1,1036 +1,840 @@
 package com.gudboy.view;
 
-import com.gudboy.controller.AdopcionController;
-import com.gudboy.controller.AlarmaController;
-import com.gudboy.controller.AnimalController;
-import com.gudboy.controller.FichaMedicaController;
-import com.gudboy.controller.UsuarioController;
-import com.gudboy.controller.SeguimientoController;
-import com.gudboy.controller.VisitaController;
+import com.gudboy.controller.*;
 import com.gudboy.domain.Usuario.EstadoCivil;
 import com.gudboy.domain.Usuario.Ocupacion;
 import com.gudboy.domain.Usuario.Veterinario;
 import com.gudboy.domain.Usuario.Visitador;
-import com.gudboy.domain.alarma.observer.PushNotificationObserver;
-import com.gudboy.domain.animal.factory.FabricaAnimal;
-import com.gudboy.domain.animal.factory.FabricaAnimalDomestico;
-import com.gudboy.domain.animal.factory.FabricaAnimalSalvaje;
-import com.gudboy.domain.animal.model.Animal;
-import com.gudboy.domain.animal.model.AnimalDomestico;
-import com.gudboy.domain.animal.model.Adopcion;
 import com.gudboy.domain.alarma.model.Alarma;
-import com.gudboy.domain.tratamiento.TipoTratamiento;
 import com.gudboy.domain.alarma.observer.IAlarmaObserver;
-import com.gudboy.domain.fichaMedica.exportador.ExportadorExcel;
-import com.gudboy.domain.fichaMedica.exportador.ExportadorPDF;
+import com.gudboy.domain.alarma.observer.PushNotificationObserver;
+import com.gudboy.domain.animal.factory.*;
+import com.gudboy.domain.animal.model.*;
+import com.gudboy.domain.comentarioMedico.ComentarioMedico;
+import com.gudboy.domain.fichaMedica.exportador.*;
 import com.gudboy.domain.fichaMedica.model.FichaMedica;
+import com.gudboy.domain.historialClinico.HistorialClinico;
 import com.gudboy.domain.seguimiento.model.*;
+import com.gudboy.domain.seguimiento.observer.*;
+import com.gudboy.domain.seguimiento.adapter.*;
+import com.gudboy.domain.seguimiento.service.ServicioRecordatorios;
+import com.gudboy.domain.tratamiento.*;
 
 import javax.swing.*;
 import java.awt.*;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Calendar;
 import java.time.ZoneId;
 import java.util.Collections;
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.List;
+import java.util.stream.Collectors;
 
-public class VentanaPrincipal extends JFrame implements  IAlarmaObserver {
+public class VentanaPrincipal extends JFrame implements IAlarmaObserver {
 
-    private final AnimalController animalController;
-    private final UsuarioController usuarioController;
-    private final AdopcionController adopcionController;
-    private final AlarmaController alarmaController;
-    private final FichaMedicaController fichaMedicaController;
-    private final SeguimientoController seguimientoController;
-    private final VisitaController visitaController;
+    // Controllers
+    private final AnimalController            animalCtrl;
+    private final UsuarioController           usuarioCtrl;
+    private final AdopcionController          adopcionCtrl;
+    private final AlarmaController            alarmaCtrl;
+    private final FichaMedicaController       fichaCtrl;
+    private final SeguimientoController       segCtrl;
+    private final VisitaController            visitaCtrl;
+    private final TratamientoController       tratCtrl;
+    private final ComentarioController        comenCtrl;
+    private final HistorialClinicoController  histCtrl;
+    private final ServicioRecordatorios       recordatorios;
 
-    private JList<Seguimiento> listSeguimientos;
-    private JList<Visita> listVisitas;
+    // List models
+    private final DefaultListModel<Animal>      animalModel  = new DefaultListModel<>();
+    private final DefaultListModel<Visitador>   visitModel   = new DefaultListModel<>();
+    private final DefaultListModel<Veterinario> vetModel     = new DefaultListModel<>();
+    private final DefaultListModel<Alarma>      alarmaModel  = new DefaultListModel<>();
+    private final DefaultListModel<Seguimiento> segModel     = new DefaultListModel<>();
+    private final DefaultListModel<Visita>      visitaModel  = new DefaultListModel<>();
 
-    private final DefaultListModel<Animal> animalListModel = new DefaultListModel<>();
-    private final DefaultListModel<Visitador> visitadorListModel = new DefaultListModel<>();
-    private final DefaultListModel<Veterinario> veterinarioListModel = new DefaultListModel<>();
-    private final DefaultListModel<Alarma> alarmaListModel = new DefaultListModel<>();
-    private final DefaultListModel<Seguimiento> seguimientoListModel = new DefaultListModel<>();
-    private final DefaultListModel<Visita> visitaListModel = new DefaultListModel<>();
+    private JList<Seguimiento> listSeg;
+    private JList<Visita>      listVisita;
 
-    public VentanaPrincipal(AnimalController animalController, UsuarioController usuarioController,
-                            AdopcionController adopcionController, AlarmaController alarmaController,
-                            FichaMedicaController fichaMedicaController,
-                            SeguimientoController seguimientoController,
-                            VisitaController visitaController) {
-        super("Puppies - Refugio de animales");
-        this.animalController = animalController;
-        this.usuarioController = usuarioController;
-        this.adopcionController = adopcionController;
-        this.alarmaController = alarmaController;
-        this.fichaMedicaController = fichaMedicaController;
-        this.seguimientoController = seguimientoController;
-        this.visitaController = visitaController;
-        this.alarmaController.suscribirVista(this);
+    public VentanaPrincipal(AnimalController animalCtrl,
+                            UsuarioController usuarioCtrl,
+                            AdopcionController adopcionCtrl,
+                            AlarmaController alarmaCtrl,
+                            FichaMedicaController fichaCtrl,
+                            SeguimientoController segCtrl,
+                            VisitaController visitaCtrl,
+                            TratamientoController tratCtrl,
+                            ComentarioController comenCtrl,
+                            HistorialClinicoController histCtrl,
+                            ServicioRecordatorios recordatorios) {
+        super("Puppies — Refugio Gud Boy");
+        this.animalCtrl   = animalCtrl;
+        this.usuarioCtrl  = usuarioCtrl;
+        this.adopcionCtrl = adopcionCtrl;
+        this.alarmaCtrl   = alarmaCtrl;
+        this.fichaCtrl    = fichaCtrl;
+        this.segCtrl      = segCtrl;
+        this.visitaCtrl   = visitaCtrl;
+        this.tratCtrl     = tratCtrl;
+        this.comenCtrl    = comenCtrl;
+        this.histCtrl     = histCtrl;
+        this.recordatorios = recordatorios;
 
-
-        // 2. NUEVO: Instancias el Observer de notificaciones y lo suscribes
-        PushNotificationObserver pushObserver = new PushNotificationObserver(usuarioController);
-        this.alarmaController.suscribirVista(pushObserver);
+        alarmaCtrl.suscribirVista(this);
+        alarmaCtrl.suscribirVista(new PushNotificationObserver(usuarioCtrl));
 
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(850, 600);
+        setSize(1080, 700);
         setLocationRelativeTo(null);
 
-        JPanel panelBotones = new JPanel(new GridLayout(3, 4, 10, 10));
-        panelBotones.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10)); // Margen estético para que no se pegue a los bordes
+        // ── Botones 4×4 ──────────────────────────────────────────────────────
+        JPanel pBtns = new JPanel(new GridLayout(4, 4, 8, 8));
+        pBtns.setBorder(BorderFactory.createEmptyBorder(10, 10, 6, 10));
 
-        JButton btnCrearAnimal = new JButton("Crear Animal");
-        JButton btnCrearVisitador = new JButton("Crear Visitador");
-        JButton btnCrearVeterinario = new JButton("Crear Veterinario");
-        JButton btnCrearAdopcion = new JButton("Crear Adopción");
-        JButton btnCambiarEstadoSalud = new JButton("Cambiar Estado de Salud");
-        JButton btnCrearAlarma = new JButton("Crear Alarma");
-        JButton btnModificarAlarma = new JButton("Modificar Alarma");
-        JButton btnCompletarAlarma = new JButton("Completar Alarma");
-        JButton btnCrearFicha = new JButton("Crear Ficha Médica");
-        JButton btnExportarFicha = new JButton("Exportar Ficha Médica");
-        JButton btnCrearSeguimiento = new JButton("Crear Seguimiento");
-        JButton btnRegistrarVisita = new JButton("Registrar Visita");
+        String[] labels = {
+            "Crear Animal",       "Crear Visitador",     "Crear Veterinario",   "Crear Adopción",
+            "Estado de Salud",    "Crear Alarma",        "Modificar Alarma",    "Atender Alarma",
+            "Crear Ficha Médica", "Exportar Ficha",      "Crear Seguimiento",   "Registrar Visita",
+            "Registrar Trat.",    "Cambiar Estado Trat.", "Agregar Comentario", "Ver Historial"
+        };
+        Runnable[] actions = {
+            this::dlgCrearAnimal,       this::dlgCrearVisitador,  this::dlgCrearVeterinario, this::dlgCrearAdopcion,
+            this::dlgEstadoSalud,       this::dlgCrearAlarma,     this::dlgModifAlarma,      this::dlgAtenderAlarma,
+            this::dlgCrearFicha,        this::dlgExportarFicha,   this::dlgCrearSeguimiento, this::dlgRegistrarVisita,
+            this::dlgRegistrarTrat,     this::dlgCambiarEstTrat,  this::dlgAgregarComentario, this::dlgVerHistorial
+        };
+        for (int i = 0; i < labels.length; i++) {
+            JButton btn = new JButton(labels[i]);
+            final Runnable act = actions[i];
+            btn.addActionListener(e -> act.run());
+            pBtns.add(btn);
+        }
 
-        btnCrearAnimal.addActionListener(e -> mostrarDialogoCrearAnimal());
-        btnCrearVisitador.addActionListener(e -> mostrarDialogoCrearVisitador());
-        btnCrearVeterinario.addActionListener(e -> mostrarDialogoCrearVeterinario());
-        btnCrearAdopcion.addActionListener(e -> mostrarDialogoCrearAdopcion());
-        btnCambiarEstadoSalud.addActionListener(e -> mostrarDialogoCambiarEstadoSalud());
-        btnCrearAlarma.addActionListener(e -> mostrarDialogoCrearAlarma());
-        btnModificarAlarma.addActionListener(e -> mostrarDialogoModificarAlarma());
-        btnCompletarAlarma.addActionListener(e -> mostrarDialogoCompletarAlarma());
-        btnCrearFicha.addActionListener(e -> mostrarDialogoCrearFichaMedica());
-        btnExportarFicha.addActionListener(e -> mostrarDialogoExportarFichaMedica());
-        btnCrearSeguimiento.addActionListener(e -> mostrarDialogoCrearSeguimiento());
-        btnRegistrarVisita.addActionListener(e -> mostrarDialogoRegistrarVisita());
+        // ── Panel seguimientos ────────────────────────────────────────────────
+        listSeg   = new JList<>(segModel);
+        listVisita = new JList<>(visitaModel);
+        listSeg.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        listVisita.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
-        panelBotones.add(btnCrearAnimal);
-        panelBotones.add(btnCrearVisitador);
-        panelBotones.add(btnCrearVeterinario);
-        panelBotones.add(btnCrearAdopcion);
-        panelBotones.add(btnCambiarEstadoSalud);
-        panelBotones.add(btnCrearAlarma);
-        panelBotones.add(btnModificarAlarma);
-        panelBotones.add(btnCompletarAlarma);
-        panelBotones.add(btnCrearFicha);
-        panelBotones.add(btnExportarFicha);
-        panelBotones.add(btnCrearSeguimiento);
-        panelBotones.add(btnRegistrarVisita);
-
-        // PANELES PARA DETALLE DE SEGUIMIENTOS
-        JPanel panelSeguimientosTab = new JPanel(new BorderLayout());
-        
-        listSeguimientos = new JList<>(seguimientoListModel);
-        listSeguimientos.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        
-        listVisitas = new JList<>(visitaListModel);
-        listVisitas.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        
-        listSeguimientos.addListSelectionListener(event -> {
-            if (!event.getValueIsAdjusting()) {
-                Seguimiento seleccionado = listSeguimientos.getSelectedValue();
-                visitaListModel.clear();
-                if (seleccionado != null) {
-                    visitaController.listarPorSeguimiento(seleccionado.getId())
-                            .forEach(visitaListModel::addElement);
-                }
+        listSeg.addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting()) {
+                Seguimiento s = listSeg.getSelectedValue();
+                visitaModel.clear();
+                if (s != null)
+                    visitaCtrl.listarPorSeguimiento(s.getId()).forEach(visitaModel::addElement);
             }
         });
 
-        // Renderización de seguimientos
-        listSeguimientos.setCellRenderer(new DefaultListCellRenderer() {
-            @Override
-            public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
-                JLabel label = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-                if (value instanceof Seguimiento) {
-                    Seguimiento s = (Seguimiento) value;
-                    String adoptanteNombre = s.getAdopcion().getAdoptante().getNombre() + " " + s.getAdopcion().getAdoptante().getApellido();
-                    String animales = String.join(", ", s.getAdopcion().getAnimales().stream().map(Animal::getNombre).toList());
-                    label.setText(String.format("Seguimiento: %s... | Adoptante: %s | Mascotas: [%s] | Resp: %s | Estado: %s (%s, %s-%s)", 
-                        s.getId().toString().substring(0, 8),
-                        adoptanteNombre, 
-                        animales,
-                        s.getResponsable().getNombre() + " " + s.getResponsable().getApellido(),
-                        s.getEstado(),
-                        s.getDiaSemana(), s.getHorarioDesde(), s.getHorarioHasta()));
+        listSeg.setCellRenderer(new DefaultListCellRenderer() {
+            @Override public Component getListCellRendererComponent(JList<?> l, Object v, int i, boolean sel, boolean foc) {
+                JLabel lbl = (JLabel) super.getListCellRendererComponent(l, v, i, sel, foc);
+                if (v instanceof Seguimiento s) {
+                    String anim = s.getAdopcion().getAnimales().stream().map(Animal::getNombre).collect(Collectors.joining(", "));
+                    lbl.setText(String.format("▸ %s %s  |  [%s]  |  %s %s-%s  |  %s",
+                        s.getAdopcion().getAdoptante().getNombre(),
+                        s.getAdopcion().getAdoptante().getApellido(),
+                        anim, s.getDiaSemana(), s.getHorarioDesde(), s.getHorarioHasta(), s.getEstado()));
                 }
-                return label;
+                return lbl;
             }
         });
 
-        // Renderización de visitas
-        listVisitas.setCellRenderer(new DefaultListCellRenderer() {
-            @Override
-            public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
-                JLabel label = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-                if (value instanceof Visita) {
-                    Visita v = (Visita) value;
-                    String estadoStr = v.isCompletada() ? "COMPLETADA el " + v.getFechaReal() : "PENDIENTE para el " + v.getFechaProgramada();
-                    String resultadoStr = "";
-                    if (v.isCompletada() && v.getEncuesta() != null) {
-                        Encuesta enc = v.getEncuesta();
-                        resultadoStr = String.format(" | Encuesta: [Animal: %s, Limpieza: %s, Ambiente: %s] | Favorable: %s", 
-                            enc.getEstadoGeneralAnimal(), enc.getLimpiezaLugar(), enc.getAmbiente(), enc.esFavorable() ? "SÍ" : "NO");
+        listVisita.setCellRenderer(new DefaultListCellRenderer() {
+            @Override public Component getListCellRendererComponent(JList<?> l, Object v, int i, boolean sel, boolean foc) {
+                JLabel lbl = (JLabel) super.getListCellRendererComponent(l, v, i, sel, foc);
+                if (v instanceof Visita vi) {
+                    String est = vi.isCompletada()
+                        ? "✓ Completada el " + vi.getFechaReal()
+                        : "⏳ Pendiente — " + vi.getFechaProgramada();
+                    String enc = "";
+                    if (vi.isCompletada() && vi.getEncuesta() != null) {
+                        var e = vi.getEncuesta();
+                        enc = String.format("  [Animal: %s  Limpieza: %s  Ambiente: %s]",
+                            e.getEstadoGeneralAnimal(), e.getLimpiezaLugar(), e.getAmbiente());
                     }
-                    String comentStr = v.getComentarios() != null && !v.getComentarios().isEmpty() ? " | Comentarios: " + v.getComentarios() : "";
-                    label.setText(String.format("Visita %s... | %s%s%s", 
-                        v.getId().toString().substring(0, 8),
-                        estadoStr, resultadoStr, comentStr));
+                    lbl.setText("  " + est + enc);
                 }
-                return label;
+                return lbl;
             }
         });
 
-        JPanel panelTopList = new JPanel(new BorderLayout());
-        panelTopList.add(new JLabel(" Seguimientos de Adopciones Activos y Finalizados:"), BorderLayout.NORTH);
-        panelTopList.add(new JScrollPane(listSeguimientos), BorderLayout.CENTER);
-        
-        JPanel panelBottomList = new JPanel(new BorderLayout());
-        panelBottomList.add(new JLabel(" Visitas Domiciliarias del Seguimiento Seleccionado:"), BorderLayout.NORTH);
-        panelBottomList.add(new JScrollPane(listVisitas), BorderLayout.CENTER);
-        
-        JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, panelTopList, panelBottomList);
-        splitPane.setDividerLocation(200);
-        panelSeguimientosTab.add(splitPane, BorderLayout.CENTER);
+        JSplitPane split = new JSplitPane(JSplitPane.VERTICAL_SPLIT,
+            withTitle("Seguimientos:", new JScrollPane(listSeg)),
+            withTitle("Visitas del seguimiento seleccionado (seleccioná una ⏳ para registrar resultado):",
+                      new JScrollPane(listVisita)));
+        split.setDividerLocation(200);
 
+        // ── Tabs ─────────────────────────────────────────────────────────────
         JTabbedPane tabs = new JTabbedPane();
-        tabs.addTab("Animales", new JScrollPane(new JList<>(animalListModel)));
-        tabs.addTab("Visitadores", new JScrollPane(new JList<>(visitadorListModel)));
-        tabs.addTab("Veterinarios", new JScrollPane(new JList<>(veterinarioListModel)));
-        tabs.addTab("Alarmas", new JScrollPane(new JList<>(alarmaListModel)));
-        tabs.addTab("Seguimientos", panelSeguimientosTab);
+        tabs.addTab("Animales",      styledList(animalModel));
+        tabs.addTab("Visitadores",   styledList(visitModel));
+        tabs.addTab("Veterinarios",  styledList(vetModel));
+        tabs.addTab("Alarmas",       styledList(alarmaModel));
+        tabs.addTab("Seguimientos",  split);
 
-        JPanel panel = new JPanel(new BorderLayout());
-        panel.add(panelBotones, BorderLayout.NORTH);
-        panel.add(tabs, BorderLayout.CENTER);
+        JPanel root = new JPanel(new BorderLayout());
+        root.add(pBtns, BorderLayout.NORTH);
+        root.add(tabs,  BorderLayout.CENTER);
+        setContentPane(root);
 
-        setContentPane(panel);
-
-
-        refrescarListasEstaticas();
-        refrescarListaAlarmas();
-        iniciarVerificadorAlarmas();
+        refrescarTodo();
+        iniciarTimers();
     }
 
-    //@Override
-    public void actualizarEstado(Alarma alarma) {
-        // Aseguramos que la actualización de la UI ocurra en el hilo de Swing (EDT)
-        SwingUtilities.invokeLater(this::refrescarListaAlarmas);
+    // ── Helpers UI ───────────────────────────────────────────────────────────
+
+    private JPanel withTitle(String title, JComponent comp) {
+        JPanel p = new JPanel(new BorderLayout());
+        p.add(new JLabel("  " + title), BorderLayout.NORTH);
+        p.add(comp, BorderLayout.CENTER);
+        return p;
     }
 
-
-    private void iniciarVerificadorAlarmas() {
-        Timer timer = new Timer(60000, e -> alarmaController.verificarEstadoAlarmas());
-        timer.setInitialDelay(5000); // Primera verificación a los 5 segundos de abrir
-        timer.start();
+    private <T> JScrollPane styledList(DefaultListModel<T> model) {
+        JList<T> list = new JList<>(model);
+        list.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 13));
+        list.setFixedCellHeight(22);
+        return new JScrollPane(list);
     }
 
-
-    private void refrescarListasEstaticas() {
-        animalListModel.clear();
-        animalController.listarAnimales().forEach(animalListModel::addElement);
-
-        visitadorListModel.clear();
-        usuarioController.listarVisitadores().forEach(visitadorListModel::addElement);
-
-        veterinarioListModel.clear();
-        usuarioController.listarVeterinarios().forEach(veterinarioListModel::addElement);
-
-        refrescarListaSeguimientos();
+    private DefaultListCellRenderer fichaRenderer() {
+        return new DefaultListCellRenderer() {
+            @Override public Component getListCellRendererComponent(JList<?> l, Object v, int i, boolean s, boolean f) {
+                JLabel lbl = (JLabel) super.getListCellRendererComponent(l, v, i, s, f);
+                if (v instanceof FichaMedica fm)
+                    lbl.setText(fm.getAnimal().getNombre() + " (" + fm.getAnimal().getEspecie() + " — " + fm.getAnimal().getTipoAnimal() + ")");
+                return lbl;
+            }
+        };
     }
 
-    private void refrescarListaSeguimientos() {
-        seguimientoListModel.clear();
-        visitaListModel.clear();
-        seguimientoController.listarTodos().forEach(seguimientoListModel::addElement);
+    // ── Observer / Timers ────────────────────────────────────────────────────
+
+    @Override public void actualizarEstado(Alarma alarma) {
+        SwingUtilities.invokeLater(this::refrescarAlarmas);
     }
 
-    // --- CAMBIO: Método específico para refrescar las alarmas (usado por el Observer) ---
-    private void refrescarListaAlarmas() {
-        alarmaListModel.clear();
-        alarmaController.getAll().forEach(alarmaListModel::addElement);
+    private void iniciarTimers() {
+        // Timer 1: verificar alarmas vencidas cada 60 seg
+        javax.swing.Timer t1 = new javax.swing.Timer(60_000, e -> alarmaCtrl.verificarEstadoAlarmas());
+        t1.setInitialDelay(5_000);
+        t1.start();
+
+        // Timer 2: ServicioRecordatorios — evalúa visitas próximas cada 24 h
+        // Usa los canales configurados en cada Visita según PreferenciaRecordatorio
+        javax.swing.Timer t2 = new javax.swing.Timer(86_400_000, e -> evaluarRecordatorios());
+        t2.setInitialDelay(10_000); // primera evaluación a los 10 seg de abrir
+        t2.start();
     }
 
-    private void mostrarDialogoCrearSeguimiento() {
-        List<Adopcion> adopciones = adopcionController.listarTodos();
-        if (adopciones.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "No hay adopciones registradas para realizar seguimiento.", "Advertencia", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
+    /**
+     * Evalúa todas las visitas pendientes y, para cada una cuya fecha coincide
+     * con (hoy + N días configurados), llama notificarRecordatorio().
+     * Cada visita tiene sus propios observers (SMS / WhatsApp / Email)
+     * configurados según la PreferenciaRecordatorio del seguimiento.
+     */
+    private void evaluarRecordatorios() {
+        List<Seguimiento> segs = segCtrl.listarTodos();
+        for (Seguimiento s : segs) {
+            if (s.getEstado() != EstadoSeguimiento.ACTIVO) continue;
 
-        List<Visitador> visitadores = usuarioController.listarVisitadores();
-        if (visitadores.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "No hay visitadores registrados en el sistema.", "Advertencia", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
+            // Configurar el adapter según la preferencia del seguimiento
+            INotificacionStrategy strategy = resolverStrategy(s.getPreferenciaRecordatorio());
 
-        // 1. Selector de Adopción
-        JComboBox<Adopcion> adopcionCombo = new JComboBox<>(adopciones.toArray(new Adopcion[0]));
-        adopcionCombo.setRenderer(new DefaultListCellRenderer() {
-            @Override
-            public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
-                JLabel label = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-                if (value instanceof Adopcion) {
-                    Adopcion a = (Adopcion) value;
-                    String animales = String.join(", ", a.getAnimales().stream().map(Animal::getNombre).toList());
-                    label.setText(String.format("Adoptante: %s | Mascotas: [%s]", a.getAdoptante().toString(), animales));
+            List<Visita> visitas = visitaCtrl.listarPorSeguimiento(s.getId());
+            for (Visita v : visitas) {
+                if (!v.isCompletada()) {
+                    // Suscribir la estrategia al sujeto (Visita)
+                    v.suscribir(strategy);
                 }
-                return label;
             }
-        });
+            // Evaluar y disparar si corresponde
+            recordatorios.evaluarVisitas(visitas, LocalDate.now());
 
-        // 2. Selector de Responsable (Visitadores)
-        JComboBox<Visitador> responsableCombo = new JComboBox<>(visitadores.toArray(new Visitador[0]));
-
-        // 3. Selector de Día de la Semana
-        JComboBox<DiaSemana> diaCombo = new JComboBox<>(DiaSemana.values());
-
-        // 4. Campos de Franja Horaria
-        JTextField horarioDesdeField = new JTextField("09:00");
-        JTextField horarioHastaField = new JTextField("12:00");
-
-        // 5. Selector de Canal de Recordatorio
-        JComboBox<PreferenciaRecordatorio> recordatorioCombo = new JComboBox<>(PreferenciaRecordatorio.values());
-
-        // 6. Campo para cantidad de visitas iniciales
-        JTextField cantVisitasField = new JTextField("3");
-
-        JPanel form = new JPanel(new GridLayout(7, 2, 5, 5));
-        form.add(new JLabel("Adopción asociada:"));
-        form.add(adopcionCombo);
-        form.add(new JLabel("Responsable de visitas (Visitador):"));
-        form.add(responsableCombo);
-        form.add(new JLabel("Día semanal de visita:"));
-        form.add(diaCombo);
-        form.add(new JLabel("Horario Desde (hh:mm):"));
-        form.add(horarioDesdeField);
-        form.add(new JLabel("Horario Hasta (hh:mm):"));
-        form.add(horarioHastaField);
-        form.add(new JLabel("Preferencia de Recordatorio:"));
-        form.add(recordatorioCombo);
-        form.add(new JLabel("Cantidad visitas iniciales:"));
-        form.add(cantVisitasField);
-
-        int resultado = JOptionPane.showConfirmDialog(this, form, "Crear Seguimiento Post-Adopción",
-                JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
-        
-        if (resultado != JOptionPane.OK_OPTION) {
-            return;
-        }
-
-        try {
-            Adopcion adopcionSeleccionada = (Adopcion) adopcionCombo.getSelectedItem();
-            Visitador responsableSeleccionado = (Visitador) responsableCombo.getSelectedItem();
-            DiaSemana diaSeleccionado = (DiaSemana) diaCombo.getSelectedItem();
-            String horarioDesde = horarioDesdeField.getText().trim();
-            String horarioHasta = horarioHastaField.getText().trim();
-            PreferenciaRecordatorio recordatorioSeleccionado = (PreferenciaRecordatorio) recordatorioCombo.getSelectedItem();
-            int cantVisitas = Integer.parseInt(cantVisitasField.getText().trim());
-
-            if (horarioDesde.isEmpty() || horarioHasta.isEmpty()) {
-                throw new IllegalArgumentException("La franja horaria es obligatoria.");
-            }
-            if (cantVisitas <= 0) {
-                throw new IllegalArgumentException("La cantidad de visitas iniciales debe ser mayor a cero.");
-            }
-
-            Seguimiento nuevoSeguimiento = seguimientoController.crearSeguimiento(
-                    adopcionSeleccionada,
-                    responsableSeleccionado,
-                    diaSeleccionado,
-                    horarioDesde,
-                    horarioHasta,
-                    recordatorioSeleccionado,
-                    cantVisitas
-            );
-
-            refrescarListaSeguimientos();
-            JOptionPane.showMessageDialog(this, "Seguimiento creado con éxito:\nID: " + nuevoSeguimiento.getId(), "Éxito", JOptionPane.INFORMATION_MESSAGE);
-
-        } catch (NumberFormatException ex) {
-            JOptionPane.showMessageDialog(this, "La cantidad de visitas debe ser un número entero.", "Error de Entrada", JOptionPane.ERROR_MESSAGE);
-        } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, ex.getMessage(), "Error al Crear Seguimiento", JOptionPane.ERROR_MESSAGE);
+            // Desuscribir para no acumular observers en próximas evaluaciones
+            for (Visita v : visitas) v.desuscribir(strategy);
         }
     }
 
-    private void mostrarDialogoRegistrarVisita() {
-        Visita visitaSeleccionada = listVisitas != null ? listVisitas.getSelectedValue() : null;
-
-        if (visitaSeleccionada == null) {
-            JOptionPane.showMessageDialog(this, 
-                    "Por favor, selecciona una visita pendiente en la pestaña 'Seguimientos'\n" + 
-                    "para poder registrar su resultado.", 
-                    "Visita no Seleccionada", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-
-        if (visitaSeleccionada.isCompletada()) {
-            JOptionPane.showMessageDialog(this, 
-                    "Esta visita ya fue completada el " + visitaSeleccionada.getFechaReal() + ".\n" +
-                    "No se puede registrar nuevamente.", 
-                    "Visita Completada", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-
-        // Formulario de Encuesta
-        JComboBox<CalificacionEnum> estadoAnimalCombo = new JComboBox<>(CalificacionEnum.values());
-        JComboBox<CalificacionEnum> limpiezaCombo = new JComboBox<>(CalificacionEnum.values());
-        JComboBox<CalificacionEnum> ambienteCombo = new JComboBox<>(CalificacionEnum.values());
-        
-        estadoAnimalCombo.setSelectedItem(CalificacionEnum.BUENO);
-        limpiezaCombo.setSelectedItem(CalificacionEnum.BUENO);
-        ambienteCombo.setSelectedItem(CalificacionEnum.BUENO);
-
-        JTextField comentariosField = new JTextField();
-        JCheckBox continuarVisitasCheck = new JCheckBox("¿Es necesario programar más visitas?", true);
-
-        JPanel form = new JPanel(new GridLayout(5, 2, 5, 5));
-        form.add(new JLabel("Estado General de la Mascota:"));
-        form.add(estadoAnimalCombo);
-        form.add(new JLabel("Limpieza del Lugar de Residencia:"));
-        form.add(limpiezaCombo);
-        form.add(new JLabel("Ambiente de Convivencia:"));
-        form.add(ambienteCombo);
-        form.add(new JLabel("Comentarios / Observaciones:"));
-        form.add(comentariosField);
-        form.add(new JLabel("Continuación:"));
-        form.add(continuarVisitasCheck);
-
-        int resultado = JOptionPane.showConfirmDialog(this, form, 
-                "Registrar Resultado de Visita Domiciliaria", 
-                JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
-
-        if (resultado != JOptionPane.OK_OPTION) {
-            return;
-        }
-
-        try {
-            CalificacionEnum estado = (CalificacionEnum) estadoAnimalCombo.getSelectedItem();
-            CalificacionEnum limpieza = (CalificacionEnum) limpiezaCombo.getSelectedItem();
-            CalificacionEnum ambiente = (CalificacionEnum) ambienteCombo.getSelectedItem();
-            String comentarios = comentariosField.getText().trim();
-            boolean continuar = continuarVisitasCheck.isSelected();
-
-            Encuesta encuesta = new Encuesta(estado, limpieza, ambiente);
-            
-            seguimientoController.registrarResultadoVisita(
-                    visitaSeleccionada.getId(),
-                    encuesta,
-                    comentarios,
-                    continuar
-            );
-
-            // Refrescamos las vistas
-            refrescarListaSeguimientos();
-            
-            // Tratamos de re-seleccionar el mismo seguimiento para ver los cambios
-            if (listSeguimientos != null && listSeguimientos.getSelectedValue() != null) {
-                Seguimiento seleccionado = listSeguimientos.getSelectedValue();
-                visitaListModel.clear();
-                visitaController.listarPorSeguimiento(seleccionado.getId())
-                        .forEach(visitaListModel::addElement);
-            }
-
-            JOptionPane.showMessageDialog(this, "Resultado de la visita domiciliaria registrado con éxito.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
-
-        } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Error al registrar resultado: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-        }
+    /** Devuelve la estrategia de notificación correcta según la preferencia. */
+    private INotificacionStrategy resolverStrategy(PreferenciaRecordatorio pref) {
+        return switch (pref) {
+            case SMS       -> new SMSNotificacion(new TwilioSMSAdapter());
+            case WHATSAPP  -> new WhatsAppNotificacion(new MetaWhatsAppAdapter());
+            case EMAIL     -> new EmailNotificacion(new JavaMailAdapter());
+        };
     }
 
-    private void mostrarDialogoCrearAnimal() {
-        JTextField nombreField = new JTextField();
-        JTextField especieField = new JTextField();
-        JTextField alturaField = new JTextField();
-        JTextField pesoField = new JTextField();
-        JTextField edadField = new JTextField();
-        JComboBox<String> condicionCombo = new JComboBox<>(new String[]{"Saludable", "En tratamiento"});
-        JComboBox<String> tipoCombo = new JComboBox<>(new String[]{"Doméstico", "Salvaje"});
+    // ── Refresh ───────────────────────────────────────────────────────────────
 
-        JPanel form = new JPanel(new GridLayout(7, 2, 5, 5));
-        form.add(new JLabel("Nombre:"));
-        form.add(nombreField);
-        form.add(new JLabel("Especie:"));
-        form.add(especieField);
-        form.add(new JLabel("Altura (m):"));
-        form.add(alturaField);
-        form.add(new JLabel("Peso (kg):"));
-        form.add(pesoField);
-        form.add(new JLabel("Edad:"));
-        form.add(edadField);
-        form.add(new JLabel("Condición médica:"));
-        form.add(condicionCombo);
-        form.add(new JLabel("Tipo:"));
-        form.add(tipoCombo);
+    private void refrescarTodo() {
+        animalModel.clear();
+        animalCtrl.listarAnimales().forEach(animalModel::addElement);
+        visitModel.clear();
+        usuarioCtrl.listarVisitadores().forEach(visitModel::addElement);
+        vetModel.clear();
+        usuarioCtrl.listarVeterinarios().forEach(vetModel::addElement);
+        refrescarAlarmas();
+        refrescarSeguimientos();
+    }
 
-        int resultado = JOptionPane.showConfirmDialog(this, form, "Crear Animal",
-                JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
-        if (resultado != JOptionPane.OK_OPTION) {
-            return;
-        }
+    private void refrescarSeguimientos() {
+        segModel.clear();
+        visitaModel.clear();
+        segCtrl.listarTodos().forEach(segModel::addElement);
+    }
+
+    private void refrescarAlarmas() {
+        alarmaModel.clear();
+        alarmaCtrl.getAll().forEach(alarmaModel::addElement);
+    }
+
+    // ════════════════════════════════════════════════════════════════════════
+    // DIÁLOGOS — ANIMAL
+    // ════════════════════════════════════════════════════════════════════════
+
+    private void dlgCrearAnimal() {
+        JTextField nombreF = new JTextField(), especieF = new JTextField(),
+                   alturaF = new JTextField(), pesoF = new JTextField(), edadF = new JTextField();
+        JComboBox<String> condCB = new JComboBox<>(new String[]{"Saludable", "En tratamiento"});
+        JComboBox<String> tipoCB = new JComboBox<>(new String[]{"Doméstico", "Salvaje"});
+
+        JPanel f = form(
+            "Nombre:", nombreF, "Especie:", especieF,
+            "Altura (m):", alturaF, "Peso (kg):", pesoF,
+            "Edad:", edadF, "Condición:", condCB, "Tipo:", tipoCB);
+        if (!confirm(f, "Crear Animal")) return;
 
         try {
-            String nombre = nombreField.getText().trim();
-            String especie = especieField.getText().trim();
-            double altura = Double.parseDouble(alturaField.getText().trim());
-            double peso = Double.parseDouble(pesoField.getText().trim());
-            int edad = Integer.parseInt(edadField.getText().trim());
-            String condicionMedica = (String) condicionCombo.getSelectedItem();
-
-            if (nombre.isEmpty() || especie.isEmpty()) {
+            if (nombreF.getText().trim().isEmpty() || especieF.getText().trim().isEmpty())
                 throw new IllegalArgumentException("Nombre y especie son obligatorios.");
-            }
-
-            FabricaAnimal fabrica = "Doméstico".equals(tipoCombo.getSelectedItem())
-                    ? new FabricaAnimalDomestico()
-                    : new FabricaAnimalSalvaje();
-
-            Animal animal = animalController.registrarAnimal(fabrica, nombre, especie, altura, peso, edad, condicionMedica);
-            if ("En tratamiento".equals(condicionMedica)) {
-                animalController.ponerEnTratamiento(animal);
-            }
-            refrescarListasEstaticas();
-            JOptionPane.showMessageDialog(this, "Animal creado:\n" + animal,
-                    "Éxito", JOptionPane.INFORMATION_MESSAGE);
-        } catch (NumberFormatException ex) {
-            JOptionPane.showMessageDialog(this, "Altura, peso y edad deben ser números válidos.",
-                    "Error", JOptionPane.ERROR_MESSAGE);
-        } catch (IllegalArgumentException ex) {
-            JOptionPane.showMessageDialog(this, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-        }
+            FabricaAnimal fab = "Doméstico".equals(tipoCB.getSelectedItem())
+                ? new FabricaAnimalDomestico() : new FabricaAnimalSalvaje();
+            Animal a = animalCtrl.registrarAnimal(fab,
+                nombreF.getText().trim(), especieF.getText().trim(),
+                Double.parseDouble(alturaF.getText().trim()),
+                Double.parseDouble(pesoF.getText().trim()),
+                Integer.parseInt(edadF.getText().trim()),
+                (String) condCB.getSelectedItem());
+            if ("En tratamiento".equals(condCB.getSelectedItem())) animalCtrl.ponerEnTratamiento(a);
+            refrescarTodo();
+            info("Animal creado:\n" + a);
+        } catch (NumberFormatException ex) { error("Altura, peso y edad deben ser números."); }
+          catch (Exception ex)            { error(ex.getMessage()); }
     }
 
-    private void mostrarDialogoCrearVisitador() {
-        JTextField nombreField = new JTextField();
-        JTextField apellidoField = new JTextField();
-        JTextField emailField = new JTextField();
-        JTextField telefonoField = new JTextField();
-        JComboBox<EstadoCivil> estadoCivilCombo = new JComboBox<>(EstadoCivil.values());
-        JComboBox<Ocupacion> ocupacionCombo = new JComboBox<>(Ocupacion.values());
-        JCheckBox otrasMascotasCheck = new JCheckBox();
-        JTextField motivoAdopcionField = new JTextField();
-        JTextField animalesInteresField = new JTextField();
+    private void dlgEstadoSalud() {
+        List<Animal> animales = animalCtrl.listarAnimales();
+        if (animales.isEmpty()) { warn("No hay animales registrados."); return; }
+        JComboBox<Animal> cb = new JComboBox<>(animales.toArray(new Animal[0]));
+        JComboBox<String> ac = new JComboBox<>(new String[]{"Poner en tratamiento", "Disponibilizar (sano)"});
+        if (!confirm(form("Animal:", cb, "Acción:", ac), "Cambiar Estado de Salud")) return;
+        Animal a = (Animal) cb.getSelectedItem();
+        if ("Poner en tratamiento".equals(ac.getSelectedItem())) animalCtrl.ponerEnTratamiento(a);
+        else animalCtrl.disponibilizar(a);
+        refrescarTodo();
+        info("Estado actualizado:\n" + a);
+    }
 
-        JPanel form = new JPanel(new GridLayout(9, 2, 5, 5));
-        form.add(new JLabel("Nombre:"));
-        form.add(nombreField);
-        form.add(new JLabel("Apellido:"));
-        form.add(apellidoField);
-        form.add(new JLabel("Email:"));
-        form.add(emailField);
-        form.add(new JLabel("Teléfono:"));
-        form.add(telefonoField);
-        form.add(new JLabel("Estado civil:"));
-        form.add(estadoCivilCombo);
-        form.add(new JLabel("Ocupación:"));
-        form.add(ocupacionCombo);
-        form.add(new JLabel("¿Tiene otras mascotas?"));
-        form.add(otrasMascotasCheck);
-        form.add(new JLabel("Motivo de adopción:"));
-        form.add(motivoAdopcionField);
-        form.add(new JLabel("Animales de interés:"));
-        form.add(animalesInteresField);
+    // ════════════════════════════════════════════════════════════════════════
+    // DIÁLOGOS — USUARIOS
+    // ════════════════════════════════════════════════════════════════════════
 
-        int resultado = JOptionPane.showConfirmDialog(this, form, "Crear Visitador",
-                JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
-        if (resultado != JOptionPane.OK_OPTION) {
-            return;
-        }
-
+    private void dlgCrearVisitador() {
+        JTextField nF = new JTextField(), apF = new JTextField(),
+                   emF = new JTextField(), telF = new JTextField(),
+                   motF = new JTextField(), intF = new JTextField();
+        JComboBox<EstadoCivil> ecCB = new JComboBox<>(EstadoCivil.values());
+        JComboBox<Ocupacion>   ocCB = new JComboBox<>(Ocupacion.values());
+        JCheckBox mascCK = new JCheckBox();
+        JPanel f = form(
+            "Nombre:", nF, "Apellido:", apF, "Email:", emF, "Teléfono:", telF,
+            "Estado civil:", ecCB, "Ocupación:", ocCB,
+            "¿Otras mascotas?", mascCK, "Motivo adopción:", motF, "Animales interés:", intF);
+        if (!confirm(f, "Crear Visitador")) return;
         try {
-            String nombre = nombreField.getText().trim();
-            String apellido = apellidoField.getText().trim();
-            String email = emailField.getText().trim();
-            String telefono = telefonoField.getText().trim();
-
-            if (nombre.isEmpty() || apellido.isEmpty()) {
-                throw new IllegalArgumentException("Nombre y apellido son obligatorios.");
-            }
-
-            Visitador visitador = usuarioController.registrarVisitador(nombre, apellido, email, telefono,
-                    (EstadoCivil) estadoCivilCombo.getSelectedItem(), (Ocupacion) ocupacionCombo.getSelectedItem(),
-                    motivoAdopcionField.getText().trim(), animalesInteresField.getText().trim(),
-                    otrasMascotasCheck.isSelected());
-            refrescarListasEstaticas();
-            JOptionPane.showMessageDialog(this, "Visitador creado:\n" + visitador,
-                    "Éxito", JOptionPane.INFORMATION_MESSAGE);
-        } catch (IllegalArgumentException ex) {
-            JOptionPane.showMessageDialog(this, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-        }
+            if (nF.getText().trim().isEmpty()) throw new IllegalArgumentException("Nombre obligatorio.");
+            Visitador v = usuarioCtrl.registrarVisitador(
+                nF.getText().trim(), apF.getText().trim(), emF.getText().trim(), telF.getText().trim(),
+                (EstadoCivil) ecCB.getSelectedItem(), (Ocupacion) ocCB.getSelectedItem(),
+                motF.getText().trim(), intF.getText().trim(), mascCK.isSelected());
+            refrescarTodo(); info("Visitador creado:\n" + v);
+        } catch (Exception ex) { error(ex.getMessage()); }
     }
 
-    private void mostrarDialogoCrearVeterinario() {
-        JTextField nombreField = new JTextField();
-        JTextField apellidoField = new JTextField();
-        JTextField emailField = new JTextField();
-        JTextField telefonoField = new JTextField();
-        JTextField matriculaField = new JTextField();
-        JTextField especialidadField = new JTextField();
-
-        JPanel form = new JPanel(new GridLayout(6, 2, 5, 5));
-        form.add(new JLabel("Nombre:"));
-        form.add(nombreField);
-        form.add(new JLabel("Apellido:"));
-        form.add(apellidoField);
-        form.add(new JLabel("Email:"));
-        form.add(emailField);
-        form.add(new JLabel("Teléfono:"));
-        form.add(telefonoField);
-        form.add(new JLabel("Matrícula profesional:"));
-        form.add(matriculaField);
-        form.add(new JLabel("Especialidad:"));
-        form.add(especialidadField);
-
-        int resultado = JOptionPane.showConfirmDialog(this, form, "Crear Veterinario",
-                JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
-        if (resultado != JOptionPane.OK_OPTION) {
-            return;
-        }
-
+    private void dlgCrearVeterinario() {
+        JTextField nF = new JTextField(), apF = new JTextField(),
+                   emF = new JTextField(), telF = new JTextField(),
+                   matF = new JTextField(), espF = new JTextField();
+        JPanel f = form("Nombre:", nF, "Apellido:", apF, "Email:", emF,
+                        "Teléfono:", telF, "Matrícula:", matF, "Especialidad:", espF);
+        if (!confirm(f, "Crear Veterinario")) return;
         try {
-            String nombre = nombreField.getText().trim();
-            String apellido = apellidoField.getText().trim();
-            String email = emailField.getText().trim();
-            String telefono = telefonoField.getText().trim();
-
-            if (nombre.isEmpty() || apellido.isEmpty()) {
-                throw new IllegalArgumentException("Nombre y apellido son obligatorios.");
-            }
-
-            int matricula = Integer.parseInt(matriculaField.getText().trim());
-            String especialidad = especialidadField.getText().trim();
-            Veterinario veterinario = usuarioController.registrarVeterinario(nombre, apellido, email, telefono,
-                    matricula, especialidad);
-            refrescarListasEstaticas();
-            JOptionPane.showMessageDialog(this, "Veterinario creado:\n" + veterinario,
-                    "Éxito", JOptionPane.INFORMATION_MESSAGE);
-        } catch (NumberFormatException ex) {
-            JOptionPane.showMessageDialog(this, "La matrícula profesional debe ser un número entero.",
-                    "Error", JOptionPane.ERROR_MESSAGE);
-        } catch (IllegalArgumentException ex) {
-            JOptionPane.showMessageDialog(this, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-        }
+            if (nF.getText().trim().isEmpty()) throw new IllegalArgumentException("Nombre obligatorio.");
+            Veterinario v = usuarioCtrl.registrarVeterinario(
+                nF.getText().trim(), apF.getText().trim(), emF.getText().trim(), telF.getText().trim(),
+                Integer.parseInt(matF.getText().trim()), espF.getText().trim());
+            refrescarTodo(); info("Veterinario creado:\n" + v);
+        } catch (NumberFormatException ex) { error("La matrícula debe ser un número."); }
+          catch (Exception ex)            { error(ex.getMessage()); }
     }
 
-    private void mostrarDialogoCambiarEstadoSalud() {
-        List<Animal> animales = animalController.listarAnimales();
-        if (animales.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Todavía no hay animales registrados.",
-                    "Faltan datos", JOptionPane.WARNING_MESSAGE);
-            return;
+    // ════════════════════════════════════════════════════════════════════════
+    // DIÁLOGOS — ADOPCIÓN
+    // ════════════════════════════════════════════════════════════════════════
+
+    private void dlgCrearAdopcion() {
+        List<AnimalDomestico> anim = animalCtrl.listarAnimales().stream()
+            .filter(Animal::esAdoptable).map(AnimalDomestico.class::cast).toList();
+        List<Visitador>   vis = usuarioCtrl.listarVisitadores();
+        List<Veterinario> vet = usuarioCtrl.listarVeterinarios();
+        if (anim.isEmpty() || vis.isEmpty() || vet.isEmpty()) {
+            warn("Necesitás al menos:\n• 1 animal adoptable (sano y no adoptado)\n• 1 visitador\n• 1 veterinario"); return;
         }
-
-        JComboBox<Animal> animalCombo = new JComboBox<>(animales.toArray(new Animal[0]));
-        JComboBox<String> accionCombo = new JComboBox<>(
-                new String[]{"Poner en tratamiento", "Disponibilizar (marcar sano)"});
-
-        JPanel form = new JPanel(new GridLayout(2, 2, 5, 5));
-        form.add(new JLabel("Animal:"));
-        form.add(animalCombo);
-        form.add(new JLabel("Acción:"));
-        form.add(accionCombo);
-
-        int resultado = JOptionPane.showConfirmDialog(this, form, "Cambiar Estado de Salud",
-                JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
-        if (resultado != JOptionPane.OK_OPTION) {
-            return;
-        }
-
-        Animal animal = (Animal) animalCombo.getSelectedItem();
-        if ("Poner en tratamiento".equals(accionCombo.getSelectedItem())) {
-            animalController.ponerEnTratamiento(animal);
-        } else {
-            animalController.disponibilizar(animal);
-        }
-        refrescarListasEstaticas();
-        JOptionPane.showMessageDialog(this, "Estado de salud actualizado:\n" + animal,
-                "Éxito", JOptionPane.INFORMATION_MESSAGE);
-    }
-
-    private void mostrarDialogoCrearAdopcion() {
-        List<AnimalDomestico> animales = animalController.listarAnimales().stream()
-                .filter(Animal::esAdoptable)
-                .map(AnimalDomestico.class::cast)
-                .toList();
-        List<Visitador> visitadores = usuarioController.listarVisitadores();
-        List<Veterinario> veterinarios = usuarioController.listarVeterinarios();
-
-        if (animales.isEmpty() || visitadores.isEmpty() || veterinarios.isEmpty()) {
-            JOptionPane.showMessageDialog(this,
-                    "Para crear una adopción primero necesitás al menos un animal adoptable,\n"
-                            + "un Visitador y un Veterinario.",
-                    "Faltan datos", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-        JComboBox<AnimalDomestico> animal1Combo = new JComboBox<>(animales.toArray(new AnimalDomestico[0]));
-        JComboBox<AnimalDomestico> animal2Combo = new JComboBox<>(animales.toArray(new AnimalDomestico[0]));
-        animal2Combo.insertItemAt(null, 0);
-        animal2Combo.setSelectedIndex(0);
-        animal2Combo.setRenderer(new DefaultListCellRenderer() {
-            @Override
-            public Component getListCellRendererComponent(JList<?> list, Object value, int index,
-                                                          boolean isSelected, boolean cellHasFocus) {
-                return super.getListCellRendererComponent(list, value == null ? "Ninguno" : value, index,
-                        isSelected, cellHasFocus);
+        JComboBox<AnimalDomestico> a1 = new JComboBox<>(anim.toArray(new AnimalDomestico[0]));
+        JComboBox<AnimalDomestico> a2 = new JComboBox<>(anim.toArray(new AnimalDomestico[0]));
+        a2.insertItemAt(null, 0); a2.setSelectedIndex(0);
+        a2.setRenderer(new DefaultListCellRenderer() {
+            @Override public Component getListCellRendererComponent(JList<?> l, Object v, int i, boolean s, boolean f) {
+                return super.getListCellRendererComponent(l, v == null ? "Ninguno (adopción de 1 animal)" : v, i, s, f);
             }
         });
-
-        JComboBox<Visitador> adoptanteCombo = new JComboBox<>(visitadores.toArray(new Visitador[0]));
-        JComboBox<Veterinario> responsableCombo = new JComboBox<>(veterinarios.toArray(new Veterinario[0]));
-
-        JPanel form = new JPanel(new GridLayout(4, 2, 5, 5));
-        form.add(new JLabel("Animal 1:"));
-        form.add(animal1Combo);
-        form.add(new JLabel("Animal 2 (opcional):"));
-        form.add(animal2Combo);
-        form.add(new JLabel("Adoptante (Visitador):"));
-        form.add(adoptanteCombo);
-        form.add(new JLabel("Responsable (Veterinario):"));
-        form.add(responsableCombo);
-
-        int resultado = JOptionPane.showConfirmDialog(this, form, "Crear Adopción",
-                JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
-        if (resultado != JOptionPane.OK_OPTION) {
-            return;
-        }
-
-        AnimalDomestico animal1 = (AnimalDomestico) animal1Combo.getSelectedItem();
-        AnimalDomestico animal2 = (AnimalDomestico) animal2Combo.getSelectedItem();
-        Visitador adoptante = (Visitador) adoptanteCombo.getSelectedItem();
-        Veterinario responsable = (Veterinario) responsableCombo.getSelectedItem();
-
-        if (animal2 != null && animal2 == animal1) {
-            JOptionPane.showMessageDialog(this, "Animal 1 y Animal 2 no pueden ser el mismo.",
-                    "Error", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-
+        JComboBox<Visitador>   adCB = new JComboBox<>(vis.toArray(new Visitador[0]));
+        JComboBox<Veterinario> reCB = new JComboBox<>(vet.toArray(new Veterinario[0]));
+        JPanel f = form("Animal 1:", a1, "Animal 2 (opcional):", a2, "Adoptante:", adCB, "Responsable (Vet):", reCB);
+        if (!confirm(f, "Crear Adopción")) return;
+        AnimalDomestico animal1 = (AnimalDomestico) a1.getSelectedItem();
+        AnimalDomestico animal2 = (AnimalDomestico) a2.getSelectedItem();
+        if (animal2 != null && animal2 == animal1) { error("Los dos animales no pueden ser el mismo."); return; }
         try {
-            adopcionController.registrarAdopcion(animal1, animal2, adoptante, responsable);
-            refrescarListasEstaticas();
-            JOptionPane.showMessageDialog(this, "Adopción registrada con éxito.",
-                    "Éxito", JOptionPane.INFORMATION_MESSAGE);
+            adopcionCtrl.registrarAdopcion(animal1, animal2, (Visitador) adCB.getSelectedItem(), (Veterinario) reCB.getSelectedItem());
+            refrescarTodo(); info("Adopción registrada con éxito.");
+        } catch (Exception ex) { error(ex.getMessage()); }
+    }
+
+    // ════════════════════════════════════════════════════════════════════════
+    // DIÁLOGOS — ALARMAS
+    // ════════════════════════════════════════════════════════════════════════
+
+    private void dlgCrearAlarma() {
+        List<Animal> anim = animalCtrl.listarAnimales();
+        if (anim.isEmpty()) { warn("No hay animales registrados."); return; }
+        JTextField titF = new JTextField(), descF = new JTextField();
+        JSpinner frecSp = new JSpinner(new SpinnerNumberModel(1, 1, 365, 1));
+        JSpinner dateSp = dateSpin();
+        JComboBox<Animal> animCB = new JComboBox<>(anim.toArray(new Animal[0]));
+        JList<TipoTratamiento> accList = new JList<>(TipoTratamiento.values());
+        accList.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+        JPanel f = form("Animal:", animCB, "Título:", titF, "Descripción:", descF,
+                        "Frecuencia (días):", frecSp, "Fecha disparo:", dateSp,
+                        "Acciones (Ctrl=múltiple):", new JScrollPane(accList));
+        if (!confirm(f, "Crear Alarma")) return;
+        try {
+            if (titF.getText().trim().isEmpty()) throw new IllegalArgumentException("Título obligatorio.");
+            if (accList.getSelectedValuesList().isEmpty()) throw new IllegalArgumentException("Seleccioná al menos una acción.");
+            LocalDateTime fecha = dateToLDT(dateSp);
+            alarmaCtrl.create(new Alarma(0, ((Animal) animCB.getSelectedItem()).getId(),
+                titF.getText().trim(), descF.getText().trim(),
+                (int) frecSp.getValue(), fecha, accList.getSelectedValuesList()));
+            refrescarAlarmas(); info("Alarma creada.");
+        } catch (Exception ex) { error(ex.getMessage()); }
+    }
+
+    private void dlgModifAlarma() {
+        List<Alarma> alarmas = alarmaCtrl.getAll();
+        if (alarmas.isEmpty()) { info("No hay alarmas creadas."); return; }
+        JComboBox<Alarma> selCB = new JComboBox<>(alarmas.toArray(new Alarma[0]));
+        if (!confirm(selCB, "Seleccionar alarma a modificar")) return;
+        Alarma sel = (Alarma) selCB.getSelectedItem(); if (sel == null) return;
+        JTextField titF  = new JTextField(sel.getTitulo());
+        JTextField descF = new JTextField(sel.getDescripcion());
+        JSpinner frecSp  = new JSpinner(new SpinnerNumberModel(sel.getFrecuenciaDias(), 1, 365, 1));
+        JSpinner dateSp  = dateSpin();
+        dateSp.setValue(Date.from(sel.getFechaProximoDisparoOriginal().atZone(ZoneId.systemDefault()).toInstant()));
+        JComboBox<TipoTratamiento> tipoCB = new JComboBox<>(TipoTratamiento.values());
+        if (!sel.getAcciones().isEmpty()) tipoCB.setSelectedItem(sel.getAcciones().get(0));
+        JPanel f = form("Título:", titF, "Descripción:", descF,
+                        "Frecuencia (días):", frecSp, "Fecha disparo:", dateSp, "Acción principal:", tipoCB);
+        if (!confirm(f, "Modificar Alarma")) return;
+        try {
+            sel.setTitulo(titF.getText().trim());
+            sel.setDescripcion(descF.getText().trim());
+            sel.setFrecuenciaDias((int) frecSp.getValue());
+            sel.setAcciones(Collections.singletonList((TipoTratamiento) tipoCB.getSelectedItem()));
+            sel.setFechaProximoDisparo(dateToLDT(dateSp));
+            alarmaCtrl.update(sel.getId(), sel);
+            refrescarAlarmas(); info("Alarma modificada.");
+        } catch (Exception ex) { error(ex.getMessage()); }
+    }
+
+    private void dlgAtenderAlarma() {
+        List<Alarma> activas = alarmaCtrl.getAll().stream()
+            .filter(a -> !a.isCompletada() && !"FINALIZADO".equals(a.getEstado())).toList();
+        if (activas.isEmpty()) { info("No hay alarmas pendientes por atender."); return; }
+        List<Veterinario> vets = usuarioCtrl.listarVeterinarios();
+        if (vets.isEmpty()) { warn("No hay veterinarios registrados."); return; }
+        JComboBox<Alarma>      alCB    = new JComboBox<>(activas.toArray(new Alarma[0]));
+        JComboBox<Veterinario> vetCB   = new JComboBox<>(vets.toArray(new Veterinario[0]));
+        JTextField             comF    = new JTextField();
+        JCheckBox              finCK   = new JCheckBox("Marcar tratamiento como FINALIZADO");
+        JPanel f = form("Alarma:", alCB, "Veterinario:", vetCB, "Comentario:", comF, "", finCK);
+        if (!confirm(f, "Atender Alarma")) return;
+        Alarma al  = (Alarma) alCB.getSelectedItem();
+        Veterinario vet = (Veterinario) vetCB.getSelectedItem();
+        if (al != null && vet != null) {
+            alarmaCtrl.atenderAlarma(al.getId(), comF.getText().trim(), finCK.isSelected(), vet);
+            refrescarAlarmas(); info("Alarma atendida correctamente.");
+        }
+    }
+
+    // ════════════════════════════════════════════════════════════════════════
+    // DIÁLOGOS — FICHA MÉDICA
+    // ════════════════════════════════════════════════════════════════════════
+
+    private void dlgCrearFicha() {
+        List<Animal> anim = animalCtrl.listarAnimales();
+        if (anim.isEmpty()) { warn("No hay animales."); return; }
+        JComboBox<Animal> cb = new JComboBox<>(anim.toArray(new Animal[0]));
+        if (!confirm(form("Animal:", cb), "Crear Ficha Médica")) return;
+        try {
+            // También registramos el historial clínico para el animal via HistorialClinicoController
+            Animal a = (Animal) cb.getSelectedItem();
+            fichaCtrl.crearFicha(a);
+            histCtrl.crearHistorial(a);   // HistorialClinicoController en uso
+            info("Ficha médica creada para: " + a.getNombre());
+        } catch (Exception ex) { error(ex.getMessage()); }
+    }
+
+    private void dlgExportarFicha() {
+        List<FichaMedica> fichas = fichaCtrl.listarTodas();
+        if (fichas.isEmpty()) { warn("No hay fichas médicas. Creá una primero."); return; }
+        JComboBox<FichaMedica> fCB  = new JComboBox<>(fichas.toArray(new FichaMedica[0]));
+        fCB.setRenderer(fichaRenderer());
+        JComboBox<String>      fmCB = new JComboBox<>(new String[]{"PDF", "Excel"});
+        if (!confirm(form("Animal:", fCB, "Formato:", fmCB), "Exportar Ficha Médica")) return;
+        FichaMedica fm = (FichaMedica) fCB.getSelectedItem();
+        try {
+            String fmt = (String) fmCB.getSelectedItem();
+            if ("PDF".equals(fmt)) fm.exportar(new ExportadorPDF("A4"));
+            else fm.exportar(new ExportadorExcel(fm.getAnimal().getNombre()));
+            mostrarFichaWindow(fm, fmt);
+        } catch (Exception ex) { error(ex.getMessage()); }
+    }
+
+    private void mostrarFichaWindow(FichaMedica fm, String fmt) {
+        JDialog d = new JDialog(this, "Ficha — " + fmt, false);
+        d.setSize(540, 320); d.setLocationRelativeTo(this);
+        JTextArea ta = new JTextArea(
+            "=== FICHA MÉDICA (" + fmt + ") ===\n\n"
+            + fm.obtenerDatosTecnicos()
+            + "\n\nTratamientos:        " + fm.getHistorial().getListaTratamiento().size()
+            + "\nComentarios médicos: " + fm.getHistorial().getListaComentario().size()
+            + "\nVisitas registradas: " + fm.getHistorial().getListaVisitas().size());
+        ta.setEditable(false); ta.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
+        d.add(new JScrollPane(ta)); d.setVisible(true);
+    }
+
+    // ════════════════════════════════════════════════════════════════════════
+    // DIÁLOGOS — TRATAMIENTO  (usa TratamientoController)
+    // ════════════════════════════════════════════════════════════════════════
+
+    private void dlgRegistrarTrat() {
+        List<FichaMedica> fichas = fichaCtrl.listarTodas();
+        if (fichas.isEmpty()) { warn("Primero creá una Ficha Médica para el animal."); return; }
+        JComboBox<FichaMedica>    fCB  = new JComboBox<>(fichas.toArray(new FichaMedica[0]));
+        fCB.setRenderer(fichaRenderer());
+        JComboBox<TipoTratamiento> tCB = new JComboBox<>(TipoTratamiento.values());
+        if (!confirm(form("Animal (Ficha Médica):", fCB, "Tipo de tratamiento:", tCB), "Registrar Tratamiento")) return;
+
+        FichaMedica fm = (FichaMedica) fCB.getSelectedItem();
+        TipoTratamiento tipo = (TipoTratamiento) tCB.getSelectedItem();
+        try {
+            // TratamientoController registra en el repositorio en memoria y en el historial en memoria
+            Tratamiento t = tratCtrl.registrarTratamiento(fm.getAnimal().getId(), tipo);
+            // También lo agregamos a la FichaMedica (persistida en MySQL)
+            FichaMedica fmReal = fichaCtrl.buscarPorAnimalId(fm.getAnimal().getId());
+            if (fmReal != null) fichaCtrl.agregarTratamiento(fmReal.getFichaMedicaId(), t);
+            // Marcar animal en tratamiento
+            animalCtrl.ponerEnTratamiento(fm.getAnimal());
+            refrescarTodo();
+            info("Tratamiento registrado:\n• Animal: " + fm.getAnimal().getNombre()
+               + "\n• Tipo: " + tipo + "\n• Estado: Pendiente");
+        } catch (Exception ex) { error(ex.getMessage()); }
+    }
+
+    private void dlgCambiarEstTrat() {
+        List<FichaMedica> fichas = fichaCtrl.listarTodas();
+        Map<Tratamiento, FichaMedica> mapa = new LinkedHashMap<>();
+        for (FichaMedica fm : fichas)
+            for (Tratamiento t : fm.getHistorial().getListaTratamiento())
+                mapa.put(t, fm);
+
+        if (mapa.isEmpty()) { warn("No hay tratamientos registrados.\nUsá 'Registrar Trat.' primero."); return; }
+
+        JComboBox<Tratamiento> tCB = new JComboBox<>(mapa.keySet().toArray(new Tratamiento[0]));
+        tCB.setRenderer(new DefaultListCellRenderer() {
+            @Override public Component getListCellRendererComponent(JList<?> l, Object v, int i, boolean s, boolean f) {
+                JLabel lbl = (JLabel) super.getListCellRendererComponent(l, v, i, s, f);
+                if (v instanceof Tratamiento t) {
+                    FichaMedica fm = mapa.get(t);
+                    lbl.setText((fm != null ? fm.getAnimal().getNombre() : "?")
+                        + " — " + t.getTipoTratamientoEnum()
+                        + "  [" + t.getEstado().getClass().getSimpleName() + "]");
+                }
+                return lbl;
+            }
+        });
+        JComboBox<String> acCB = new JComboBox<>(new String[]{
+            "Aplicar  (Pendiente → En Curso)",
+            "Finalizar  (alta médica)",
+            "Cancelar"
+        });
+        if (!confirm(form("Tratamiento:", tCB, "Acción:", acCB), "Cambiar Estado de Tratamiento")) return;
+
+        Tratamiento t  = (Tratamiento) tCB.getSelectedItem();
+        FichaMedica fm = mapa.get(t);
+        String ac      = (String) acCB.getSelectedItem();
+        try {
+            if (ac.startsWith("Aplicar")) {
+                t.aplicarTratamiento();
+            } else if (ac.startsWith("Finalizar")) {
+                t.finalizarTratamiento();
+                // Si ya no quedan tratamientos activos, el animal queda sano
+                boolean otrosActivos = fm.getHistorial().getListaTratamiento().stream()
+                    .anyMatch(tr -> tr != t
+                        && !(tr.getEstado() instanceof Finalizado)
+                        && !(tr.getEstado() instanceof Cancelado));
+                if (!otrosActivos) animalCtrl.disponibilizar(fm.getAnimal());
+                // Notificar al TratamientoController también
+                tratCtrl.finalizarTratamiento(t.getTratamientoID());
+            } else {
+                t.cancelarTratamiento();
+                tratCtrl.cancelarTratamiento(t.getTratamientoID());
+            }
+            refrescarTodo();
+            info("Estado actualizado a: " + t.getEstado().getClass().getSimpleName());
         } catch (IllegalStateException ex) {
-            JOptionPane.showMessageDialog(this, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            error("Transición no válida desde " + t.getEstado().getClass().getSimpleName()
+                + ":\n" + ex.getMessage());
         }
     }
 
-    private void mostrarDialogoCrearAlarma() {
-        JTextField tituloField = new JTextField();
-        JTextField descripcionField = new JTextField();
-        JTextField frecuenciaField = new JTextField("1"); // Default 1 día
+    // ════════════════════════════════════════════════════════════════════════
+    // DIÁLOGOS — COMENTARIO  (usa ComentarioController)
+    // ════════════════════════════════════════════════════════════════════════
 
-        // 1. Configuración del Selector de Fecha (JSpinner) - Restaurado
-        Calendar calendar = Calendar.getInstance();
-        Date initDate = calendar.getTime();
-        calendar.add(Calendar.YEAR, -100);
-        Date earliestDate = calendar.getTime();
-        calendar.add(Calendar.YEAR, 150);
-        Date latestDate = calendar.getTime();
-        SpinnerDateModel dateModel = new SpinnerDateModel(initDate, earliestDate, latestDate, Calendar.YEAR);
-        JSpinner datetimeSpinner = new JSpinner(dateModel);
-        JSpinner.DateEditor dateEditor = new JSpinner.DateEditor(datetimeSpinner, "dd/MM/yyyy HH:mm:ss");
-        datetimeSpinner.setEditor(dateEditor);
+    private void dlgAgregarComentario() {
+        List<FichaMedica> fichas = fichaCtrl.listarTodas();
+        if (fichas.isEmpty()) { warn("Primero creá una Ficha Médica para el animal."); return; }
+        List<Veterinario> vets = usuarioCtrl.listarVeterinarios();
+        if (vets.isEmpty()) { warn("No hay veterinarios registrados."); return; }
 
-        // 2. Selector de Animal
-        List<Animal> animales = animalController.listarAnimales();
-        if (animales.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "No hay animales registrados. Debe crear un animal antes de asignar una alarma.", "Advertencia", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-        JComboBox<Animal> animalCombo = new JComboBox<>(animales.toArray(new Animal[0]));
+        JComboBox<FichaMedica> fCB  = new JComboBox<>(fichas.toArray(new FichaMedica[0]));
+        fCB.setRenderer(fichaRenderer());
+        JComboBox<Veterinario> vCB  = new JComboBox<>(vets.toArray(new Veterinario[0]));
+        JTextArea texta = new JTextArea(4, 30);
+        texta.setLineWrap(true); texta.setWrapStyleWord(true);
 
-        // 3. Selector múltiple de Acciones (Tratamientos)
-        JList<TipoTratamiento> accionesList = new JList<>(TipoTratamiento.values());
-        accionesList.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
-        JScrollPane scrollAcciones = new JScrollPane(accionesList);
-        scrollAcciones.setPreferredSize(new Dimension(150, 60));
+        JPanel f = form("Animal (Ficha Médica):", fCB, "Veterinario:", vCB,
+                        "Comentario:", new JScrollPane(texta));
+        if (!confirm(f, "Agregar Comentario Médico")) return;
 
-        // 4. Armado del Formulario
-        JPanel form = new JPanel(new GridLayout(6, 2, 5, 5));
-        form.add(new JLabel("Animal a tratar:"));
-        form.add(animalCombo);
-        form.add(new JLabel("Título:"));
-        form.add(tituloField);
-        form.add(new JLabel("Descripción:"));
-        form.add(descripcionField);
-        form.add(new JLabel("Frecuencia (Días):"));
-        form.add(frecuenciaField);
-        form.add(new JLabel("Fecha Disparo:"));
-        form.add(datetimeSpinner);
-        form.add(new JLabel("Acciones (Ctrl/Cmd para múltiple):"));
-        form.add(scrollAcciones);
-
-        int resultado = JOptionPane.showConfirmDialog(this, form, "Crear Alarma", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
-
-        if (resultado != JOptionPane.OK_OPTION) return;
+        FichaMedica fm  = (FichaMedica) fCB.getSelectedItem();
+        Veterinario vet = (Veterinario) vCB.getSelectedItem();
+        String texto    = texta.getText().trim();
+        if (texto.isEmpty()) { error("El comentario no puede estar vacío."); return; }
 
         try {
-            String titulo = tituloField.getText().trim();
-            String descripcion = descripcionField.getText().trim();
-            int frecuencia = Integer.parseInt(frecuenciaField.getText().trim());
-
-            Animal animalSeleccionado = (Animal) animalCombo.getSelectedItem();
-            List<TipoTratamiento> accionesSeleccionadas = accionesList.getSelectedValuesList();
-
-            if (titulo.isEmpty()) {
-                throw new IllegalArgumentException("El título es obligatorio.");
-            }
-
-            if (animalSeleccionado == null || accionesSeleccionadas.isEmpty()) {
-                throw new IllegalArgumentException("Debe seleccionar un animal y al menos una acción.");
-            }
-
-            // --- Convertir java.util.Date (del Spinner) a LocalDateTime ---
-            Date spinnerDate = (Date) datetimeSpinner.getValue();
-            LocalDateTime fechaDisparo = spinnerDate.toInstant()
-                    .atZone(ZoneId.systemDefault())
-                    .toLocalDateTime();
-
-            // Usamos el constructor actualizado (id=0 autoincremental, idAnimal, titulo, desc, frec, fecha, lista_acciones)
-            Alarma nuevaAlarma = new Alarma(0, animalSeleccionado.getId(), titulo, descripcion, frecuencia, fechaDisparo, accionesSeleccionadas);
-            alarmaController.create(nuevaAlarma);
-
-            JOptionPane.showMessageDialog(this, "Alarma creada con éxito.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
-
-        } catch (NumberFormatException ex) {
-            JOptionPane.showMessageDialog(this, "La frecuencia debe ser un número entero.", "Error", JOptionPane.ERROR_MESSAGE);
-        } catch (IllegalArgumentException ex) {
-            JOptionPane.showMessageDialog(this, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-        }
+            // ComentarioController crea y guarda en su repositorio en memoria
+            ComentarioMedico cm = comenCtrl.agregarComentario(vet, texto);
+            // También se persiste en la FichaMedica (MySQL) via FichaMedicaController
+            FichaMedica fmReal = fichaCtrl.buscarPorAnimalId(fm.getAnimal().getId());
+            if (fmReal != null) fichaCtrl.agregarComentarioMedico(fmReal.getFichaMedicaId(), cm);
+            info("Comentario agregado:\n• Animal: " + fm.getAnimal().getNombre()
+               + "\n• Vet: " + vet + "\n• Texto: " + texto);
+        } catch (Exception ex) { error(ex.getMessage()); }
     }
 
-    private void mostrarDialogoCompletarAlarma() {
-        // 1. Obtener alarmas activas
-        List<Alarma> alarmasActivas = alarmaController.getAll().stream()
-                .filter(a -> !a.isCompletada() && !a.getEstado().equals("FINALIZADO"))
-                .toList();
+    // ════════════════════════════════════════════════════════════════════════
+    // DIÁLOGOS — HISTORIAL  (usa HistorialClinicoController)
+    // ════════════════════════════════════════════════════════════════════════
 
-        if (alarmasActivas.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "No hay alarmas pendientes por atender.", "Información", JOptionPane.INFORMATION_MESSAGE);
-            return;
+    private void dlgVerHistorial() {
+        List<FichaMedica> fichas = fichaCtrl.listarTodas();
+        if (fichas.isEmpty()) { warn("No hay fichas médicas creadas."); return; }
+        JComboBox<FichaMedica> fCB = new JComboBox<>(fichas.toArray(new FichaMedica[0]));
+        fCB.setRenderer(fichaRenderer());
+        if (!confirm(fCB, "Ver historial de:")) return;
+
+        FichaMedica fm = (FichaMedica) fCB.getSelectedItem();
+        if (fm == null) return;
+
+        // HistorialClinicoController obtiene el historial en memoria
+        // La FichaMedica tiene el historial con los datos cargados desde MySQL
+        var h = fm.getHistorial();
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("══════════════════════════════════════════════════\n");
+        sb.append("  HISTORIAL CLÍNICO — ").append(fm.getAnimal().getNombre().toUpperCase()).append("\n");
+        sb.append("══════════════════════════════════════════════════\n");
+        sb.append(fm.obtenerDatosTecnicos()).append("\n\n");
+
+        sb.append("── TRATAMIENTOS (").append(h.getListaTratamiento().size()).append(") ─────────────────\n");
+        if (h.getListaTratamiento().isEmpty()) sb.append("  (ninguno)\n");
+        else for (Tratamiento t : h.getListaTratamiento()) {
+            sb.append("  • ").append(t.getTipoTratamientoEnum())
+              .append("  →  ").append(t.getEstado().getClass().getSimpleName());
+            if (t.getFechaInicio() != null) sb.append("  |  Inicio: ").append(t.getFechaInicio());
+            if (t.getFechaFin()   != null) sb.append("  |  Fin: ").append(t.getFechaFin());
+            sb.append("\n");
         }
 
-        // 2. Obtener veterinarios registrados para la trazabilidad
-        List<Veterinario> veterinarios = usuarioController.listarVeterinarios();
-        if (veterinarios.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "No hay veterinarios registrados. Es obligatorio registrar al menos un veterinario para atender una alarma.", "Advertencia", JOptionPane.WARNING_MESSAGE);
-            return;
+        sb.append("\n── COMENTARIOS MÉDICOS (").append(h.getListaComentario().size()).append(") ─────────\n");
+        if (h.getListaComentario().isEmpty()) sb.append("  (ninguno)\n");
+        else for (ComentarioMedico c : h.getListaComentario()) {
+            sb.append("  • [").append(c.getFecha()).append("]  ")
+              .append(c.getVeterinario() != null ? c.getVeterinario() : "Desconocido")
+              .append(":  ").append(c.getCasillaComentario()).append("\n");
         }
 
-        // 3. Configurar componentes de la UI
-        JComboBox<Alarma> alarmaCombo = new JComboBox<>(alarmasActivas.toArray(new Alarma[0]));
-        JComboBox<Veterinario> vetCombo = new JComboBox<>(veterinarios.toArray(new Veterinario[0]));
-        JTextField comentarioField = new JTextField();
-        JCheckBox finalizadoCheck = new JCheckBox("Marcar tratamiento como FINALIZADO");
-
-        // 4. Armar el formulario
-        JPanel form = new JPanel(new GridLayout(4, 2, 5, 5)); // Modificado a 4 filas
-        form.add(new JLabel("Seleccionar Alarma:"));
-        form.add(alarmaCombo);
-        form.add(new JLabel("Atendido por (Veterinario):"));
-        form.add(vetCombo);
-        form.add(new JLabel("Comentario/Registro:"));
-        form.add(comentarioField);
-        form.add(new JLabel("Estado del tratamiento:"));
-        form.add(finalizadoCheck);
-
-        int resultado = JOptionPane.showConfirmDialog(this, form, "Atender Alarma",
-                JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
-
-        if (resultado == JOptionPane.OK_OPTION) {
-            Alarma alarmaSeleccionada = (Alarma) alarmaCombo.getSelectedItem();
-            Veterinario vetSeleccionado = (Veterinario) vetCombo.getSelectedItem();
-
-            if (alarmaSeleccionada != null && vetSeleccionado != null) {
-                String comentario = comentarioField.getText().trim();
-                boolean finalizado = finalizadoCheck.isSelected();
-
-                // Llamamos al controller inyectando al veterinario responsable
-                alarmaController.atenderAlarma(alarmaSeleccionada.getId(), comentario, finalizado, vetSeleccionado);
-
-                JOptionPane.showMessageDialog(this, "Alarma atendida y registrada exitosamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
-            } else {
-                JOptionPane.showMessageDialog(this, "Debe seleccionar una alarma y un veterinario válido.", "Error", JOptionPane.ERROR_MESSAGE);
-            }
+        sb.append("\n── VISITAS DOMICILIARIAS (").append(h.getListaVisitas().size()).append(") ─────────\n");
+        if (h.getListaVisitas().isEmpty()) sb.append("  (ninguna)\n");
+        else for (Visita v : h.getListaVisitas()) {
+            sb.append("  • ").append(v.getFechaProgramada());
+            if (v.isCompletada()) sb.append("  ✓  real: ").append(v.getFechaReal());
+            if (v.getComentarios() != null && !v.getComentarios().isEmpty())
+                sb.append("  —  ").append(v.getComentarios());
+            sb.append("\n");
         }
+
+        JTextArea ta = new JTextArea(sb.toString());
+        ta.setEditable(false); ta.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
+        JScrollPane sc = new JScrollPane(ta); sc.setPreferredSize(new Dimension(620, 440));
+        JDialog dlg = new JDialog(this, "Historial — " + fm.getAnimal().getNombre(), true);
+        dlg.add(sc); dlg.pack(); dlg.setLocationRelativeTo(this); dlg.setVisible(true);
     }
 
-    private void mostrarDialogoCrearFichaMedica() {
-        List<Animal> animales = animalController.listarAnimales();
-        if (animales.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "No hay animales registrados.",
-                    "Faltan datos", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
+    // ════════════════════════════════════════════════════════════════════════
+    // DIÁLOGOS — SEGUIMIENTO Y VISITAS
+    // ════════════════════════════════════════════════════════════════════════
 
-        JComboBox<Animal> animalCombo = new JComboBox<>(animales.toArray(new Animal[0]));
+    private void dlgCrearSeguimiento() {
+        List<Adopcion> adops = adopcionCtrl.listarTodos();
+        if (adops.isEmpty()) { warn("No hay adopciones. Creá una adopción primero."); return; }
+        List<Visitador> vis = usuarioCtrl.listarVisitadores();
+        if (vis.isEmpty()) { warn("No hay visitadores."); return; }
 
-        JPanel form = new JPanel(new GridLayout(1, 2, 5, 5));
-        form.add(new JLabel("Animal:"));
-        form.add(animalCombo);
+        JComboBox<Adopcion> aCB = new JComboBox<>(adops.toArray(new Adopcion[0]));
+        aCB.setRenderer(new DefaultListCellRenderer() {
+            @Override public Component getListCellRendererComponent(JList<?> l, Object v, int i, boolean s, boolean f) {
+                JLabel lbl = (JLabel) super.getListCellRendererComponent(l, v, i, s, f);
+                if (v instanceof Adopcion a) {
+                    String anim = a.getAnimales().stream().map(Animal::getNombre).collect(Collectors.joining(", "));
+                    lbl.setText(a.getAdoptante().getNombre() + " " + a.getAdoptante().getApellido() + "  |  [" + anim + "]");
+                }
+                return lbl;
+            }
+        });
+        JComboBox<Visitador>              rCB  = new JComboBox<>(vis.toArray(new Visitador[0]));
+        JComboBox<DiaSemana>              dCB  = new JComboBox<>(DiaSemana.values());
+        JTextField                        deF  = new JTextField("09:00");
+        JTextField                        haF  = new JTextField("12:00");
+        JComboBox<PreferenciaRecordatorio> pCB = new JComboBox<>(PreferenciaRecordatorio.values());
+        JSpinner                          cantSp = new JSpinner(new SpinnerNumberModel(3, 1, 20, 1));
 
-        int resultado = JOptionPane.showConfirmDialog(this, form, "Crear Ficha Médica",
-                JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
-        if (resultado != JOptionPane.OK_OPTION) return;
+        JPanel f = form("Adopción:", aCB, "Responsable visitas (Visitador):", rCB,
+                        "Día:", dCB, "Desde (hh:mm):", deF, "Hasta (hh:mm):", haF,
+                        "Canal recordatorio:", pCB, "Cantidad de visitas:", cantSp);
+        if (!confirm(f, "Crear Seguimiento Post-Adopción")) return;
 
-        Animal animal = (Animal) animalCombo.getSelectedItem();
         try {
-            fichaMedicaController.crearFicha(animal);
-            JOptionPane.showMessageDialog(this,
-                    "Ficha médica creada para: " + animal.getNombre(),
-                    "Éxito", JOptionPane.INFORMATION_MESSAGE);
-        } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Error al crear ficha: " + ex.getMessage(),
-                    "Error", JOptionPane.ERROR_MESSAGE);
-        }
+            int cant = (int) cantSp.getValue();
+            Seguimiento s = segCtrl.crearSeguimiento(
+                (Adopcion) aCB.getSelectedItem(), (Visitador) rCB.getSelectedItem(),
+                (DiaSemana) dCB.getSelectedItem(), deF.getText().trim(), haF.getText().trim(),
+                (PreferenciaRecordatorio) pCB.getSelectedItem(), cant);
+            refrescarSeguimientos();
+            info("Seguimiento creado con " + cant + " visitas programadas.\n\n"
+               + "→ Ir a pestaña 'Seguimientos'\n"
+               + "→ Click en el seguimiento para ver sus visitas\n"
+               + "→ Seleccionar una visita ⏳ y click en 'Registrar Visita'");
+        } catch (Exception ex) { error(ex.getMessage()); }
     }
 
-    private void mostrarDialogoExportarFichaMedica() {
-        List<Animal> animales = animalController.listarAnimales();
-        if (animales.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "No hay animales registrados.",
-                    "Faltan datos", JOptionPane.WARNING_MESSAGE);
+    private void dlgRegistrarVisita() {
+        Visita sel = listVisita != null ? listVisita.getSelectedValue() : null;
+        if (sel == null) {
+            info("¿Cómo registrar una visita?\n\n"
+               + "1. Ir a la pestaña 'Seguimientos'\n"
+               + "2. Click en un seguimiento de la lista superior\n"
+               + "3. Aparecen las visitas abajo (⏳ = pendiente)\n"
+               + "4. Seleccionar una visita pendiente\n"
+               + "5. Volver aquí y hacer click en 'Registrar Visita'");
             return;
         }
+        if (sel.isCompletada()) {
+            warn("Esta visita ya fue completada el " + sel.getFechaReal() + "."); return;
+        }
 
-        JComboBox<Animal> animalCombo = new JComboBox<>(animales.toArray(new Animal[0]));
-        JComboBox<String> formatoCombo = new JComboBox<>(new String[]{"PDF", "Excel"});
+        JComboBox<CalificacionEnum> estCB  = new JComboBox<>(CalificacionEnum.values());
+        JComboBox<CalificacionEnum> limCB  = new JComboBox<>(CalificacionEnum.values());
+        JComboBox<CalificacionEnum> ambCB  = new JComboBox<>(CalificacionEnum.values());
+        estCB.setSelectedItem(CalificacionEnum.BUENO);
+        limCB.setSelectedItem(CalificacionEnum.BUENO);
+        ambCB.setSelectedItem(CalificacionEnum.BUENO);
+        JTextField comF  = new JTextField();
+        JCheckBox  contCK = new JCheckBox("¿Programar más visitas?", true);
 
-        JPanel form = new JPanel(new GridLayout(2, 2, 5, 5));
-        form.add(new JLabel("Animal:"));
-        form.add(animalCombo);
-        form.add(new JLabel("Formato:"));
-        form.add(formatoCombo);
+        JPanel f = form("Estado general mascota:", estCB, "Limpieza del lugar:", limCB,
+                        "Ambiente:", ambCB, "Comentarios:", comF, "Continuación:", contCK);
+        if (!confirm(f, "Registrar Resultado de Visita")) return;
 
-        int resultado = JOptionPane.showConfirmDialog(this, form, "Exportar Ficha Médica",
-                JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
-        if (resultado != JOptionPane.OK_OPTION) return;
-
-        Animal animal = (Animal) animalCombo.getSelectedItem();
         try {
-            FichaMedica ficha = fichaMedicaController.listarTodas().stream()
-                    .filter(f -> f.getAnimal().getId().equals(animal.getId()))
-                    .findFirst()
-                    .orElse(null);
-
-            if (ficha == null) {
-                JOptionPane.showMessageDialog(this,
-                        "El animal no tiene ficha médica. Creá una primero.",
-                        "Sin ficha", JOptionPane.WARNING_MESSAGE);
-                return;
-            }
-
-            String formato = (String) formatoCombo.getSelectedItem();
-            if ("PDF".equals(formato)) {
-                ficha.exportar(new ExportadorPDF("A4"));
-            } else {
-                ficha.exportar(new ExportadorExcel(animal.getNombre()));
-            }
-
-            mostrarVentanaFicha(ficha, formato);
-        } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Error al exportar: " + ex.getMessage(),
-                    "Error", JOptionPane.ERROR_MESSAGE);
-        }
+            Encuesta enc = new Encuesta(
+                (CalificacionEnum) estCB.getSelectedItem(),
+                (CalificacionEnum) limCB.getSelectedItem(),
+                (CalificacionEnum) ambCB.getSelectedItem());
+            segCtrl.registrarResultadoVisita(sel.getId(), enc, comF.getText().trim(), contCK.isSelected());
+            refrescarSeguimientos();
+            info("Visita registrada con éxito." + (!contCK.isSelected()
+                ? "\nEl seguimiento ha finalizado." : ""));
+        } catch (Exception ex) { error(ex.getMessage()); }
     }
 
-    private void mostrarVentanaFicha(FichaMedica ficha, String formato) {
-        JDialog ventana = new JDialog(this, "Ficha Médica — " + formato, false);
-        ventana.setSize(500, 300);
-        ventana.setLocationRelativeTo(this);
+    // ════════════════════════════════════════════════════════════════════════
+    // HELPERS
+    // ════════════════════════════════════════════════════════════════════════
 
-        JTextArea area = new JTextArea();
-        area.setEditable(false);
-        area.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 13));
-        area.setText(
-            "=== FICHA MÉDICA (" + formato + ") ===\n\n" +
-            ficha.obtenerDatosTecnicos() + "\n\n" +
-            "Tratamientos: " + ficha.getHistorial().getListaTratamiento().size() + "\n" +
-            "Comentarios médicos: " + ficha.getHistorial().getListaComentario().size()
-        );
-
-        ventana.add(new JScrollPane(area));
-        ventana.setVisible(true);
+    /** Crea un JPanel de GridLayout 2 col con pares (label, componente). */
+    private JPanel form(Object... pairs) {
+        JPanel p = new JPanel(new GridLayout(pairs.length / 2, 2, 6, 6));
+        for (Object o : pairs) {
+            if (o instanceof String s) p.add(new JLabel(s));
+            else p.add((Component) o);
+        }
+        return p;
     }
 
-    private void mostrarDialogoModificarAlarma() {
-        List<Alarma> alarmas = alarmaController.getAll();
-        if (alarmas.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "No hay alarmas creadas para modificar.", "Información", JOptionPane.INFORMATION_MESSAGE);
-            return;
-        }
-
-        // Paso 1: Elegir qué alarma modificar
-        JComboBox<Alarma> seleccionCombo = new JComboBox<>(alarmas.toArray(new Alarma[0]));
-        int eleccion = JOptionPane.showConfirmDialog(this, seleccionCombo, "Seleccione la alarma a modificar", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
-
-        if (eleccion != JOptionPane.OK_OPTION) return;
-
-        Alarma alarmaSeleccionada = (Alarma) seleccionCombo.getSelectedItem();
-        if (alarmaSeleccionada == null) return;
-
-        // Paso 2: Mostrar el formulario con los datos cargados
-        JTextField tituloField = new JTextField(alarmaSeleccionada.getTitulo());
-        JTextField descripcionField = new JTextField(alarmaSeleccionada.getDescripcion());
-        JTextField frecuenciaField = new JTextField(String.valueOf(alarmaSeleccionada.getFrecuenciaDias()));
-
-        // Cargar la fecha actual de la alarma en el JSpinner
-        SpinnerDateModel dateModel = new SpinnerDateModel();
-        JSpinner datetimeSpinner = new JSpinner(dateModel);
-        JSpinner.DateEditor dateEditor = new JSpinner.DateEditor(datetimeSpinner, "dd/MM/yyyy HH:mm:ss");
-        datetimeSpinner.setEditor(dateEditor);
-
-        Date fechaOriginal = Date.from(alarmaSeleccionada.getFechaProximoDisparoOriginal().atZone(ZoneId.systemDefault()).toInstant());
-        datetimeSpinner.setValue(fechaOriginal);
-
-        JComboBox<TipoTratamiento> tipoCombo = new JComboBox<>(TipoTratamiento.values());
-        tipoCombo.setSelectedItem(alarmaSeleccionada.getAcciones());
-
-        JPanel form = new JPanel(new GridLayout(5, 2, 5, 5));
-        form.add(new JLabel("Título:"));
-        form.add(tituloField);
-        form.add(new JLabel("Descripción:"));
-        form.add(descripcionField);
-        form.add(new JLabel("Frecuencia (Días):"));
-        form.add(frecuenciaField);
-        form.add(new JLabel("Fecha de Disparo:"));
-        form.add(datetimeSpinner);
-        form.add(new JLabel("Tipo Tratamiento:"));
-        form.add(tipoCombo);
-
-        int resultadoEdicion = JOptionPane.showConfirmDialog(this, form, "Modificar Alarma", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
-
-        if (resultadoEdicion == JOptionPane.OK_OPTION) {
-            try {
-                // Actualizamos el objeto seleccionado
-                alarmaSeleccionada.setTitulo(tituloField.getText().trim());
-                alarmaSeleccionada.setDescripcion(descripcionField.getText().trim());
-                alarmaSeleccionada.setFrecuenciaDias(Integer.parseInt(frecuenciaField.getText().trim()));
-                alarmaSeleccionada.setAcciones(Collections.singletonList((TipoTratamiento) tipoCombo.getSelectedItem()));
-
-                Date spinnerDate = (Date) datetimeSpinner.getValue();
-                alarmaSeleccionada.setFechaProximoDisparo(spinnerDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime());
-
-                // Guardamos en el controlador
-                alarmaController.update(alarmaSeleccionada.getId(), alarmaSeleccionada);
-
-                // NOTA: Como la clase VentanaPrincipal es un Observer, no hace falta recargar la lista manualmente.
-                // Sin embargo, debes asegurarte de que AlarmaService.actualizarAlarma llame a notificarObservadores()
-
-                JOptionPane.showMessageDialog(this, "Alarma modificada con éxito.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
-
-            } catch (NumberFormatException ex) {
-                JOptionPane.showMessageDialog(this, "La frecuencia debe ser un número entero.", "Error", JOptionPane.ERROR_MESSAGE);
-            }
-        }
-
-
+    private boolean confirm(Component comp, String title) {
+        return JOptionPane.showConfirmDialog(this, comp, title,
+            JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE) == JOptionPane.OK_OPTION;
     }
 
+    private void info(String msg)  { JOptionPane.showMessageDialog(this, msg, "Éxito",      JOptionPane.INFORMATION_MESSAGE); }
+    private void warn(String msg)  { JOptionPane.showMessageDialog(this, msg, "Advertencia",JOptionPane.WARNING_MESSAGE); }
+    private void error(String msg) { JOptionPane.showMessageDialog(this, msg, "Error",      JOptionPane.ERROR_MESSAGE); }
+
+    private JSpinner dateSpin() {
+        JSpinner sp = new JSpinner(new SpinnerDateModel(new Date(), null, null, Calendar.DAY_OF_MONTH));
+        sp.setEditor(new JSpinner.DateEditor(sp, "dd/MM/yyyy HH:mm"));
+        return sp;
+    }
+
+    private LocalDateTime dateToLDT(JSpinner sp) {
+        return ((Date) sp.getValue()).toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+    }
 }

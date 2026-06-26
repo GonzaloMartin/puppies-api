@@ -1,40 +1,32 @@
 package com.gudboy.repository;
 
 import com.gudboy.domain.comentarioMedico.ComentarioMedico;
-import com.gudboy.domain.historialClinico.HistorialClinico;
 
 import java.util.ArrayList;
-import java.util.List;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.UUID;
 
-public class ComentarioMedicoRepository implements IRepositoryHistTratComen<ComentarioMedico>{
+public class ComentarioMedicoRepository {
 
-    public ArrayList<ComentarioMedico> listarPorHistorial(HistorialClinico historialClinico){
-        return null;
+    private final Map<UUID, ComentarioMedico> store = new LinkedHashMap<>();
+
+    public void guardar(ComentarioMedico comentario) {
+        store.put(comentario.getComentarioID(), comentario);
     }
 
-    @Override
-    public void guardar(ComentarioMedico entidad) {
-
+    public ComentarioMedico buscarPorId(UUID id) {
+        return store.get(id);
     }
 
-    @Override
+    /** Persiste los cambios del comentario (ya está en el map por referencia,
+     *  pero se mantiene la firma que usa ComentarioServices). */
     public void actualizar(UUID id) {
 
+        // referencia ya actualizada en memoria; no-op en implementación en memoria
     }
 
-    @Override
-    public void eliminar(UUID id) {
-
-    }
-
-    @Override
-    public ComentarioMedico buscarPorId(UUID id) {
-        return null;
-    }
-
-    @Override
     public ArrayList<ComentarioMedico> listarTodos() {
-        return null;
+        return new ArrayList<>(store.values());
     }
 }

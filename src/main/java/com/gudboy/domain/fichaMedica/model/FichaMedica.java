@@ -10,7 +10,7 @@ import com.gudboy.domain.tratamiento.Tratamiento;
 
 public class FichaMedica {
 
-    private final UUID fichaMedicaId;
+    private UUID fichaMedicaId;
     private double peso;
     private float altura;
     private int edad;
@@ -53,6 +53,8 @@ public class FichaMedica {
     public void registrarVisitaDomicilio(com.gudboy.domain.seguimiento.model.Visita visita) {
         historial.agregarVisita(visita);
     }
+
+    public void setFichaMedicaId(UUID id) { this.fichaMedicaId = id; }
 
     // --- getters ---
 

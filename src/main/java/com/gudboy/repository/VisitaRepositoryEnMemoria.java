@@ -5,23 +5,24 @@ import com.gudboy.domain.seguimiento.model.Visita;
 import java.util.*;
 
 public class VisitaRepositoryEnMemoria implements IVisitaRepository {
-    private final Map<UUID, Visita> visitas = new HashMap<>();
+
+    private final Map<UUID, Visita> store = new LinkedHashMap<>();
 
     @Override
-    public void guardar(Visita v) {
-        visitas.put(v.getId(), v);
+    public void guardar(Visita visita) {
+        store.put(visita.getId(), visita);
     }
 
     @Override
     public Optional<Visita> buscarPorId(UUID id) {
-        return Optional.ofNullable(visitas.get(id));
+        return Optional.ofNullable(store.get(id));
     }
 
     @Override
     public List<Visita> listarPorSeguimiento(UUID seguimientoId) {
         List<Visita> result = new ArrayList<>();
-        for (Visita v : visitas.values()) {
-            if (v.getSeguimiento().getId().equals(seguimientoId)) {
+        for (Visita v : store.values()) {
+            if (v.getSeguimiento() != null && v.getSeguimiento().getId().equals(seguimientoId)) {
                 result.add(v);
             }
         }
@@ -29,7 +30,7 @@ public class VisitaRepositoryEnMemoria implements IVisitaRepository {
     }
 
     @Override
-    public void actualizar(Visita v) {
-        visitas.put(v.getId(), v);
+    public void actualizar(Visita visita) {
+        store.put(visita.getId(), visita);
     }
 }

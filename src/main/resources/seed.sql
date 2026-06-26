@@ -56,10 +56,10 @@ INSERT IGNORE INTO alarmas (id_animal, titulo, descripcion, frecuencia_dias, fec
 
 -- Seguimiento para Adopción ID 1 (Ana López es la veterinaria responsable)
 INSERT IGNORE INTO seguimiento (id, adopcion_id, responsable_email, dia_semana, horario_desde, horario_hasta, estado, preferencia_recordatorio) VALUES
-  ('s1000000-0000-0000-0000-000000000001', 1, 'ana.lopez@gudboy.com', 'SABADO', '10:00', '12:00', 'ACTIVO', 'WHATSAPP');
+  ('51000000-0000-0000-0000-000000000001', 1, 'ana.lopez@gudboy.com', 'SABADO', '10:00', '12:00', 'ACTIVO', 'WHATSAPP');
 
 -- Visitas programadas y completadas para el Seguimiento 1
 INSERT IGNORE INTO visitas (id, seguimiento_id, fecha_programada, fecha_real, comentarios, completada, continuar_visitas, estado_general_animal, limpieza_lugar, ambiente) VALUES
-  ('v1000000-0000-0000-0000-000000000001', 's1000000-0000-0000-0000-000000000001', DATE_ADD(CURDATE(), INTERVAL -7 DAY), DATE_ADD(CURDATE(), INTERVAL -7 DAY), 'Excelente cuidado y adaptacion inicial de Firulais.', true, true, 'BUENO', 'BUENO', 'BUENO'),
-  ('v1000000-0000-0000-0000-000000000002', 's1000000-0000-0000-0000-000000000001', DATE_ADD(CURDATE(), INTERVAL 2 DAY), NULL, NULL, false, true, NULL, NULL, NULL);
+  ('91000000-0000-0000-0000-000000000001', '51000000-0000-0000-0000-000000000001', DATE_ADD(CURDATE(), INTERVAL -7 DAY), DATE_ADD(CURDATE(), INTERVAL -7 DAY), 'Excelente cuidado y adaptacion inicial de Firulais.', true, true, 'BUENO', 'BUENO', 'BUENO'),
+  ('91000000-0000-0000-0000-000000000002', '51000000-0000-0000-0000-000000000001', DATE_ADD(CURDATE(), INTERVAL 2 DAY), NULL, NULL, false, true, NULL, NULL, NULL);
 

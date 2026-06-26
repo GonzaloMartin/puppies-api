@@ -14,33 +14,24 @@ public class AnimalDomestico extends Animal {
         this.estadoAdopcion = new EstadoDisponible(this);
     }
 
-    public void adoptar() {
-        estadoAdopcion.Adoptar();
-    }
+    public void adoptar()               { estadoAdopcion.Adoptar(); }
+    public void disponibilizarAdopcion(){ estadoAdopcion.Disponibilizar(); }
+    public void setEstadoAdopcion(IEstadoAdopcion e) { this.estadoAdopcion = e; }
 
-    public void disponibilizarAdopcion() {
-        estadoAdopcion.Disponibilizar();
-    }
-
-    public void setEstadoAdopcion(IEstadoAdopcion estadoAdopcion) { this.estadoAdopcion = estadoAdopcion; }
-    /** Los animales domésticos son adoptables SÓLO si están sanos y no fueron adoptados ya. */
     @Override
     public boolean esAdoptable() {
         return getEstadoDeSalud() instanceof EstadoSaludable
-                && estadoAdopcion instanceof EstadoDisponible;
+            && estadoAdopcion instanceof EstadoDisponible;
     }
 
-    @Override
-    public String getTipoAnimal() {
-        return "DOMESTICO";
-    }
+    @Override public String getTipoAnimal() { return "DOMESTICO"; }
 
     @Override
     public String toString() {
-        return "AnimalDomestico{" +
-                "nombre='" + getNombre() + '\'' +
-                ", especie='" + getEspecie() + '\'' +
-                ", adoptable=" + esAdoptable() +
-                '}';
+        String salud   = getEstadoDeSalud().getClass().getSimpleName()
+                            .replace("Estado","").replace("De","");
+        String adopc   = estadoAdopcion instanceof EstadoDisponible ? "Disponible" : "Adoptado";
+        return String.format("[Doméstico] %s (%s) | %d años | %.1f kg | Salud: %s | Adopción: %s",
+            getNombre(), getEspecie(), getEdad(), getPeso(), salud, adopc);
     }
 }

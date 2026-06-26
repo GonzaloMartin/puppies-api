@@ -117,4 +117,10 @@ public class Visita implements ISujetoRecordatorio {
     public List<IObservador> getObservadores() {
         return observadores;
     }
+    @Override
+    public String toString() {
+        String estado = completada ? "✓ Completada " + fechaReal : "⏳ Pendiente " + fechaProgramada;
+        return String.format("Visita %s | %s", id.toString().substring(0,8), estado);
+    }
+
 }

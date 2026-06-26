@@ -101,4 +101,8 @@ public class FichaMedicaService implements IHistorialClinicoService {
             }
         }
     }
+    public FichaMedica buscarPorAnimalId(UUID animalId) {
+        return repository.getByAnimalId(animalId);
+    }
+
 }
