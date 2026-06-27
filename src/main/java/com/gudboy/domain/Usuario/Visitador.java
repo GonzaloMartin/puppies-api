@@ -1,11 +1,32 @@
 package com.gudboy.domain.Usuario;
 
+
+import jakarta.persistence.Column;
+import jakarta.persistence.DiscriminatorValue;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Enumerated;
+
+@Entity
+@DiscriminatorValue("VISITADOR")
 public class Visitador extends Usuario {
+
+    @Enumerated(value = jakarta.persistence.EnumType.STRING)
     private Ocupacion  ocupacion;
+
+    @Enumerated(value = jakarta.persistence.EnumType.STRING)
+    @Column(name = "estado_civil")
     private EstadoCivil estadoCivil;
+
+    @Column(name = "otras_mascotas")
     private boolean    otrasMascotas;
+
+    @Column(name = "motivo_adopcion")
     private String     motivoAdopcion;
+
+    @Column(name = "animales_interes")
     private String     animalesInteres;
+
+    protected Visitador() { super(); }
 
     public Visitador(String nombre, String apellido, String email, String telefono,
                      EstadoCivil estadoCivil, Ocupacion ocupacion,

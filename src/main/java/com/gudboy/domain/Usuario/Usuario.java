@@ -1,9 +1,31 @@
 package com.gudboy.domain.Usuario;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.DiscriminatorColumn;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Inheritance;
+import jakarta.persistence.Table;
+import jakarta.persistence.DiscriminatorType;
+import jakarta.persistence.InheritanceType;
+
+
+@Entity
+@Table(name = "usuario")
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+@DiscriminatorColumn(name = "tipo", discriminatorType = DiscriminatorType.STRING)
 public class Usuario {
+    @Column(name = "nombre")
     private String nombre;
+
+    @Column(name = "apellido")
     private String apellido;
+
+    @Id
+    @Column(name = "email")
     private String email;
+
+    @Column(name = "telefono")
     private String telefono;
 
     public Usuario(String nombre, String apellido, String email, String telefono) {
