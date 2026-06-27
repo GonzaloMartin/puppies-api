@@ -7,6 +7,10 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
 
+import com.gudboy.domain.Usuario.Usuario;
+import com.gudboy.domain.Usuario.Veterinario;
+import com.gudboy.domain.Usuario.Visitador;
+import com.gudboy.domain.animal.model.Adopcion;
 import com.gudboy.domain.animal.model.Animal;
 import com.gudboy.domain.animal.model.AnimalDomestico;
 import com.gudboy.domain.animal.model.AnimalSalvaje;
@@ -35,6 +39,10 @@ public class HibernateUtil {
                 .addAnnotatedClass(AnimalDomestico.class)
                 .addAnnotatedClass(AnimalSalvaje.class)
                 .addAnnotatedClass(FichaMedica.class)
+                .addAnnotatedClass(Usuario.class)
+                .addAnnotatedClass(Veterinario.class)
+                .addAnnotatedClass(Visitador.class)
+                .addAnnotatedClass(Adopcion.class)
                 .buildSessionFactory();
         } catch (Exception e) {
             throw new RuntimeException("Error al iniciar Hibernate", e);

@@ -1,9 +1,19 @@
 package com.gudboy.domain.Usuario;
 
-public class Veterinario extends Usuario {
-    private int matriculaProfesional;
-    private String especialidad;
+import jakarta.persistence.Column;
+import jakarta.persistence.DiscriminatorValue;
+import jakarta.persistence.Entity;
 
+@Entity
+@DiscriminatorValue("VETERINARIO")
+public class Veterinario extends Usuario {
+
+    @Column(name = "matricula_profesional")
+    private int matriculaProfesional;
+
+    @Column(name = "especialidad")
+    private String especialidad;
+    
     public Veterinario(String nombre, String apellido, String email,
                        String telefono, int matriculaProfesional, String especialidad) {
         super(nombre, apellido, email, telefono);
