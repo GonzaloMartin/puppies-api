@@ -17,7 +17,7 @@ import com.gudboy.repository.AdopcionRepositoryMySQL;
 import com.gudboy.repository.AlarmaRepositoryMySql;
 import com.gudboy.repository.AnimalRepositoryMySQL;
 import com.gudboy.repository.ComentarioMedicoRepository;
-import com.gudboy.repository.FichaMedicaRepositoryMySQL;
+import com.gudboy.repository.FichaMedicaRepositoryHibernate;
 import com.gudboy.repository.HistorialClinicoRepository;
 import com.gudboy.repository.IAdopcionRepository;
 import com.gudboy.repository.IAlarmaRepository;
@@ -56,7 +56,7 @@ public class Main {
             IUsuarioRepository usuarioRepository     = new UsuarioRepositoryMySQL();
             IAdopcionRepository adopcionRepository   = new AdopcionRepositoryMySQL(animalRepository, usuarioRepository);
             IAlarmaRepository alarmaRepository       = new AlarmaRepositoryMySql();
-            IFichaMedicaRepository fichaRepo         = new FichaMedicaRepositoryMySQL(animalRepository, usuarioRepository);
+            IFichaMedicaRepository fichaRepo         = new FichaMedicaRepositoryHibernate(usuarioRepository);
 
             // Repositorios en memoria para Tratamiento, Comentario e Historial
             TratamientoRepository tratamientoRepository       = new TratamientoRepository();

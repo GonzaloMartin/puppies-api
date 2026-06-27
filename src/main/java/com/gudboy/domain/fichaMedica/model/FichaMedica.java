@@ -7,33 +7,82 @@ import com.gudboy.domain.comentarioMedico.ComentarioMedico;
 import com.gudboy.domain.fichaMedica.exportador.Exportador;
 import com.gudboy.domain.historialClinico.HistorialClinico;
 import com.gudboy.domain.tratamiento.Tratamiento;
+import com.gudboy.dto.FichaMedicaDTO;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PostLoad;
+import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
+
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
+@Entity
+@Table(name = "ficha_medica")
 public class FichaMedica {
 
+    @Id
+    @Column(name = "id")
+    @JdbcTypeCode(SqlTypes.CHAR)
     private UUID fichaMedicaId;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "animal_id")
+    private Animal animal;
+
+    @Column(name = "peso")
     private double peso;
+
+    @Column(name = "altura")
     private float altura;
+
+    @Column(name = "edad")
     private int edad;
-    private final Animal animal;
-    private final HistorialClinico historial;
+
+    @Transient
+    private HistorialClinico historial;
+
+    protected FichaMedica() { }
 
     public FichaMedica(Animal animal) {
         this.fichaMedicaId = UUID.randomUUID();
-        this.animal = animal;
-        this.peso = animal.getPeso();
-        this.altura = (float) animal.getAltura();
-        this.edad = animal.getEdad();
-        this.historial = new HistorialClinico(animal);
+        this.animal        = animal;
+        this.peso          = animal.getPeso();
+        this.altura        = (float) animal.getAltura();
+        this.edad          = animal.getEdad();
+        this.historial     = new HistorialClinico(animal);
     }
 
-    // Constructor para reconstitución desde persistencia (no genera UUID nuevo)
     public FichaMedica(UUID id, Animal animal, double peso, float altura, int edad) {
         this.fichaMedicaId = id;
-        this.animal = animal;
-        this.peso = peso;
-        this.altura = altura;
-        this.edad = edad;
-        this.historial = new HistorialClinico(animal);
+        this.animal        = animal;
+        this.peso          = peso;
+        this.altura        = altura;
+        this.edad          = edad;
+        this.historial     = new HistorialClinico(animal);
+    }
+
+    @PostLoad
+    protected void postLoad() {
+        this.historial = new HistorialClinico(this.animal);
+    }
+
+    public FichaMedicaDTO toDTO() {
+        return new FichaMedicaDTO(
+            fichaMedicaId,
+            animal.getNombre(),
+            animal.getTipoAnimal(),
+            animal.getEspecie(),
+            peso, altura, edad,
+            historial.getListaTratamiento().size(),
+            historial.getListaComentario().size(),
+            historial.getListaVisitas().size()
+        );
     }
 
     public String obtenerDatosTecnicos() {
@@ -43,13 +92,13 @@ public class FichaMedica {
     }
 
     public void exportar(Exportador estrategia) {
-        estrategia.exportar(this);
+        estrategia.exportar(toDTO());
     }
 
     public void actualizarDatos(double peso, float altura, int edad) {
-        this.peso = peso;
+        this.peso   = peso;
         this.altura = altura;
-        this.edad = edad;
+        this.edad   = edad;
     }
 
     public void agregarTratamiento(Tratamiento tratamiento) {
@@ -64,14 +113,12 @@ public class FichaMedica {
         historial.agregarVisita(visita);
     }
 
-    public void setFichaMedicaId(UUID id) { this.fichaMedicaId = id; }
+    public void setFichaMedicaId(UUID id)      { this.fichaMedicaId = id; }
 
-    // --- getters ---
-
-    public UUID getFichaMedicaId()       { return fichaMedicaId; }
-    public double getPeso()              { return peso; }
-    public float getAltura()             { return altura; }
-    public int getEdad()                 { return edad; }
-    public Animal getAnimal()            { return animal; }
-    public HistorialClinico getHistorial() { return historial; }
+    public UUID            getFichaMedicaId()  { return fichaMedicaId; }
+    public double          getPeso()           { return peso; }
+    public float           getAltura()         { return altura; }
+    public int             getEdad()           { return edad; }
+    public Animal          getAnimal()         { return animal; }
+    public HistorialClinico getHistorial()     { return historial; }
 }

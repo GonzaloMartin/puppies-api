@@ -2,6 +2,7 @@ package com.gudboy.service;
 
 import com.gudboy.domain.animal.factory.FabricaAnimal;
 import com.gudboy.domain.animal.model.Animal;
+import com.gudboy.dto.AnimalDTO;
 import com.gudboy.repository.IAnimalRepository;
 
 import java.util.List;
@@ -14,10 +15,8 @@ public class AnimalService {
         this.animalRepository = animalRepository;
     }
 
-    public Animal registrarAnimal(FabricaAnimal fabrica, String nombre, String especie,
-                                  double altura, double peso,
-                                  int edad, String condicionMedica) {
-        Animal animal = fabrica.crearAnimal(nombre, especie, altura, peso, edad, condicionMedica);
+    public Animal registrarAnimal(FabricaAnimal fabrica, AnimalDTO dto) {
+        Animal animal = fabrica.crearAnimal(dto);
         animalRepository.guardar(animal);
         return animal;
     }

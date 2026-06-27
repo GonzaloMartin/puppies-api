@@ -63,6 +63,7 @@ import com.gudboy.domain.alarma.observer.PushNotificationObserver;
 import com.gudboy.domain.animal.factory.FabricaAnimal;
 import com.gudboy.domain.animal.factory.FabricaAnimalDomestico;
 import com.gudboy.domain.animal.factory.FabricaAnimalSalvaje;
+import com.gudboy.dto.AnimalDTO;
 import com.gudboy.domain.animal.model.Adopcion;
 import com.gudboy.domain.animal.model.Animal;
 import com.gudboy.domain.animal.model.AnimalDomestico;
@@ -375,12 +376,13 @@ public class VentanaPrincipal extends JFrame implements IAlarmaObserver {
                 throw new IllegalArgumentException("Nombre y especie son obligatorios.");
             FabricaAnimal fab = "Doméstico".equals(tipoCB.getSelectedItem())
                 ? new FabricaAnimalDomestico() : new FabricaAnimalSalvaje();
-            Animal a = animalCtrl.registrarAnimal(fab,
+            AnimalDTO dto = new AnimalDTO(
                 nombreF.getText().trim(), especieF.getText().trim(),
                 Double.parseDouble(alturaF.getText().trim()),
                 Double.parseDouble(pesoF.getText().trim()),
                 Integer.parseInt(edadF.getText().trim()),
                 (String) condCB.getSelectedItem());
+            Animal a = animalCtrl.registrarAnimal(fab, dto);
             if ("En tratamiento".equals(condCB.getSelectedItem())) animalCtrl.ponerEnTratamiento(a);
             refrescarTodo();
             info("Animal creado:\n" + a);

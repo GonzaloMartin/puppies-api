@@ -1,12 +1,12 @@
 package com.gudboy.controller;
 
+import java.util.List;
+
 import com.gudboy.domain.Usuario.Veterinario;
 import com.gudboy.domain.Usuario.Visitador;
-import com.gudboy.domain.animal.model.AnimalDomestico;
 import com.gudboy.domain.animal.model.Adopcion;
+import com.gudboy.domain.animal.model.AnimalDomestico;
 import com.gudboy.service.AdopcionService;
-
-import java.util.List;
 
 public class AdopcionController {
 

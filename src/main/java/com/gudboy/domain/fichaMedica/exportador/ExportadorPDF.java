@@ -1,16 +1,17 @@
 package com.gudboy.domain.fichaMedica.exportador;
 
-import com.gudboy.domain.fichaMedica.model.FichaMedica;
+import com.gudboy.dto.FichaMedicaDTO;
 
 public class ExportadorPDF implements Exportador {
+
     private final String tamanio;
 
     public ExportadorPDF(String tamanio) { this.tamanio = tamanio; }
 
     @Override
-    public void exportar(FichaMedica ficha) {
+    public void exportar(FichaMedicaDTO dto) {
         System.out.println("[ExportadorPDF - " + tamanio + "] Exportando ficha de: "
-                + ficha.getAnimal().getNombre());
-        System.out.println("  → " + ficha.obtenerDatosTecnicos());
+                + dto.getNombreAnimal());
+        System.out.println("  → " + dto.resumen());
     }
 }

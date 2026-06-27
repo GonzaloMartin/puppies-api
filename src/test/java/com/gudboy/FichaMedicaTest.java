@@ -19,6 +19,7 @@ import org.junit.jupiter.api.Test;
 import com.gudboy.domain.Usuario.Veterinario;
 import com.gudboy.domain.animal.factory.FabricaAnimalDomestico;
 import com.gudboy.domain.animal.factory.FabricaAnimalSalvaje;
+import com.gudboy.dto.AnimalDTO;
 import com.gudboy.domain.animal.model.Animal;
 import com.gudboy.domain.comentarioMedico.ComentarioMedico;
 import com.gudboy.domain.fichaMedica.exportador.ExportadorExcel;
@@ -57,8 +58,8 @@ class FichaMedicaTest {
     @BeforeEach
     void setUp() {
         service = new FichaMedicaService(new RepositorioEnMemoria());
-        perro  = new FabricaAnimalDomestico().crearAnimal("Rex",   "Perro",  0.6, 25.0, 5, "Sano");
-        halcon = new FabricaAnimalSalvaje()  .crearAnimal("Falco", "Halcón", 0.4,  1.2, 2, "Sano");
+        perro  = new FabricaAnimalDomestico().crearAnimal(new AnimalDTO("Rex",   "Perro",  0.6, 25.0, 5, "Sano"));
+        halcon = new FabricaAnimalSalvaje()  .crearAnimal(new AnimalDTO("Falco", "Halcón", 0.4,  1.2, 2, "Sano"));
     }
 
     // --- creación ---

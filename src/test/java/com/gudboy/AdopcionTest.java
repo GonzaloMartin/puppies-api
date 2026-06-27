@@ -12,6 +12,7 @@ import com.gudboy.domain.Usuario.Veterinario;
 import com.gudboy.domain.Usuario.Visitador;
 import com.gudboy.domain.animal.factory.FabricaAnimalDomestico;
 import com.gudboy.domain.animal.factory.FabricaAnimalSalvaje;
+import com.gudboy.dto.AnimalDTO;
 import com.gudboy.domain.animal.model.Adopcion;
 import com.gudboy.domain.animal.model.AnimalDomestico;
 import com.gudboy.domain.animal.model.AnimalSalvaje;
@@ -34,9 +35,9 @@ public class AdopcionTest {
         adoptante = new Visitador("Juan", "Pérez", "juan@mail.com", "222",
                 EstadoCivil.SOLTERO, Ocupacion.EMPLEADO, "Compañía", "Perro", false);
         perro = (AnimalDomestico) new FabricaAnimalDomestico()
-                .crearAnimal("Rex", "Perro", 0.6, 25.0, 5, "Sano");
+                .crearAnimal(new AnimalDTO("Rex",   "Perro", 0.6, 25.0, 5, "Sano"));
         gato  = (AnimalDomestico) new FabricaAnimalDomestico()
-                .crearAnimal("Mishi", "Gato", 0.3, 4.0, 3, "Sano");
+                .crearAnimal(new AnimalDTO("Mishi", "Gato",  0.3,  4.0, 3, "Sano"));
     }
 
     @Test
@@ -66,7 +67,7 @@ public class AdopcionTest {
     @Test
     void animalSalvaje_nuncaPuedeAdoptarse() {
         AnimalSalvaje halcon = (AnimalSalvaje) new FabricaAnimalSalvaje()
-                .crearAnimal("Falco", "Halcón", 0.4, 1.2, 2, "Sano");
+                .crearAnimal(new AnimalDTO("Falco", "Halcón", 0.4, 1.2, 2, "Sano"));
 
         assertFalse(halcon.esAdoptable());
     }

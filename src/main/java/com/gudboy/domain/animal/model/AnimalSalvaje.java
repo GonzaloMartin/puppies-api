@@ -1,8 +1,17 @@
 package com.gudboy.domain.animal.model;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.DiscriminatorValue;
+import jakarta.persistence.Entity;
+
+@Entity
+@DiscriminatorValue("SALVAJE")
 public class AnimalSalvaje extends Animal {
 
-    private final String habitatNatural;
+    @Column(name = "habitat_natural")
+    private String habitatNatural;
+
+    protected AnimalSalvaje() { }
 
     public AnimalSalvaje(String nombre, String especie, double altura,
                          double peso, int edad, String condicionMedica,
@@ -11,9 +20,9 @@ public class AnimalSalvaje extends Animal {
         this.habitatNatural = habitatNatural;
     }
 
-    @Override public boolean esAdoptable()   { return false; }
-    @Override public String getTipoAnimal()  { return "SALVAJE"; }
-    public String getHabitatNatural()        { return habitatNatural; }
+    @Override public boolean esAdoptable()  { return false; }
+    @Override public String getTipoAnimal() { return "SALVAJE"; }
+    public String getHabitatNatural()       { return habitatNatural; }
 
     @Override
     public String toString() {

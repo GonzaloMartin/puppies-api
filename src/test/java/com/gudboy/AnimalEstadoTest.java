@@ -4,6 +4,7 @@ import com.gudboy.domain.animal.State.EstadoEnTratamiento;
 import com.gudboy.domain.animal.State.EstadoSaludable;
 import com.gudboy.domain.animal.factory.FabricaAnimalDomestico;
 import com.gudboy.domain.animal.factory.FabricaAnimalSalvaje;
+import com.gudboy.dto.AnimalDTO;
 import com.gudboy.domain.animal.model.Animal;
 import com.gudboy.domain.animal.model.AnimalDomestico;
 import org.junit.jupiter.api.BeforeEach;
@@ -19,9 +20,9 @@ class AnimalEstadoTest {
     @BeforeEach
     void setUp() {
         domestico = (AnimalDomestico) new FabricaAnimalDomestico()
-                .crearAnimal("Rex", "Perro", 0.6, 25.0, 5, "Sano");
+                .crearAnimal(new AnimalDTO("Rex",   "Perro",  0.6, 25.0, 5, "Sano"));
         salvaje = new FabricaAnimalSalvaje()
-                .crearAnimal("Falco", "Halcón", 0.4, 1.2, 2, "Sano");
+                .crearAnimal(new AnimalDTO("Falco", "Halcón", 0.4,  1.2, 2, "Sano"));
     }
 
     // --- estado de salud inicial ---

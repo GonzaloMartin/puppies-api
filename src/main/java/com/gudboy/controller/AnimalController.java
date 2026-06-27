@@ -2,6 +2,7 @@ package com.gudboy.controller;
 
 import com.gudboy.domain.animal.factory.FabricaAnimal;
 import com.gudboy.domain.animal.model.Animal;
+import com.gudboy.dto.AnimalDTO;
 import com.gudboy.service.AnimalService;
 
 import java.util.List;
@@ -14,11 +15,8 @@ public class AnimalController {
         this.animalService = animalService;
     }
 
-    public Animal registrarAnimal(FabricaAnimal fabrica, String nombre, String especie,
-                                  double altura, double peso,
-                                  int edad, String condicionMedica) {
-        return animalService.registrarAnimal(fabrica, nombre, especie,
-                altura, peso, edad, condicionMedica);
+    public Animal registrarAnimal(FabricaAnimal fabrica, AnimalDTO dto) {
+        return animalService.registrarAnimal(fabrica, dto);
     }
 
     public List<Animal> listarAnimales() {
