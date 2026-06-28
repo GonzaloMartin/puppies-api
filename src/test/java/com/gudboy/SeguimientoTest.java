@@ -43,7 +43,8 @@ public class SeguimientoTest {
     void setUp() {
         ISeguimientoRepository seguimientoRepository;
         if (USE_MYSQL) {
-            // Clean up database for a completely clean test run
+            // Limpio la base de datos en el caso de que los test corran con mySQL.
+            // Ver el valor de USE_MYSQL = true
             try (java.sql.Statement stmt = com.gudboy.infrastructure.ConexionMySQL.getInstancia().getConnection().createStatement()) {
                 stmt.executeUpdate("DELETE FROM visitas");
                 stmt.executeUpdate("DELETE FROM seguimiento");
