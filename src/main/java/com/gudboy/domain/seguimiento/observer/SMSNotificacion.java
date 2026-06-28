@@ -3,16 +3,11 @@ package com.gudboy.domain.seguimiento.observer;
 import com.gudboy.domain.seguimiento.adapter.ISMSAdapter;
 import com.gudboy.domain.seguimiento.model.Visita;
 
-public class SMSNotificacion implements INotificacionStrategy {
+public class SMSNotificacion implements IObservador {
     private final ISMSAdapter smsAdapter;
 
     public SMSNotificacion(ISMSAdapter smsAdapter) {
         this.smsAdapter = smsAdapter;
-    }
-
-    @Override
-    public void update(Visita visita) {
-        enviarRecordatorio(visita);
     }
 
     @Override

@@ -3,16 +3,11 @@ package com.gudboy.domain.seguimiento.observer;
 import com.gudboy.domain.seguimiento.adapter.IEmailAdapter;
 import com.gudboy.domain.seguimiento.model.Visita;
 
-public class EmailNotificacion implements INotificacionStrategy {
+public class EmailNotificacion implements IObservador {
     private final IEmailAdapter emailAdapter;
 
     public EmailNotificacion(IEmailAdapter emailAdapter) {
         this.emailAdapter = emailAdapter;
-    }
-
-    @Override
-    public void update(Visita visita) {
-        enviarRecordatorio(visita);
     }
 
     @Override
