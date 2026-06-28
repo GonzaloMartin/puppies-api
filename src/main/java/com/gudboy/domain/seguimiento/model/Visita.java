@@ -1,14 +1,13 @@
 package com.gudboy.domain.seguimiento.model;
 
 import com.gudboy.domain.seguimiento.observer.IObservador;
-import com.gudboy.domain.seguimiento.observer.ISujetoRecordatorio;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-public class Visita implements ISujetoRecordatorio {
+public class Visita {
     private final UUID id;
     private final Seguimiento seguimiento;
     private final LocalDate fechaProgramada;
@@ -62,22 +61,19 @@ public class Visita implements ISujetoRecordatorio {
     }
 
     // --- IMPLEMENTACIÓN DE OBSERVER ---
-    @Override
     public void suscribir(IObservador o) {
         if (!observadores.contains(o)) {
             observadores.add(o);
         }
     }
 
-    @Override
     public void desuscribir(IObservador o) {
         observadores.remove(o);
     }
 
-    @Override
     public void notificarRecordatorio() {
         for (IObservador o : observadores) {
-            o.update(this);
+            o.enviarRecordatorio(this);
         }
     }
 

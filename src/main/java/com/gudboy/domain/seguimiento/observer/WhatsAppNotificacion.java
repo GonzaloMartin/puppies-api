@@ -3,16 +3,11 @@ package com.gudboy.domain.seguimiento.observer;
 import com.gudboy.domain.seguimiento.adapter.IWhatsAppAdapter;
 import com.gudboy.domain.seguimiento.model.Visita;
 
-public class WhatsAppNotificacion implements INotificacionStrategy {
+public class WhatsAppNotificacion implements IObservador {
     private final IWhatsAppAdapter whatsappAdapter;
 
     public WhatsAppNotificacion(IWhatsAppAdapter whatsappAdapter) {
         this.whatsappAdapter = whatsappAdapter;
-    }
-
-    @Override
-    public void update(Visita visita) {
-        enviarRecordatorio(visita);
     }
 
     @Override

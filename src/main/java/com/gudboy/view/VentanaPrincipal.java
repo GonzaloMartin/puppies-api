@@ -82,7 +82,7 @@ import com.gudboy.domain.seguimiento.model.PreferenciaRecordatorio;
 import com.gudboy.domain.seguimiento.model.Seguimiento;
 import com.gudboy.domain.seguimiento.model.Visita;
 import com.gudboy.domain.seguimiento.observer.EmailNotificacion;
-import com.gudboy.domain.seguimiento.observer.INotificacionStrategy;
+import com.gudboy.domain.seguimiento.observer.IObservador;
 import com.gudboy.domain.seguimiento.observer.SMSNotificacion;
 import com.gudboy.domain.seguimiento.observer.WhatsAppNotificacion;
 import com.gudboy.domain.seguimiento.service.ServicioRecordatorios;
@@ -305,7 +305,7 @@ public class VentanaPrincipal extends JFrame implements IAlarmaObserver {
             if (s.getEstado() != EstadoSeguimiento.ACTIVO) continue;
 
             // Configurar el adapter según la preferencia del seguimiento
-            INotificacionStrategy strategy = resolverStrategy(s.getPreferenciaRecordatorio());
+            IObservador strategy = resolverStrategy(s.getPreferenciaRecordatorio());
 
             List<Visita> visitas = visitaCtrl.listarPorSeguimiento(s.getId());
             for (Visita v : visitas) {
@@ -323,7 +323,7 @@ public class VentanaPrincipal extends JFrame implements IAlarmaObserver {
     }
 
     /** Devuelve la estrategia de notificación correcta según la preferencia. */
-    private INotificacionStrategy resolverStrategy(PreferenciaRecordatorio pref) {
+    private IObservador resolverStrategy(PreferenciaRecordatorio pref) {
         return switch (pref) {
             case SMS       -> new SMSNotificacion(new TwilioSMSAdapter());
             case WHATSAPP  -> new WhatsAppNotificacion(new MetaWhatsAppAdapter());
