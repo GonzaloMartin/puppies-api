@@ -1,5 +1,7 @@
 package com.gudboy.domain.seguimiento.model;
 
+import com.gudboy.dto.EncuestaDTO;
+
 public class Encuesta {
     private final CalificacionEnum estadoGeneralAnimal;
     private final CalificacionEnum limpiezaLugar;
@@ -17,6 +19,10 @@ public class Encuesta {
         if (limpiezaLugar == CalificacionEnum.BUENO) buenas++;
         if (ambiente == CalificacionEnum.BUENO) buenas++;
         return buenas >= 2;
+    }
+
+    public EncuestaDTO toDTO() {
+        return new EncuestaDTO(estadoGeneralAnimal, limpiezaLugar, ambiente);
     }
 
     public CalificacionEnum getEstadoGeneralAnimal() {

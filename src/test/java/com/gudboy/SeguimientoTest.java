@@ -15,6 +15,7 @@ import com.gudboy.repository.*;
 import com.gudboy.service.SeguimientoService;
 import com.gudboy.service.VisitaService;
 import com.gudboy.controller.*;
+import com.gudboy.dto.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -34,10 +35,16 @@ public class SeguimientoTest {
     private SeguimientoController seguimientoController;
     private VisitaController visitaController;
 
+    private IAdopcionRepository adopcionRepository;
+    private IUsuarioRepository usuarioRepository;
+
     private AnimalDomestico animal1;
     private AnimalDomestico animal2;
     private Visitador adoptante;
     private Adopcion adopcion;
+
+    private AdopcionDTO adopcionDto;
+    private UsuarioDTO adoptanteDto;
 
     @BeforeEach
     void setUp() {
@@ -59,11 +66,11 @@ public class SeguimientoTest {
             }
 
             IAnimalRepository animalRepoMySQL = new AnimalRepositoryMySQL();
-            IUsuarioRepository usuarioRepoMySQL = new UsuarioRepositoryMySQL();
-            IAdopcionRepository adopcionRepoMySQL = new AdopcionRepositoryMySQL(animalRepoMySQL, usuarioRepoMySQL);
+            usuarioRepository = new UsuarioRepositoryMySQL();
+            adopcionRepository = new AdopcionRepositoryMySQL(animalRepoMySQL, usuarioRepository);
 
-            seguimientoRepository = new SeguimientoRepositoryMySQL(adopcionRepoMySQL, usuarioRepoMySQL);
-            fichaMedicaRepository = new FichaMedicaRepositoryMySQL(animalRepoMySQL, usuarioRepoMySQL);
+            seguimientoRepository = new SeguimientoRepositoryMySQL(adopcionRepository, usuarioRepository);
+            fichaMedicaRepository = new FichaMedicaRepositoryMySQL(animalRepoMySQL, usuarioRepository);
             visitaRepository = new VisitaRepositoryMySQL(seguimientoRepository);
 
             // Creo entidades para probar
@@ -83,18 +90,20 @@ public class SeguimientoTest {
             adopcion = new Adopcion(animal1, animal2, adoptante, responsableAdopcion);
 
             // Persistir entities en mySQL
-            usuarioRepoMySQL.guardar(adoptante);
-            usuarioRepoMySQL.guardar(responsableAdopcion);
+            usuarioRepository.guardar(adoptante);
+            usuarioRepository.guardar(responsableAdopcion);
             animalRepoMySQL.guardar(animal1);
             animalRepoMySQL.guardar(animal2);
             fichaMedicaRepository.guardar(ficha1);
             fichaMedicaRepository.guardar(ficha2);
-            adopcionRepoMySQL.guardar(adopcion);
+            adopcionRepository.guardar(adopcion);
 
         } else {
             seguimientoRepository = new SeguimientoRepositoryEnMemoria();
             fichaMedicaRepository = new FichaMedicaRepositoryEnMemoria();
             visitaRepository = new VisitaRepositoryEnMemoria();
+            adopcionRepository = new AdopcionRepositoryEnMemoria();
+            usuarioRepository = new UsuarioRepositoryEnMemoria();
 
             animal1 = new AnimalDomestico("Firulais", "Perro", 0.5, 12.0, 3, "SALUDABLE");
             animal2 = new AnimalDomestico("Michi", "Gato", 0.25, 4.0, 2, "SALUDABLE");
@@ -112,9 +121,20 @@ public class SeguimientoTest {
             Veterinario responsableAdopcion = new Veterinario("Juan", "Perez", "juan@gudboy.com", "+5491187654321", 12345, "Clínica general");
 
             adopcion = new Adopcion(animal1, animal2, adoptante, responsableAdopcion);
+
+            usuarioRepository.guardar(adoptante);
+            usuarioRepository.guardar(responsableAdopcion);
+            adopcionRepository.guardar(adopcion);
         }
 
-        seguimientoService = new SeguimientoService(seguimientoRepository, fichaMedicaRepository);
+        adopcionDto = new AdopcionDTO(adopcion.getId(), adopcion.getAnimales(), adopcion.getResponsable(), adopcion.getAdoptante());
+        adoptanteDto = new UsuarioDTO(
+                adoptante.getNombre(), adoptante.getApellido(), adoptante.getEmail(), adoptante.getTelefono(),
+                adoptante.getEstadoCivil(), adoptante.getOcupacion(), adoptante.getMotivoAdopcion(),
+                adoptante.getAnimalesInteres(), adoptante.tieneOtrasMascotas()
+        );
+
+        seguimientoService = new SeguimientoService(seguimientoRepository, fichaMedicaRepository, adopcionRepository, usuarioRepository);
         visitaService = new VisitaService(visitaRepository, seguimientoRepository, fichaMedicaRepository);
         seguimientoController = new SeguimientoController(seguimientoService);
         visitaController = new VisitaController(visitaService);
@@ -123,7 +143,7 @@ public class SeguimientoTest {
     @Test
     void crearSeguimiento_DebeProgramarVisitasSemanalesYPersistir() {
         Seguimiento s = seguimientoService.crearSeguimiento(
-                adopcion, adoptante, DiaSemana.SABADO, "10:00", "12:00", PreferenciaRecordatorio.WHATSAPP, 3
+                adopcionDto, adoptanteDto, DiaSemana.SABADO, "10:00", "12:00", PreferenciaRecordatorio.WHATSAPP, 3
         );
 
         assertNotNull(s.getId(), "El ID del seguimiento no debe ser nulo");
@@ -137,7 +157,7 @@ public class SeguimientoTest {
     @Test
     void evaluarRecordatorios_DebeEnviarAlerta_CuandoFaltanNDias() {
         Seguimiento s = seguimientoService.crearSeguimiento(
-                adopcion, adoptante, DiaSemana.MIERCOLES, "14:00", "16:00", PreferenciaRecordatorio.WHATSAPP, 1
+                adopcionDto, adoptanteDto, DiaSemana.MIERCOLES, "14:00", "16:00", PreferenciaRecordatorio.WHATSAPP, 1
         );
         Visita visita = s.getVisitas().get(0);
 
@@ -174,12 +194,12 @@ public class SeguimientoTest {
     @Test
     void registrarResultadoVisita_DebeCompletarVisita_YRegistrarEncuestaYVinculoClinico() {
         Seguimiento s = seguimientoService.crearSeguimiento(
-                adopcion, adoptante, DiaSemana.LUNES, "09:00", "11:00", PreferenciaRecordatorio.WHATSAPP, 1
+                adopcionDto, adoptanteDto, DiaSemana.LUNES, "09:00", "11:00", PreferenciaRecordatorio.WHATSAPP, 1
         );
         Visita visita = s.getVisitas().get(0);
 
-        Encuesta encuestaFavorable = new Encuesta(CalificacionEnum.BUENO, CalificacionEnum.BUENO, CalificacionEnum.REGULAR);
-        assertTrue(encuestaFavorable.esFavorable(), "La encuesta debe ser considerada favorable");
+        EncuestaDTO encuestaFavorable = new EncuestaDTO(CalificacionEnum.BUENO, CalificacionEnum.BUENO, CalificacionEnum.REGULAR);
+        assertTrue(new Encuesta(CalificacionEnum.BUENO, CalificacionEnum.BUENO, CalificacionEnum.REGULAR).esFavorable(), "La encuesta debe ser considerada favorable");
 
         seguimientoService.registrarResultadoVisita(visita.getId(), encuestaFavorable, "Excelente cuidado, patio amplio y limpio.", true);
 
@@ -200,11 +220,11 @@ public class SeguimientoTest {
     @Test
     void registrarResultadoVisita_ConContinuarVisitasFalso_DebeFinalizarSeguimiento() {
         Seguimiento s = seguimientoService.crearSeguimiento(
-                adopcion, adoptante, DiaSemana.VIERNES, "16:00", "18:00", PreferenciaRecordatorio.WHATSAPP, 1
+                adopcionDto, adoptanteDto, DiaSemana.VIERNES, "16:00", "18:00", PreferenciaRecordatorio.WHATSAPP, 1
         );
         Visita visita = s.getVisitas().get(0);
 
-        Encuesta encuestaFinal = new Encuesta(CalificacionEnum.BUENO, CalificacionEnum.BUENO, CalificacionEnum.BUENO);
+        EncuestaDTO encuestaFinal = new EncuestaDTO(CalificacionEnum.BUENO, CalificacionEnum.BUENO, CalificacionEnum.BUENO);
 
         seguimientoService.registrarResultadoVisita(visita.getId(), encuestaFinal, "Todo excelente. Seguimiento concluido con éxito.", false);
 
@@ -222,31 +242,32 @@ public class SeguimientoTest {
     @Test
     void testVisitaControllerAndService_UmlStrict() {
         // 1. Trackear via SeguimientoController (delega a SeguimientoService)
-        Seguimiento s = seguimientoController.crearSeguimiento(
-                adopcion, adoptante, DiaSemana.MIERCOLES, "10:00", "12:00", PreferenciaRecordatorio.SMS, 3
+        SeguimientoDTO s = seguimientoController.crearSeguimiento(
+                adopcionDto, adoptanteDto, DiaSemana.MIERCOLES, "10:00", "12:00", PreferenciaRecordatorio.SMS, 3
         );
         
         // Guardamos visita en visitaRepository
-        for (Visita v : s.getVisitas()) {
+        Seguimiento sEntity = seguimientoService.getById(s.getId()).orElseThrow();
+        for (Visita v : sEntity.getVisitas()) {
             visitaRepository.guardar(v);
         }
         
         // 2. Test VisitaController.listarPorSeguimiento
-        List<Visita> list = visitaController.listarPorSeguimiento(s.getId());
+        List<VisitaDTO> list = visitaController.listarPorSeguimiento(s.getId());
         assertEquals(3, list.size(), "Debe haber 3 visitas programadas");
         
-        Visita v1 = list.get(0);
+        VisitaDTO v1 = list.get(0);
         
         // 3. Test VisitaController.marcarCompletada
         visitaController.marcarCompletada(v1.getId());
-        Visita v1Guardada = visitaRepository.buscarPorId(v1.getId()).orElse(v1);
+        Visita v1Guardada = visitaRepository.buscarPorId(v1.getId()).orElseThrow();
         assertTrue(v1Guardada.isCompletada(), "La visita 1 debe estar completada");
         
         // 4. Test VisitaController.registrarResultado
-        Visita v2 = list.get(1);
-        Encuesta encuesta = new Encuesta(CalificacionEnum.BUENO, CalificacionEnum.BUENO, CalificacionEnum.BUENO);
+        VisitaDTO v2 = list.get(1);
+        EncuestaDTO encuesta = new EncuestaDTO(CalificacionEnum.BUENO, CalificacionEnum.BUENO, CalificacionEnum.BUENO);
         visitaController.registrarResultado(v2.getId(), encuesta, "Excelente todo", true);
-        Visita v2Guardada = visitaRepository.buscarPorId(v2.getId()).orElse(v2);
+        Visita v2Guardada = visitaRepository.buscarPorId(v2.getId()).orElseThrow();
         assertTrue(v2Guardada.isCompletada(), "La visita 2 debe estar completada");
         assertEquals("Excelente todo", v2Guardada.getComentarios());
         assertTrue(v2Guardada.requiereContinuarVisitas());
@@ -255,7 +276,7 @@ public class SeguimientoTest {
     @Test
     void testRecordatorioSMS_DebeEnviarSMSCorrectamente() {
         Seguimiento s = seguimientoService.crearSeguimiento(
-                adopcion, adoptante, DiaSemana.JUEVES, "14:00", "16:00", PreferenciaRecordatorio.SMS, 1
+                adopcionDto, adoptanteDto, DiaSemana.JUEVES, "14:00", "16:00", PreferenciaRecordatorio.SMS, 1
         );
         Visita visita = s.getVisitas().get(0);
 
@@ -285,7 +306,7 @@ public class SeguimientoTest {
     @Test
     void testRecordatorioEmail_DebeEnviarEmailCorrectamente() {
         Seguimiento s = seguimientoService.crearSeguimiento(
-                adopcion, adoptante, DiaSemana.VIERNES, "15:00", "17:00", PreferenciaRecordatorio.EMAIL, 1
+                adopcionDto, adoptanteDto, DiaSemana.VIERNES, "15:00", "17:00", PreferenciaRecordatorio.EMAIL, 1
         );
         Visita visita = s.getVisitas().get(0);
 
@@ -315,7 +336,7 @@ public class SeguimientoTest {
     @Test
     void testObserverPattern_SuscripcionYDesuscripcionDinamica() {
         Seguimiento s = seguimientoService.crearSeguimiento(
-                adopcion, adoptante, DiaSemana.SABADO, "10:00", "12:00", PreferenciaRecordatorio.WHATSAPP, 1
+                adopcionDto, adoptanteDto, DiaSemana.SABADO, "10:00", "12:00", PreferenciaRecordatorio.WHATSAPP, 1
         );
         Visita visita = s.getVisitas().get(0);
 
@@ -359,7 +380,7 @@ public class SeguimientoTest {
     @Test
     void testUmlRelleno() {
         // 1. Test SeguimientoService.crear
-        Seguimiento s = seguimientoService.crear(adopcion, adoptante, DiaSemana.LUNES, "10:00", "12:00", PreferenciaRecordatorio.WHATSAPP);
+        Seguimiento s = seguimientoService.crear(adopcionDto, adoptanteDto, DiaSemana.LUNES, "10:00", "12:00", PreferenciaRecordatorio.WHATSAPP);
         assertNotNull(s);
         
         // Guardamos visitaRepository
@@ -372,7 +393,7 @@ public class SeguimientoTest {
 
         // 3. Test VisitaService.registrarResultado(Visita, Encuesta, String, boolean)
         Visita v = s.getVisitas().get(0);
-        Encuesta encuesta = new Encuesta(CalificacionEnum.BUENO, CalificacionEnum.BUENO, CalificacionEnum.BUENO);
+        EncuestaDTO encuesta = new EncuestaDTO(CalificacionEnum.BUENO, CalificacionEnum.BUENO, CalificacionEnum.BUENO);
         visitaService.registrarResultado(v, encuesta, "Impecable", true);
         Visita vGuardada = visitaRepository.buscarPorId(v.getId()).orElse(v);
         assertTrue(vGuardada.isCompletada());
@@ -392,11 +413,3 @@ public class SeguimientoTest {
         assertEquals(EstadoSeguimiento.FINALIZADO, sGuardado.getEstado());
     }
 }
-
-/*
-docker compose down -v
-docker compose up -d
-
-mvn test -Dtest=SeguimientoTest
-mvn test -Dtest=SeguimientoTest -Dverbose=true
- */
