@@ -1,6 +1,7 @@
 package com.gudboy.domain.seguimiento.model;
 
 import com.gudboy.domain.seguimiento.observer.IObservador;
+import com.gudboy.dto.VisitaDTO;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -112,6 +113,19 @@ public class Visita {
 
     public List<IObservador> getObservadores() {
         return observadores;
+    }
+
+    public VisitaDTO toDTO() {
+        return new VisitaDTO(
+            id,
+            seguimiento != null ? seguimiento.getId() : null,
+            fechaProgramada,
+            fechaReal,
+            comentarios,
+            completada,
+            continuarVisitas,
+            encuesta != null ? encuesta.toDTO() : null
+        );
     }
     @Override
     public String toString() {

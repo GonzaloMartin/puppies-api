@@ -64,6 +64,11 @@ import com.gudboy.domain.animal.factory.FabricaAnimal;
 import com.gudboy.domain.animal.factory.FabricaAnimalDomestico;
 import com.gudboy.domain.animal.factory.FabricaAnimalSalvaje;
 import com.gudboy.dto.AnimalDTO;
+import com.gudboy.dto.SeguimientoDTO;
+import com.gudboy.dto.VisitaDTO;
+import com.gudboy.dto.EncuestaDTO;
+import com.gudboy.dto.AdopcionDTO;
+import com.gudboy.dto.UsuarioDTO;
 import com.gudboy.domain.animal.model.Adopcion;
 import com.gudboy.domain.animal.model.Animal;
 import com.gudboy.domain.animal.model.AnimalDomestico;
@@ -111,11 +116,11 @@ public class VentanaPrincipal extends JFrame implements IAlarmaObserver {
     private final DefaultListModel<Visitador>   visitModel   = new DefaultListModel<>();
     private final DefaultListModel<Veterinario> vetModel     = new DefaultListModel<>();
     private final DefaultListModel<Alarma>      alarmaModel  = new DefaultListModel<>();
-    private final DefaultListModel<Seguimiento> segModel     = new DefaultListModel<>();
-    private final DefaultListModel<Visita>      visitaModel  = new DefaultListModel<>();
+    private final DefaultListModel<SeguimientoDTO> segModel     = new DefaultListModel<>();
+    private final DefaultListModel<VisitaDTO>      visitaModel  = new DefaultListModel<>();
 
-    private JList<Seguimiento> listSeg;
-    private JList<Visita>      listVisita;
+    private JList<SeguimientoDTO> listSeg;
+    private JList<VisitaDTO>      listVisita;
 
     public VentanaPrincipal(AnimalController animalCtrl,
                             UsuarioController usuarioCtrl,
@@ -179,7 +184,7 @@ public class VentanaPrincipal extends JFrame implements IAlarmaObserver {
 
         listSeg.addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting()) {
-                Seguimiento s = listSeg.getSelectedValue();
+                SeguimientoDTO s = listSeg.getSelectedValue();
                 visitaModel.clear();
                 if (s != null)
                     visitaCtrl.listarPorSeguimiento(s.getId()).forEach(visitaModel::addElement);
@@ -189,7 +194,7 @@ public class VentanaPrincipal extends JFrame implements IAlarmaObserver {
         listSeg.setCellRenderer(new DefaultListCellRenderer() {
             @Override public Component getListCellRendererComponent(JList<?> l, Object v, int i, boolean sel, boolean foc) {
                 JLabel lbl = (JLabel) super.getListCellRendererComponent(l, v, i, sel, foc);
-                if (v instanceof Seguimiento s) {
+                if (v instanceof SeguimientoDTO s) {
                     String anim = s.getAdopcion().getAnimales().stream().map(Animal::getNombre).collect(Collectors.joining(", "));
                     lbl.setText(String.format("▸ %s %s  |  [%s]  |  %s %s-%s  |  %s",
                         s.getAdopcion().getAdoptante().getNombre(),
@@ -203,14 +208,17 @@ public class VentanaPrincipal extends JFrame implements IAlarmaObserver {
         listVisita.setCellRenderer(new DefaultListCellRenderer() {
             @Override public Component getListCellRendererComponent(JList<?> l, Object v, int i, boolean sel, boolean foc) {
                 JLabel lbl = (JLabel) super.getListCellRendererComponent(l, v, i, sel, foc);
-                if (v instanceof Visita vi) {
+                if (v instanceof VisitaDTO vi) {
                     String est;
                     if (vi.isCompletada()) {
                         est = "✓ Completada el " + vi.getFechaReal();
-                    } else if (vi.getSeguimiento() != null && vi.getSeguimiento().getEstado() == EstadoSeguimiento.FINALIZADO) {
-                        est = "❌ Sin efecto (Seguimiento Finalizado) — " + vi.getFechaProgramada();
                     } else {
-                        est = "⏳ Pendiente — " + vi.getFechaProgramada();
+                        SeguimientoDTO selSeg = listSeg.getSelectedValue();
+                        if (selSeg != null && selSeg.getEstado() == EstadoSeguimiento.FINALIZADO) {
+                            est = "❌ Sin efecto (Seguimiento Finalizado) — " + vi.getFechaProgramada();
+                        } else {
+                            est = "⏳ Pendiente — " + vi.getFechaProgramada();
+                        }
                     }
                     String enc = "";
                     if (vi.isCompletada() && vi.getEncuesta() != null) {
@@ -300,35 +308,7 @@ public class VentanaPrincipal extends JFrame implements IAlarmaObserver {
      * configurados según la PreferenciaRecordatorio del seguimiento.
      */
     private void evaluarRecordatorios() {
-        List<Seguimiento> segs = segCtrl.listarTodos();
-        for (Seguimiento s : segs) {
-            if (s.getEstado() != EstadoSeguimiento.ACTIVO) continue;
-
-            // Configurar el adapter según la preferencia del seguimiento
-            IObservador strategy = resolverStrategy(s.getPreferenciaRecordatorio());
-
-            List<Visita> visitas = visitaCtrl.listarPorSeguimiento(s.getId());
-            for (Visita v : visitas) {
-                if (!v.isCompletada()) {
-                    // Suscribir la estrategia al sujeto (Visita)
-                    v.suscribir(strategy);
-                }
-            }
-            // Evaluar y disparar si corresponde
-            recordatorios.evaluarVisitas(visitas, LocalDate.now());
-
-            // Desuscribir para no acumular observers en próximas evaluaciones
-            for (Visita v : visitas) v.desuscribir(strategy);
-        }
-    }
-
-    /** Devuelve la estrategia de notificación correcta según la preferencia. */
-    private IObservador resolverStrategy(PreferenciaRecordatorio pref) {
-        return switch (pref) {
-            case SMS       -> new SMSNotificacion(new TwilioSMSAdapter());
-            case WHATSAPP  -> new WhatsAppNotificacion(new MetaWhatsAppAdapter());
-            case EMAIL     -> new EmailNotificacion(new JavaMailAdapter());
-        };
+        segCtrl.evaluarTodosLosRecordatorios(recordatorios);
     }
 
     // ── Refresh ───────────────────────────────────────────────────────────────
@@ -817,8 +797,30 @@ public class VentanaPrincipal extends JFrame implements IAlarmaObserver {
 
         try {
             int cant = (int) cantSp.getValue();
-            Seguimiento s = segCtrl.crearSeguimiento(
-                (Adopcion) aCB.getSelectedItem(), (Visitador) rCB.getSelectedItem(),
+            Adopcion selectedAdopcion = (Adopcion) aCB.getSelectedItem();
+            Visitador selectedVisitador = (Visitador) rCB.getSelectedItem();
+
+            AdopcionDTO adopcionDTO = null;
+            if (selectedAdopcion != null) {
+                adopcionDTO = new AdopcionDTO(
+                    selectedAdopcion.getId(),
+                    selectedAdopcion.getAnimales(),
+                    selectedAdopcion.getResponsable(),
+                    selectedAdopcion.getAdoptante()
+                );
+            }
+
+            UsuarioDTO responsableDTO = null;
+            if (selectedVisitador != null) {
+                responsableDTO = new UsuarioDTO(
+                    selectedVisitador.getNombre(), selectedVisitador.getApellido(), selectedVisitador.getEmail(), selectedVisitador.getTelefono(),
+                    selectedVisitador.getEstadoCivil(), selectedVisitador.getOcupacion(), selectedVisitador.getMotivoAdopcion(),
+                    selectedVisitador.getAnimalesInteres(), selectedVisitador.tieneOtrasMascotas()
+                );
+            }
+
+            SeguimientoDTO s = segCtrl.crearSeguimiento(
+                adopcionDTO, responsableDTO,
                 (DiaSemana) dCB.getSelectedItem(), deF.getText().trim(), haF.getText().trim(),
                 (PreferenciaRecordatorio) pCB.getSelectedItem(), cant);
             refrescarSeguimientos();
@@ -830,7 +832,7 @@ public class VentanaPrincipal extends JFrame implements IAlarmaObserver {
     }
 
     private void dlgRegistrarVisita() {
-        Visita sel = listVisita != null ? listVisita.getSelectedValue() : null;
+        VisitaDTO sel = listVisita != null ? listVisita.getSelectedValue() : null;
         if (sel == null) {
             info("¿Cómo registrar una visita?\n\n"
                + "1. Ir a la pestaña 'Seguimientos'\n"
@@ -858,7 +860,7 @@ public class VentanaPrincipal extends JFrame implements IAlarmaObserver {
         if (!confirm(f, "Registrar Resultado de Visita")) return;
 
         try {
-            Encuesta enc = new Encuesta(
+            EncuestaDTO enc = new EncuestaDTO(
                 (CalificacionEnum) estCB.getSelectedItem(),
                 (CalificacionEnum) limCB.getSelectedItem(),
                 (CalificacionEnum) ambCB.getSelectedItem());

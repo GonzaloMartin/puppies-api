@@ -1,8 +1,11 @@
 package com.gudboy.controller;
 
-import com.gudboy.domain.Usuario.Usuario;
-import com.gudboy.domain.animal.model.Adopcion;
 import com.gudboy.domain.seguimiento.model.*;
+import com.gudboy.domain.seguimiento.service.ServicioRecordatorios;
+import com.gudboy.dto.AdopcionDTO;
+import com.gudboy.dto.UsuarioDTO;
+import com.gudboy.dto.SeguimientoDTO;
+import com.gudboy.dto.EncuestaDTO;
 import com.gudboy.service.SeguimientoService;
 
 import java.util.List;
@@ -18,11 +21,16 @@ public class SeguimientoController {
         this.seguimientoService = seguimientoService;
     }
 
-    public Seguimiento crearSeguimiento(Adopcion adopcion, Usuario responsable, DiaSemana diaSemana, String horarioDesde, String horarioHasta, PreferenciaRecordatorio preferenciaRecordatorio, int cantVisitasIniciales) {
-        return seguimientoService.crearSeguimiento(adopcion, responsable, diaSemana, horarioDesde, horarioHasta, preferenciaRecordatorio, cantVisitasIniciales);
+    public void evaluarTodosLosRecordatorios(ServicioRecordatorios recordatorios) {
+        seguimientoService.evaluarTodosLosRecordatorios(recordatorios);
     }
 
-    public void registrarResultadoVisita(UUID visitaId, Encuesta encuesta, String comentarios, boolean continuarVisitas) {
+    public SeguimientoDTO crearSeguimiento(AdopcionDTO adopcion, UsuarioDTO responsable, DiaSemana diaSemana, String horarioDesde, String horarioHasta, PreferenciaRecordatorio preferenciaRecordatorio, int cantVisitasIniciales) {
+        Seguimiento s = seguimientoService.crearSeguimiento(adopcion, responsable, diaSemana, horarioDesde, horarioHasta, preferenciaRecordatorio, cantVisitasIniciales);
+        return s != null ? s.toDTO() : null;
+    }
+
+    public void registrarResultadoVisita(UUID visitaId, EncuestaDTO encuesta, String comentarios, boolean continuarVisitas) {
         seguimientoService.registrarResultadoVisita(visitaId, encuesta, comentarios, continuarVisitas);
     }
 
@@ -34,11 +42,11 @@ public class SeguimientoController {
         return seguimientoService.estaActivo(id);
     }
 
-    public Optional<Seguimiento> getById(UUID id) {
-        return seguimientoService.getById(id);
+    public Optional<SeguimientoDTO> getById(UUID id) {
+        return seguimientoService.getById(id).map(Seguimiento::toDTO);
     }
 
-    public List<Seguimiento> listarTodos() {
-        return seguimientoService.listarTodos();
+    public List<SeguimientoDTO> listarTodos() {
+        return seguimientoService.listarTodos().stream().map(Seguimiento::toDTO).toList();
     }
 }

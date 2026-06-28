@@ -77,7 +77,7 @@ public class Main {
             // Seguimiento
             ISeguimientoRepository seguimientoRepository = new SeguimientoRepositoryMySQL(adopcionRepository, usuarioRepository);
             IVisitaRepository visitaRepository           = new VisitaRepositoryMySQL(seguimientoRepository);
-            SeguimientoService seguimientoService        = new SeguimientoService(seguimientoRepository, fichaRepo);
+            SeguimientoService seguimientoService        = new SeguimientoService(seguimientoRepository, fichaRepo, adopcionRepository, usuarioRepository);
             VisitaService visitaService                  = new VisitaService(visitaRepository, seguimientoRepository, fichaRepo);
 
             // --- Controllers ---

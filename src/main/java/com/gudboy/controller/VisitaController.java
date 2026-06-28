@@ -1,13 +1,13 @@
 package com.gudboy.controller;
 
-import com.gudboy.domain.seguimiento.model.Encuesta;
+import com.gudboy.dto.EncuestaDTO;
+import com.gudboy.dto.VisitaDTO;
 import com.gudboy.domain.seguimiento.model.Visita;
 import com.gudboy.service.VisitaService;
 
 import java.util.List;
 import java.util.UUID;
 
-@SuppressWarnings("unused")
 public class VisitaController {
 
     private final VisitaService visitaService;
@@ -16,7 +16,7 @@ public class VisitaController {
         this.visitaService = visitaService;
     }
 
-    public void registrarResultado(UUID idVisita, Encuesta encuesta, String comentarios, boolean continuarVisitas) {
+    public void registrarResultado(UUID idVisita, EncuestaDTO encuesta, String comentarios, boolean continuarVisitas) {
         visitaService.registrarResultado(idVisita, encuesta, comentarios, continuarVisitas);
     }
 
@@ -24,7 +24,7 @@ public class VisitaController {
         visitaService.marcarCompletada(idVisita);
     }
 
-    public List<Visita> listarPorSeguimiento(UUID idSeguimiento) {
-        return visitaService.listarPorSeguimiento(idSeguimiento);
+    public List<VisitaDTO> listarPorSeguimiento(UUID idSeguimiento) {
+        return visitaService.listarPorSeguimiento(idSeguimiento).stream().map(Visita::toDTO).toList();
     }
 }

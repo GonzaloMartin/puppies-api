@@ -10,6 +10,7 @@ import com.gudboy.repository.IVisitaRepository;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
+import com.gudboy.dto.EncuestaDTO;
 
 public class VisitaService {
 
@@ -23,10 +24,11 @@ public class VisitaService {
         this.fichaMedicaRepository = fichaMedicaRepository;
     }
 
-    public void registrarResultado(UUID visitaId, Encuesta encuesta, String comentarios, boolean continuarVisitas) {
+    public void registrarResultado(UUID visitaId, EncuestaDTO encuestaDto, String comentarios, boolean continuarVisitas) {
         Visita visita = visitaRepository.buscarPorId(visitaId)
                 .orElseThrow(() -> new IllegalArgumentException("Visita no encontrada: " + visitaId));
 
+        Encuesta encuesta = new Encuesta(encuestaDto.getEstadoGeneralAnimal(), encuestaDto.getLimpiezaLugar(), encuestaDto.getAmbiente());
         visita.registrarResultado(encuesta, comentarios, continuarVisitas);
         visitaRepository.actualizar(visita);
 
@@ -49,7 +51,7 @@ public class VisitaService {
         }
     }
 
-    public void registrarResultado(Visita visita, Encuesta encuesta, String comentarios, boolean continuarVisitas) {
+    public void registrarResultado(Visita visita, EncuestaDTO encuesta, String comentarios, boolean continuarVisitas) {
         if (visita == null) {
             throw new IllegalArgumentException("Visita no puede ser nula");
         }

@@ -2,6 +2,10 @@ package com.gudboy.domain.seguimiento.model;
 
 import com.gudboy.domain.animal.model.Adopcion;
 import com.gudboy.domain.Usuario.Usuario;
+import com.gudboy.dto.AdopcionDTO;
+import com.gudboy.dto.UsuarioDTO;
+import com.gudboy.dto.VisitaDTO;
+import com.gudboy.dto.SeguimientoDTO;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -85,6 +89,57 @@ public class Seguimiento {
 
     public List<Visita> getVisitas() {
         return visitas;
+    }
+
+    public SeguimientoDTO toDTO() {
+        List<VisitaDTO> visitasDTO = new ArrayList<>();
+        for (Visita v : visitas) {
+            visitasDTO.add(v.toDTO());
+        }
+
+        AdopcionDTO adopcionDTO = null;
+        if (adopcion != null) {
+            adopcionDTO = new AdopcionDTO(
+                adopcion.getId(),
+                adopcion.getAnimales(),
+                adopcion.getResponsable(),
+                adopcion.getAdoptante()
+            );
+        }
+
+        UsuarioDTO responsableDTO = null;
+        if (responsable != null) {
+            if (responsable instanceof com.gudboy.domain.Usuario.Veterinario vet) {
+                responsableDTO = new UsuarioDTO(
+                    vet.getNombre(), vet.getApellido(), vet.getEmail(), vet.getTelefono(),
+                    vet.getMatriculaProfesional(), vet.getEspecialidad()
+                );
+            } else if (responsable instanceof com.gudboy.domain.Usuario.Visitador vis) {
+                responsableDTO = new UsuarioDTO(
+                    vis.getNombre(), vis.getApellido(), vis.getEmail(), vis.getTelefono(),
+                    vis.getEstadoCivil(), vis.getOcupacion(), vis.getMotivoAdopcion(),
+                    vis.getAnimalesInteres(), vis.tieneOtrasMascotas()
+                );
+            } else {
+                responsableDTO = new UsuarioDTO(
+                    responsable.getNombre(), responsable.getApellido(),
+                    responsable.getEmail(), responsable.getTelefono(),
+                    0, null
+                );
+            }
+        }
+
+        return new SeguimientoDTO(
+            id,
+            adopcionDTO,
+            responsableDTO,
+            diaSemana,
+            horarioDesde,
+            horarioHasta,
+            estado,
+            preferenciaRecordatorio,
+            visitasDTO
+        );
     }
     @Override
     public String toString() {
