@@ -1,10 +1,11 @@
 package com.gudboy.controller;
 
 import com.gudboy.domain.alarma.model.Alarma;
+import com.gudboy.dto.AlarmaDTO;
 import com.gudboy.service.AlarmaService;
-import com.gudboy.domain.alarma.observer.IAlarmaObserver;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class AlarmaController {
 
@@ -14,32 +15,39 @@ public class AlarmaController {
         this.service = service;
     }
 
-    public void suscribirVista(IAlarmaObserver observer) {
-        service.suscribir(observer);
+    public List<AlarmaDTO> getAll() {
+        return service.obtenerTodas().stream()
+                .map(Alarma::toDTO)
+                .collect(Collectors.toList());
     }
 
-    // --- CAMBIO: Método opcional pero recomendado para desuscribir ---
-    public void desuscribirVista(IAlarmaObserver observer) {
-        service.desuscribir(observer);
+    public AlarmaDTO getById(int id) {
+        Alarma alarma = service.obtenerAlarma(id);
+        return alarma != null ? alarma.toDTO() : null;
     }
 
-    public List<Alarma> getAll() {
-        return service.obtenerTodas();
+    public void create(AlarmaDTO dto) {
+        Alarma nuevaAlarma = new Alarma(
+            dto.getId(),
+            dto.getIdAnimal(),
+            dto.getTitulo(),
+            dto.getDescripcion(),
+            dto.getFrecuenciaDias(),
+            dto.getFechaProximoDisparo(),
+            dto.getAcciones()
+        );
+        service.crearAlarma(nuevaAlarma);
     }
 
-    public Alarma getById(int id) {
-        return service.obtenerAlarma(id);
-    }
-
-    public void create(Alarma alarma) {
-        service.crearAlarma(alarma);
-    }
-
-    public void update(int id, Alarma alarma) {
+    public void update(int id, AlarmaDTO dto) {
         Alarma existente = service.obtenerAlarma(id);
         if (existente != null) {
-            alarma.setId(id); // Asegura que la ID sea la correcta
-            service.actualizarAlarma(alarma);
+            existente.setTitulo(dto.getTitulo());
+            existente.setDescripcion(dto.getDescripcion());
+            existente.setFrecuenciaDias(dto.getFrecuenciaDias());
+            existente.setFechaProximoDisparo(dto.getFechaProximoDisparo());
+            existente.setAcciones(dto.getAcciones());
+            service.actualizarAlarma(existente);
         }
     }
 
@@ -55,7 +63,6 @@ public class AlarmaController {
         service.verificarEstadoAlarmas();
     }
 
-    // Reemplaza el método actual por este
     public void atenderAlarma(int id, String comentario, boolean tratamientoFinalizado, com.gudboy.domain.Usuario.Veterinario veterinario) {
         service.atenderAlarma(id, comentario, tratamientoFinalizado, veterinario);
     }

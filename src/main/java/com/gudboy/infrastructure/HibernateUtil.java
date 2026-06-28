@@ -43,6 +43,7 @@ public class HibernateUtil {
                 .addAnnotatedClass(Veterinario.class)
                 .addAnnotatedClass(Visitador.class)
                 .addAnnotatedClass(Adopcion.class)
+                .addAnnotatedClass(com.gudboy.domain.alarma.model.Alarma.class)
                 .buildSessionFactory();
         } catch (Exception e) {
             throw new RuntimeException("Error al iniciar Hibernate", e);

@@ -1,21 +1,58 @@
 package com.gudboy.domain.alarma.model;
 
 import com.gudboy.domain.tratamiento.TipoTratamiento;
-import com.gudboy.domain.Usuario.Veterinario;
+import com.gudboy.dto.AlarmaDTO;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
 import java.util.List;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+@Entity
+@Table(name = "alarmas")
 public class Alarma {
+    
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
+
+    @Column(name = "titulo")
     private String titulo;
+
+    @Column(name = "descripcion")
     private String descripcion;
+
+    @Column(name = "frecuencia_dias")
     private int frecuenciaDias;
+
+    @Column(name = "fecha_proximo_disparo")
     private LocalDateTime fechaProximoDisparo;
+
+    @Column(name = "estado")
     private String estado;
+
+    @Column(name = "completada")
     private boolean completada;
+
+    @Column(name = "fecha_completado")
     private LocalDateTime fechaCompletado;
+
+    @Convert(converter = TipoTratamientoListConverter.class)
+    @Column(name = "acciones")
     private List<TipoTratamiento> acciones;
+
+    @Column(name = "id_animal")
+    @JdbcTypeCode(SqlTypes.CHAR)
     private UUID idAnimal;
 
     public Alarma(int id, UUID idAnimal, String titulo, String descripcion, int frecuenciaDias,
@@ -33,6 +70,21 @@ public class Alarma {
 
     public Alarma() {}
 
+    public AlarmaDTO toDTO() {
+        return new AlarmaDTO(
+            this.id,
+            this.idAnimal,
+            this.titulo,
+            this.descripcion,
+            this.frecuenciaDias,
+            this.fechaProximoDisparo,
+            this.estado,
+            this.completada,
+            this.fechaCompletado,
+            this.acciones
+        );
+    }
+
     public boolean verificarFecha() {
         return LocalDateTime.now().isAfter(this.fechaProximoDisparo)
                 || LocalDateTime.now().isEqual(this.fechaProximoDisparo);
@@ -48,13 +100,6 @@ public class Alarma {
         this.completada = true;
         this.estado = "COMPLETADA";
         this.fechaCompletado = LocalDateTime.now();
-    }
-
-    public void escribirComentario(String comentario, Veterinario veterinario) {
-        String firma = (veterinario != null)
-                ? veterinario.getNombre() + " " + veterinario.getApellido()
-                : "Desconocido";
-        this.descripcion = this.descripcion + " | Nota (" + firma + "): " + comentario;
     }
 
     public void marcarTratamientoFinalizado() {
@@ -75,9 +120,9 @@ public class Alarma {
     public LocalDateTime getFechaProximoDisparoOriginal() { return fechaProximoDisparo; }
     public void setFechaProximoDisparo(LocalDateTime fechaProximoDisparo) { this.fechaProximoDisparo = fechaProximoDisparo; }
     public String getEstado() { return estado; }
-    public void setEstado(String estado) { this.estado = estado; }          // FIX: cuerpo vacío → asignación real
+    public void setEstado(String estado) { this.estado = estado; }
     public boolean isCompletada() { return completada; }
-    public void setCompletada(boolean completada) { this.completada = completada; } // FIX: ídem
+    public void setCompletada(boolean completada) { this.completada = completada; }
     public UUID getIdAnimal() { return idAnimal; }
     public void setIdAnimal(UUID idAnimal) { this.idAnimal = idAnimal; }
     public List<TipoTratamiento> getAcciones() { return acciones; }
