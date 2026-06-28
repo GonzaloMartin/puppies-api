@@ -5,6 +5,14 @@ import com.gudboy.domain.animal.model.Adopcion;
 import com.gudboy.domain.animal.model.AnimalDomestico;
 import com.gudboy.domain.fichaMedica.model.FichaMedica;
 import com.gudboy.domain.seguimiento.model.*;
+import com.gudboy.domain.seguimiento.observer.IObservador;
+import com.gudboy.domain.seguimiento.observer.SMSNotificacion;
+import com.gudboy.domain.seguimiento.observer.WhatsAppNotificacion;
+import com.gudboy.domain.seguimiento.observer.EmailNotificacion;
+import com.gudboy.domain.seguimiento.adapter.TwilioSMSAdapter;
+import com.gudboy.domain.seguimiento.adapter.MetaWhatsAppAdapter;
+import com.gudboy.domain.seguimiento.adapter.JavaMailAdapter;
+import com.gudboy.domain.seguimiento.service.ServicioRecordatorios;
 import com.gudboy.repository.IFichaMedicaRepository;
 import com.gudboy.repository.ISeguimientoRepository;
 
@@ -12,18 +20,65 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import com.gudboy.repository.IAdopcionRepository;
+import com.gudboy.repository.IUsuarioRepository;
+import com.gudboy.dto.AdopcionDTO;
+import com.gudboy.dto.UsuarioDTO;
+import com.gudboy.dto.EncuestaDTO;
 
 public class SeguimientoService {
 
     private final ISeguimientoRepository seguimientoRepository;
     private final IFichaMedicaRepository fichaMedicaRepository;
+    private final IAdopcionRepository adopcionRepository;
+    private final IUsuarioRepository usuarioRepository;
 
-    public SeguimientoService(ISeguimientoRepository seguimientoRepository, IFichaMedicaRepository fichaMedicaRepository) {
+    public SeguimientoService(ISeguimientoRepository seguimientoRepository, IFichaMedicaRepository fichaMedicaRepository,
+                              IAdopcionRepository adopcionRepository, IUsuarioRepository usuarioRepository) {
         this.seguimientoRepository = seguimientoRepository;
         this.fichaMedicaRepository = fichaMedicaRepository;
+        this.adopcionRepository = adopcionRepository;
+        this.usuarioRepository = usuarioRepository;
     }
 
-    public Seguimiento crearSeguimiento(Adopcion adopcion, Usuario responsable, DiaSemana diaSemana, String horarioDesde, String horarioHasta, PreferenciaRecordatorio preferenciaRecordatorio, int cantVisitasIniciales) {
+    public void evaluarTodosLosRecordatorios(ServicioRecordatorios recordatorios) {
+        List<Seguimiento> segs = seguimientoRepository.listarTodos();
+        for (Seguimiento s : segs) {
+            if (s.getEstado() != EstadoSeguimiento.ACTIVO) continue;
+
+            IObservador strategy = resolverStrategy(s.getPreferenciaRecordatorio());
+
+            List<Visita> visitas = s.getVisitas();
+            for (Visita v : visitas) {
+                if (!v.isCompletada()) {
+                    v.suscribir(strategy);
+                }
+            }
+            recordatorios.evaluarVisitas(visitas, LocalDate.now());
+
+            for (Visita v : visitas) {
+                v.desuscribir(strategy);
+            }
+        }
+    }
+
+    private IObservador resolverStrategy(PreferenciaRecordatorio pref) {
+        return switch (pref) {
+            case SMS       -> new SMSNotificacion(new TwilioSMSAdapter());
+            case WHATSAPP  -> new WhatsAppNotificacion(new MetaWhatsAppAdapter());
+            case EMAIL     -> new EmailNotificacion(new JavaMailAdapter());
+        };
+    }
+
+    public Seguimiento crearSeguimiento(AdopcionDTO adopcionDto, UsuarioDTO responsableDto, DiaSemana diaSemana, String horarioDesde, String horarioHasta, PreferenciaRecordatorio preferenciaRecordatorio, int cantVisitasIniciales) {
+        Adopcion adopcion = adopcionRepository.buscarPorId(adopcionDto.getId())
+                .orElseThrow(() -> new IllegalArgumentException("Adopción no encontrada: " + adopcionDto.getId()));
+        
+        Usuario responsable = usuarioRepository.listarTodos().stream()
+                .filter(u -> u.getEmail().equals(responsableDto.getEmail()))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado: " + responsableDto.getEmail()));
+
         Seguimiento s = new Seguimiento(adopcion, responsable, diaSemana, horarioDesde, horarioHasta, preferenciaRecordatorio);
         
         LocalDate baseDate = LocalDate.now();
@@ -37,14 +92,15 @@ public class SeguimientoService {
         return s;
     }
 
-    public Seguimiento crear(Adopcion adopcion, Usuario responsable, DiaSemana diaSemana, String horarioDesde, String horarioHasta, PreferenciaRecordatorio preferenciaRecordatorio) {
-        return crearSeguimiento(adopcion, responsable, diaSemana, horarioDesde, horarioHasta, preferenciaRecordatorio, 3);
+    public Seguimiento crear(AdopcionDTO adopcionDto, UsuarioDTO responsableDto, DiaSemana diaSemana, String horarioDesde, String horarioHasta, PreferenciaRecordatorio preferenciaRecordatorio) {
+        return crearSeguimiento(adopcionDto, responsableDto, diaSemana, horarioDesde, horarioHasta, preferenciaRecordatorio, 3);
     }
 
-    public void registrarResultadoVisita(UUID visitaId, Encuesta encuesta, String comentarios, boolean continuarVisitas) {
+    public void registrarResultadoVisita(UUID visitaId, EncuestaDTO encuestaDto, String comentarios, boolean continuarVisitas) {
         Visita visita = seguimientoRepository.buscarVisitaPorId(visitaId)
                 .orElseThrow(() -> new IllegalArgumentException("Visita no encontrada: " + visitaId));
 
+        Encuesta encuesta = new Encuesta(encuestaDto.getEstadoGeneralAnimal(), encuestaDto.getLimpiezaLugar(), encuestaDto.getAmbiente());
         visita.registrarResultado(encuesta, comentarios, continuarVisitas);
         seguimientoRepository.actualizarVisita(visita);
 
