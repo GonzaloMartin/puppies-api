@@ -57,9 +57,7 @@ import com.gudboy.domain.Usuario.EstadoCivil;
 import com.gudboy.domain.Usuario.Ocupacion;
 import com.gudboy.domain.Usuario.Veterinario;
 import com.gudboy.domain.Usuario.Visitador;
-import com.gudboy.domain.alarma.model.Alarma;
-import com.gudboy.domain.alarma.observer.IAlarmaObserver;
-import com.gudboy.domain.alarma.observer.PushNotificationObserver;
+import com.gudboy.dto.AlarmaDTO;
 import com.gudboy.domain.animal.factory.FabricaAnimal;
 import com.gudboy.domain.animal.factory.FabricaAnimalDomestico;
 import com.gudboy.domain.animal.factory.FabricaAnimalSalvaje;
@@ -91,7 +89,7 @@ import com.gudboy.domain.tratamiento.Finalizado;
 import com.gudboy.domain.tratamiento.TipoTratamiento;
 import com.gudboy.domain.tratamiento.Tratamiento;
 
-public class VentanaPrincipal extends JFrame implements IAlarmaObserver {
+public class VentanaPrincipal extends JFrame {
 
     // Controllers
     private final AnimalController            animalCtrl;
@@ -111,8 +109,8 @@ public class VentanaPrincipal extends JFrame implements IAlarmaObserver {
     private final DefaultListModel<Visitador>   visitModel   = new DefaultListModel<>();
     private final DefaultListModel<Veterinario> vetModel     = new DefaultListModel<>();
     private final DefaultListModel<AlarmaDTO>   alarmaModel  = new DefaultListModel<>();
-    private final DefaultListModel<SeguimientoDTO> segModel     = new DefaultListModel<>();
-    private final DefaultListModel<VisitaDTO>      visitaModel  = new DefaultListModel<>();
+    private final DefaultListModel<Seguimiento> segModel     = new DefaultListModel<>();
+    private final DefaultListModel<Visita>      visitaModel  = new DefaultListModel<>();
 
     private JList<Seguimiento> listSeg;
     private JList<Visita>      listVisita;
@@ -141,8 +139,8 @@ public class VentanaPrincipal extends JFrame implements IAlarmaObserver {
         this.histCtrl     = histCtrl;
         this.recordatorios = recordatorios;
 
-        alarmaCtrl.suscribirVista(this);
-        alarmaCtrl.suscribirVista(new PushNotificationObserver(usuarioCtrl));
+
+
 
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(1080, 700);
@@ -275,10 +273,6 @@ public class VentanaPrincipal extends JFrame implements IAlarmaObserver {
     }
 
     // ── Observer / Timers ────────────────────────────────────────────────────
-
-    @Override public void actualizarEstado(Alarma alarma) {
-        SwingUtilities.invokeLater(this::refrescarAlarmas);
-    }
 
     private void iniciarTimers() {
         // Timer 1: verificar alarmas vencidas cada 60 seg
@@ -501,53 +495,53 @@ public class VentanaPrincipal extends JFrame implements IAlarmaObserver {
             if (titF.getText().trim().isEmpty()) throw new IllegalArgumentException("Título obligatorio.");
             if (accList.getSelectedValuesList().isEmpty()) throw new IllegalArgumentException("Seleccioná al menos una acción.");
             LocalDateTime fecha = dateToLDT(dateSp);
-            alarmaCtrl.create(new Alarma(0, ((Animal) animCB.getSelectedItem()).getId(),
+            alarmaCtrl.create(new AlarmaDTO(0, ((Animal) animCB.getSelectedItem()).getId(),
                 titF.getText().trim(), descF.getText().trim(),
-                (int) frecSp.getValue(), fecha, accList.getSelectedValuesList()));
+                (int) frecSp.getValue(), fecha, "ACTIVA", false, null, accList.getSelectedValuesList()));
             refrescarAlarmas(); info("Alarma creada.");
         } catch (Exception ex) { error(ex.getMessage()); }
     }
 
     private void dlgModifAlarma() {
-        List<Alarma> alarmas = alarmaCtrl.getAll();
+        List<AlarmaDTO> alarmas = alarmaCtrl.getAll();
         if (alarmas.isEmpty()) { info("No hay alarmas creadas."); return; }
-        JComboBox<Alarma> selCB = new JComboBox<>(alarmas.toArray(new Alarma[0]));
+        JComboBox<AlarmaDTO> selCB = new JComboBox<>(alarmas.toArray(new AlarmaDTO[0]));
         if (!confirm(selCB, "Seleccionar alarma a modificar")) return;
-        Alarma sel = (Alarma) selCB.getSelectedItem(); if (sel == null) return;
+        AlarmaDTO sel = (AlarmaDTO) selCB.getSelectedItem(); if (sel == null) return;
         JTextField titF  = new JTextField(sel.getTitulo());
         JTextField descF = new JTextField(sel.getDescripcion());
         JSpinner frecSp  = new JSpinner(new SpinnerNumberModel(sel.getFrecuenciaDias(), 1, 365, 1));
         JSpinner dateSp  = dateSpin();
-        dateSp.setValue(Date.from(sel.getFechaProximoDisparoOriginal().atZone(ZoneId.systemDefault()).toInstant()));
+        dateSp.setValue(Date.from(sel.getFechaProximoDisparo().atZone(ZoneId.systemDefault()).toInstant()));
         JComboBox<TipoTratamiento> tipoCB = new JComboBox<>(TipoTratamiento.values());
         if (!sel.getAcciones().isEmpty()) tipoCB.setSelectedItem(sel.getAcciones().get(0));
         JPanel f = form("Título:", titF, "Descripción:", descF,
                         "Frecuencia (días):", frecSp, "Fecha disparo:", dateSp, "Acción principal:", tipoCB);
         if (!confirm(f, "Modificar Alarma")) return;
         try {
-            sel.setTitulo(titF.getText().trim());
-            sel.setDescripcion(descF.getText().trim());
-            sel.setFrecuenciaDias((int) frecSp.getValue());
-            sel.setAcciones(Collections.singletonList((TipoTratamiento) tipoCB.getSelectedItem()));
-            sel.setFechaProximoDisparo(dateToLDT(dateSp));
-            alarmaCtrl.update(sel.getId(), sel);
+            AlarmaDTO actualizado = new AlarmaDTO(
+                sel.getId(), sel.getIdAnimal(), titF.getText().trim(), descF.getText().trim(),
+                (int) frecSp.getValue(), dateToLDT(dateSp), sel.getEstado(), sel.isCompletada(),
+                sel.getFechaCompletado(), Collections.singletonList((TipoTratamiento) tipoCB.getSelectedItem())
+            );
+            alarmaCtrl.update(sel.getId(), actualizado);
             refrescarAlarmas(); info("Alarma modificada.");
         } catch (Exception ex) { error(ex.getMessage()); }
     }
 
     private void dlgAtenderAlarma() {
-        List<Alarma> activas = alarmaCtrl.getAll().stream()
+        List<AlarmaDTO> activas = alarmaCtrl.getAll().stream()
             .filter(a -> !a.isCompletada() && !"FINALIZADO".equals(a.getEstado())).toList();
         if (activas.isEmpty()) { info("No hay alarmas pendientes por atender."); return; }
         List<Veterinario> vets = usuarioCtrl.listarVeterinarios();
         if (vets.isEmpty()) { warn("No hay veterinarios registrados."); return; }
-        JComboBox<Alarma>      alCB    = new JComboBox<>(activas.toArray(new Alarma[0]));
+        JComboBox<AlarmaDTO>   alCB    = new JComboBox<>(activas.toArray(new AlarmaDTO[0]));
         JComboBox<Veterinario> vetCB   = new JComboBox<>(vets.toArray(new Veterinario[0]));
         JTextField             comF    = new JTextField();
         JCheckBox              finCK   = new JCheckBox("Marcar tratamiento como FINALIZADO");
         JPanel f = form("Alarma:", alCB, "Veterinario:", vetCB, "Comentario:", comF, "", finCK);
         if (!confirm(f, "Atender Alarma")) return;
-        Alarma al  = (Alarma) alCB.getSelectedItem();
+        AlarmaDTO al  = (AlarmaDTO) alCB.getSelectedItem();
         Veterinario vet = (Veterinario) vetCB.getSelectedItem();
         if (al != null && vet != null) {
             alarmaCtrl.atenderAlarma(al.getId(), comF.getText().trim(), finCK.isSelected(), vet);
