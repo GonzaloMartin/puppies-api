@@ -50,7 +50,13 @@ public class SeguimientoRepositoryHibernate implements ISeguimientoRepository {
     @Override
     public List<Seguimiento> listarTodos() {
         try (Session session = HibernateUtil.openSession()) {
-            return session.createQuery("from Seguimiento", Seguimiento.class).list();
+            List<Seguimiento> list = session.createQuery("from Seguimiento", Seguimiento.class).list();
+            for (Seguimiento s : list) {
+                if (s.getAdopcion() != null) {
+                    org.hibernate.Hibernate.initialize(s.getAdopcion().getAnimales());
+                }
+            }
+            return list;
         } catch (Exception e) {
             throw new RuntimeException("Error al listar todos los seguimientos con Hibernate", e);
         }

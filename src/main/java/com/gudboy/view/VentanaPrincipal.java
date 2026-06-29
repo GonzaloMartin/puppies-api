@@ -62,6 +62,11 @@ import com.gudboy.domain.animal.factory.FabricaAnimal;
 import com.gudboy.domain.animal.factory.FabricaAnimalDomestico;
 import com.gudboy.domain.animal.factory.FabricaAnimalSalvaje;
 import com.gudboy.dto.AnimalDTO;
+import com.gudboy.dto.SeguimientoDTO;
+import com.gudboy.dto.VisitaDTO;
+import com.gudboy.dto.AdopcionDTO;
+import com.gudboy.dto.EncuestaDTO;
+import com.gudboy.dto.UsuarioDTO;
 import com.gudboy.domain.animal.model.Adopcion;
 import com.gudboy.domain.animal.model.Animal;
 import com.gudboy.domain.animal.model.AnimalDomestico;
@@ -105,15 +110,15 @@ public class VentanaPrincipal extends JFrame {
     private final ServicioRecordatorios       recordatorios;
 
     // List models
-    private final DefaultListModel<Animal>      animalModel  = new DefaultListModel<>();
-    private final DefaultListModel<Visitador>   visitModel   = new DefaultListModel<>();
-    private final DefaultListModel<Veterinario> vetModel     = new DefaultListModel<>();
-    private final DefaultListModel<AlarmaDTO>   alarmaModel  = new DefaultListModel<>();
-    private final DefaultListModel<Seguimiento> segModel     = new DefaultListModel<>();
-    private final DefaultListModel<Visita>      visitaModel  = new DefaultListModel<>();
+    private final DefaultListModel<Animal>         animalModel  = new DefaultListModel<>();
+    private final DefaultListModel<Visitador>      visitModel   = new DefaultListModel<>();
+    private final DefaultListModel<Veterinario>    vetModel     = new DefaultListModel<>();
+    private final DefaultListModel<AlarmaDTO>      alarmaModel  = new DefaultListModel<>();
+    private final DefaultListModel<SeguimientoDTO> segModel     = new DefaultListModel<>();
+    private final DefaultListModel<VisitaDTO>      visitaModel  = new DefaultListModel<>();
 
-    private JList<Seguimiento> listSeg;
-    private JList<Visita>      listVisita;
+    private JList<SeguimientoDTO> listSeg;
+    private JList<VisitaDTO>      listVisita;
 
     public VentanaPrincipal(AnimalController animalCtrl,
                             UsuarioController usuarioCtrl,
@@ -138,8 +143,6 @@ public class VentanaPrincipal extends JFrame {
         this.comenCtrl    = comenCtrl;
         this.histCtrl     = histCtrl;
         this.recordatorios = recordatorios;
-
-
 
 
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -170,14 +173,14 @@ public class VentanaPrincipal extends JFrame {
         }
 
         // ── Panel seguimientos ────────────────────────────────────────────────
-        listSeg   = new JList<>(segModel);
+        listSeg    = new JList<>(segModel);
         listVisita = new JList<>(visitaModel);
         listSeg.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         listVisita.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
         listSeg.addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting()) {
-                Seguimiento s = listSeg.getSelectedValue();
+                SeguimientoDTO s = listSeg.getSelectedValue();
                 visitaModel.clear();
                 if (s != null)
                     visitaCtrl.listarPorSeguimiento(s.getId()).forEach(visitaModel::addElement);
@@ -187,7 +190,7 @@ public class VentanaPrincipal extends JFrame {
         listSeg.setCellRenderer(new DefaultListCellRenderer() {
             @Override public Component getListCellRendererComponent(JList<?> l, Object v, int i, boolean sel, boolean foc) {
                 JLabel lbl = (JLabel) super.getListCellRendererComponent(l, v, i, sel, foc);
-                if (v instanceof Seguimiento s) {
+                if (v instanceof SeguimientoDTO s) {
                     String anim = s.getAdopcion().getAnimales().stream().map(Animal::getNombre).collect(Collectors.joining(", "));
                     lbl.setText(String.format("▸ %s %s  |  [%s]  |  %s %s-%s  |  %s",
                         s.getAdopcion().getAdoptante().getNombre(),
@@ -201,11 +204,11 @@ public class VentanaPrincipal extends JFrame {
         listVisita.setCellRenderer(new DefaultListCellRenderer() {
             @Override public Component getListCellRendererComponent(JList<?> l, Object v, int i, boolean sel, boolean foc) {
                 JLabel lbl = (JLabel) super.getListCellRendererComponent(l, v, i, sel, foc);
-                if (v instanceof Visita vi) {
+                if (v instanceof VisitaDTO vi) {
                     String est;
                     if (vi.isCompletada()) {
                         est = "✓ Completada el " + vi.getFechaReal();
-                    } else if (vi.getSeguimiento() != null && vi.getSeguimiento().getEstado() == EstadoSeguimiento.FINALIZADO) {
+                    } else if (listSeg.getSelectedValue() != null && listSeg.getSelectedValue().getEstado() == EstadoSeguimiento.FINALIZADO) {
                         est = "❌ Sin efecto (Seguimiento Finalizado) — " + vi.getFechaProgramada();
                     } else {
                         est = "⏳ Pendiente — " + vi.getFechaProgramada();
@@ -288,41 +291,10 @@ public class VentanaPrincipal extends JFrame {
     }
 
     /**
-     * Evalúa todas las visitas pendientes y, para cada una cuya fecha coincide
-     * con (hoy + N días configurados), llama notificarRecordatorio().
-     * Cada visita tiene sus propios observers (SMS / WhatsApp / Email)
-     * configurados según la PreferenciaRecordatorio del seguimiento.
+     * Evalúa todas las visitas pendientes delegando en el controlador de seguimiento.
      */
     private void evaluarRecordatorios() {
-        List<Seguimiento> segs = segCtrl.listarTodos();
-        for (Seguimiento s : segs) {
-            if (s.getEstado() != EstadoSeguimiento.ACTIVO) continue;
-
-            // Configurar el adapter según la preferencia del seguimiento
-            IObservador strategy = resolverStrategy(s.getPreferenciaRecordatorio());
-
-            List<Visita> visitas = visitaCtrl.listarPorSeguimiento(s.getId());
-            for (Visita v : visitas) {
-                if (!v.isCompletada()) {
-                    // Suscribir la estrategia al sujeto (Visita)
-                    v.suscribir(strategy);
-                }
-            }
-            // Evaluar y disparar si corresponde
-            recordatorios.evaluarVisitas(visitas, LocalDate.now());
-
-            // Desuscribir para no acumular observers en próximas evaluaciones
-            for (Visita v : visitas) v.desuscribir(strategy);
-        }
-    }
-
-    /** Devuelve la estrategia de notificación correcta según la preferencia. */
-    private IObservador resolverStrategy(PreferenciaRecordatorio pref) {
-        return switch (pref) {
-            case SMS       -> new SMSNotificacion(new TwilioSMSAdapter());
-            case WHATSAPP  -> new WhatsAppNotificacion(new MetaWhatsAppAdapter());
-            case EMAIL     -> new EmailNotificacion(new JavaMailAdapter());
-        };
+        segCtrl.evaluarTodosLosRecordatorios(recordatorios);
     }
 
     // ── Refresh ───────────────────────────────────────────────────────────────
@@ -811,8 +783,29 @@ public class VentanaPrincipal extends JFrame {
 
         try {
             int cant = (int) cantSp.getValue();
-            Seguimiento s = segCtrl.crearSeguimiento(
-                (Adopcion) aCB.getSelectedItem(), (Visitador) rCB.getSelectedItem(),
+            Adopcion selectedAdopcion = (Adopcion) aCB.getSelectedItem();
+            AdopcionDTO adopcionDto = selectedAdopcion != null ? new AdopcionDTO(
+                selectedAdopcion.getId(),
+                selectedAdopcion.getAnimales(),
+                selectedAdopcion.getResponsable(),
+                selectedAdopcion.getAdoptante()
+            ) : null;
+
+            Visitador selectedVisitador = (Visitador) rCB.getSelectedItem();
+            UsuarioDTO visitadorDto = selectedVisitador != null ? new UsuarioDTO(
+                selectedVisitador.getNombre(),
+                selectedVisitador.getApellido(),
+                selectedVisitador.getEmail(),
+                selectedVisitador.getTelefono(),
+                selectedVisitador.getEstadoCivil(),
+                selectedVisitador.getOcupacion(),
+                selectedVisitador.getMotivoAdopcion(),
+                selectedVisitador.getAnimalesInteres(),
+                selectedVisitador.tieneOtrasMascotas()
+            ) : null;
+
+            segCtrl.crearSeguimiento(
+                adopcionDto, visitadorDto,
                 (DiaSemana) dCB.getSelectedItem(), deF.getText().trim(), haF.getText().trim(),
                 (PreferenciaRecordatorio) pCB.getSelectedItem(), cant);
             refrescarSeguimientos();
@@ -824,7 +817,7 @@ public class VentanaPrincipal extends JFrame {
     }
 
     private void dlgRegistrarVisita() {
-        Visita sel = listVisita != null ? listVisita.getSelectedValue() : null;
+        VisitaDTO sel = listVisita != null ? listVisita.getSelectedValue() : null;
         if (sel == null) {
             info("¿Cómo registrar una visita?\n\n"
                + "1. Ir a la pestaña 'Seguimientos'\n"
@@ -852,7 +845,7 @@ public class VentanaPrincipal extends JFrame {
         if (!confirm(f, "Registrar Resultado de Visita")) return;
 
         try {
-            Encuesta enc = new Encuesta(
+            EncuestaDTO enc = new EncuestaDTO(
                 (CalificacionEnum) estCB.getSelectedItem(),
                 (CalificacionEnum) limCB.getSelectedItem(),
                 (CalificacionEnum) ambCB.getSelectedItem());
