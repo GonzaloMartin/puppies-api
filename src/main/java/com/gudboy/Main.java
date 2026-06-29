@@ -15,7 +15,7 @@ import com.gudboy.controller.VisitaController;
 import com.gudboy.domain.seguimiento.service.ServicioRecordatorios;
 import com.gudboy.repository.AdopcionRepositoryMySQL;
 import com.gudboy.repository.AlarmaRepositoryMySql;
-import com.gudboy.repository.AnimalRepositoryMySQL;
+import com.gudboy.repository.AnimalRepositoryHibernate;
 import com.gudboy.repository.ComentarioMedicoRepository;
 import com.gudboy.repository.FichaMedicaRepositoryHibernate;
 import com.gudboy.repository.HistorialClinicoRepository;
@@ -52,7 +52,7 @@ public class Main {
             } catch (Exception ignored) {}
 
             // --- Repositorios ---
-            IAnimalRepository animalRepository       = new AnimalRepositoryMySQL();
+            IAnimalRepository animalRepository       = new AnimalRepositoryHibernate();
             IUsuarioRepository usuarioRepository     = new UsuarioRepositoryMySQL();
             IAdopcionRepository adopcionRepository   = new AdopcionRepositoryMySQL(animalRepository, usuarioRepository);
             IAlarmaRepository alarmaRepository       = new AlarmaRepositoryMySql();

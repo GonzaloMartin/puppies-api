@@ -69,9 +69,9 @@ public class SeguimientoTest {
                 e.printStackTrace();
             }
 
-            IAnimalRepository animalRepoMySQL = new AnimalRepositoryMySQL();
+            IAnimalRepository animalRepoHibernate = new AnimalRepositoryHibernate();
             usuarioRepository = new UsuarioRepositoryMySQL();
-            adopcionRepository = new AdopcionRepositoryMySQL(animalRepoMySQL, usuarioRepository);
+            adopcionRepository = new AdopcionRepositoryMySQL(animalRepoHibernate, usuarioRepository);
 
             seguimientoRepository = new SeguimientoRepositoryHibernate();
             fichaMedicaRepository = new FichaMedicaRepositoryHibernate(usuarioRepository);
@@ -96,8 +96,8 @@ public class SeguimientoTest {
             // Persistir entities en mySQL
             usuarioRepository.guardar(adoptante);
             usuarioRepository.guardar(responsableAdopcion);
-            animalRepoMySQL.guardar(animal1);
-            animalRepoMySQL.guardar(animal2);
+            animalRepoHibernate.guardar(animal1);
+            animalRepoHibernate.guardar(animal2);
             fichaMedicaRepository.guardar(ficha1);
             fichaMedicaRepository.guardar(ficha2);
             adopcionRepository.guardar(adopcion);

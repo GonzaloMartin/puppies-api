@@ -1,7 +1,5 @@
 package com.gudboy.repository;
 
-import com.gudboy.domain.tratamiento.Tratamiento;
-
 import java.util.ArrayList;
 import java.util.UUID;
 
