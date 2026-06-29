@@ -10,15 +10,15 @@ import org.hibernate.cfg.Configuration;
 import com.gudboy.domain.Usuario.Usuario;
 import com.gudboy.domain.Usuario.Veterinario;
 import com.gudboy.domain.Usuario.Visitador;
+import com.gudboy.domain.alarma.model.Alarma;
 import com.gudboy.domain.animal.model.Adopcion;
 import com.gudboy.domain.animal.model.Animal;
 import com.gudboy.domain.animal.model.AnimalDomestico;
 import com.gudboy.domain.animal.model.AnimalSalvaje;
 import com.gudboy.domain.fichaMedica.model.FichaMedica;
+import com.gudboy.domain.seguimiento.model.Encuesta;
 import com.gudboy.domain.seguimiento.model.Seguimiento;
 import com.gudboy.domain.seguimiento.model.Visita;
-import com.gudboy.domain.seguimiento.model.Encuesta;
-import com.gudboy.domain.alarma.model.Alarma;
 
 public class HibernateUtil {
 
@@ -37,7 +37,7 @@ public class HibernateUtil {
                 .setProperty("hibernate.connection.username", db.getProperty("db.user"))
                 .setProperty("hibernate.connection.password", db.getProperty("db.password"))
                 .setProperty("hibernate.dialect",             "org.hibernate.dialect.MySQLDialect")
-                .setProperty("hibernate.hbm2ddl.auto",        "none")
+                .setProperty("hibernate.hbm2ddl.auto",        "update")
                 .setProperty("hibernate.show_sql",             "false")
                 .addAnnotatedClass(Animal.class)
                 .addAnnotatedClass(AnimalDomestico.class)
