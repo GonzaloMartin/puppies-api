@@ -2,7 +2,6 @@
 
 [![Java CI + Docker & Maven](https://github.com/GonzaloMartin/puppies-api/actions/workflows/ci.yml/badge.svg)](https://github.com/GonzaloMartin/puppies-api/actions/workflows/ci.yml)
 ![GitHub last commit](https://img.shields.io/github/last-commit/GonzaloMartin/puppies-api?style=flat-square)
-![GitHub repo size](https://img.shields.io/github/repo-size/GonzaloMartin/puppies-api?style=flat-square)
 
 ### 🛠️ Tecnologías y Versiones
 ![Java](https://img.shields.io/badge/Java-17-ED8B00?style=flat-square&logo=openjdk&logoColor=white)
@@ -163,6 +162,7 @@ mvn test
 ```
 
 Los tests unitarios usan implementaciones en memoria (`AnimalRepositoryEnMemoria`, `SeguimientoRepositoryEnMemoria`, etc.) para no requerir base de datos activa.
+Así mismo, se dispone de una prueba de integración con BD mediante pipeline.
 
 ---
 
