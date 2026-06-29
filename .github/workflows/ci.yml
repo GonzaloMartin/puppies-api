@@ -1,0 +1,41 @@
+name: Java CI + Docker & Maven
+
+on:
+  push:
+    branches: [ "main", "develop", "gonzalo", "lauty", "mike", "Toto", "lucio" ] # Triggerea en push
+  pull_request:
+    branches: [ "main", "develop", "gonzalo", "lauty", "mike", "Toto", "lucio" ] # Triggerea en PR
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Clonación del Repositorio
+      uses: actions/checkout@v4
+
+    - name: Inicio de Base de Datos con Docker Compose
+      run: docker compose up -d
+
+    - name: Validación de Base de Datos
+      run: |
+        echo "Esperando que MySQL inicie e inicialice los esquemas..."
+        until docker exec gudboy_db mysqladmin ping -h "localhost" --silent; do
+          echo "La base de datos aún no está lista. Esperando 2 segundos..."
+          sleep 2
+        done
+        echo "MySQL ready."
+
+    - name: Configuración de JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        cache: 'maven'
+
+    - name: Ejecución de Tests con Maven
+      run: mvn clean test
+
+    - name: Stop y limpieza de Docker
+      if: always()
+      run: docker compose down -v
