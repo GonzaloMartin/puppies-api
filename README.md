@@ -1,5 +1,18 @@
 # Gudboy — Refugio de Animales 🐾
 
+[![Java CI + Docker & Maven](https://github.com/GonzaloMartin/puppies-api/actions/workflows/ci.yml/badge.svg)](https://github.com/GonzaloMartin/puppies-api/actions/workflows/ci.yml)
+![GitHub last commit](https://img.shields.io/github/last-commit/GonzaloMartin/puppies-api?style=flat-square)
+![GitHub repo size](https://img.shields.io/github/repo-size/GonzaloMartin/puppies-api?style=flat-square)
+
+### 🛠️ Tecnologías y Versiones
+![Java](https://img.shields.io/badge/Java-17-ED8B00?style=flat-square&logo=openjdk&logoColor=white)
+![Maven](https://img.shields.io/badge/Maven-3.9-C71A36?style=flat-square&logo=apachemaven&logoColor=white)
+![Hibernate](https://img.shields.io/badge/Hibernate-6.4-59666C?style=flat-square&logo=hibernate&logoColor=white)
+![MySQL](https://img.shields.io/badge/MySQL-8.0-4479A1?style=flat-square&logo=mysql&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=flat-square&logo=docker&logoColor=white)
+
+---
+
 Bienvenido a **Gudboy**, una aplicación Java de escritorio para la gestión integral de refugios de animales domésticos y clínicas veterinarias.
 
 El sistema fue desarrollado con una arquitectura en capas, patrones de diseño (Repositorio, Servicio, Controlador, Observador, Adaptador, State, Factory, Strategy) y una interfaz gráfica construida sobre **Java Swing**.
