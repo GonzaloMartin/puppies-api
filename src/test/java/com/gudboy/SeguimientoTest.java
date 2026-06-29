@@ -26,7 +26,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class SeguimientoTest {
 
-    private static final boolean USE_MYSQL = true;
+    private static final boolean USE_MYSQL = false;
 
     private SeguimientoService seguimientoService;
     private IFichaMedicaRepository fichaMedicaRepository;
