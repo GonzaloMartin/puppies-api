@@ -93,6 +93,7 @@ import com.gudboy.domain.tratamiento.Cancelado;
 import com.gudboy.domain.tratamiento.Finalizado;
 import com.gudboy.domain.tratamiento.TipoTratamiento;
 import com.gudboy.domain.tratamiento.Tratamiento;
+import com.gudboy.infrastructure.ActividadRegistry;
 
 public class VentanaPrincipal extends JFrame {
 
@@ -119,6 +120,8 @@ public class VentanaPrincipal extends JFrame {
 
     private JList<SeguimientoDTO> listSeg;
     private JList<VisitaDTO>      listVisita;
+    private JLabel                lblStatus;
+
 
     public VentanaPrincipal(AnimalController animalCtrl,
                             UsuarioController usuarioCtrl,
@@ -239,9 +242,59 @@ public class VentanaPrincipal extends JFrame {
         tabs.addTab("Alarmas",       styledList(alarmaModel));
         tabs.addTab("Seguimientos",  split);
 
+        // Barra de estado con controles de evaluación manual
+        JPanel pStatus = new JPanel(new BorderLayout());
+        pStatus.setBackground(new java.awt.Color(0xf1, 0xf3, 0xf4));
+        pStatus.setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, new java.awt.Color(0xdc, 0xdf, 0xe1)));
+
+        lblStatus = new JLabel("🟢 Sistema listo. Base de datos MySQL conectada.");
+        lblStatus.setOpaque(false);
+        lblStatus.setForeground(new java.awt.Color(0x3c, 0x40, 0x43));
+        lblStatus.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
+        lblStatus.setBorder(BorderFactory.createEmptyBorder(6, 12, 6, 12));
+
+        JPanel pStatusControls = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 8, 2));
+        pStatusControls.setOpaque(false);
+
+        JLabel lblDias = new JLabel("Días Previos:");
+        lblDias.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 11));
+        lblDias.setForeground(new java.awt.Color(0x3c, 0x40, 0x43));
+        lblDias.setToolTipText("Seleccione N días y luego presione 'Evaluar Recordatorios'.");
+
+        JSpinner spinnerDias = new JSpinner(new SpinnerNumberModel(recordatorios.getDiasPreviosConfigurable(), 0, 30, 1));
+        spinnerDias.setPreferredSize(new java.awt.Dimension(45, 20));
+        spinnerDias.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 11));
+        spinnerDias.setToolTipText("Seleccione N días y luego presione 'Evaluar Recordatorios'.");
+        spinnerDias.addChangeListener(ev -> {
+            int val = (int) spinnerDias.getValue();
+            recordatorios.setDiasPreviosConfigurable(val);
+        });
+
+        JButton btnEvaluar = new JButton("Evaluar Recordatorios");
+        btnEvaluar.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 11));
+        btnEvaluar.setForeground(new java.awt.Color(0x1a, 0x73, 0xe8));
+        btnEvaluar.setBackground(new java.awt.Color(0xf1, 0xf3, 0xf4));
+        btnEvaluar.setBorder(BorderFactory.createEmptyBorder(4, 12, 4, 12));
+        btnEvaluar.setFocusPainted(false);
+        btnEvaluar.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
+        btnEvaluar.addActionListener(e -> evaluarRecordatorios());
+
+        pStatusControls.add(lblDias);
+        pStatusControls.add(spinnerDias);
+        pStatusControls.add(btnEvaluar);
+
+        pStatus.add(lblStatus, BorderLayout.CENTER);
+        pStatus.add(pStatusControls, BorderLayout.EAST);
+
+        // Registro de listener para actualizaciones de actividad en tiempo real
+        ActividadRegistry.registrarListener(msg -> {
+            SwingUtilities.invokeLater(() -> lblStatus.setText("📡 " + msg));
+        });
+
         JPanel root = new JPanel(new BorderLayout());
         root.add(pBtns, BorderLayout.NORTH);
         root.add(tabs,  BorderLayout.CENTER);
+        root.add(pStatus, BorderLayout.SOUTH);
         setContentPane(root);
 
         refrescarTodo();

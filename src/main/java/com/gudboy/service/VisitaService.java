@@ -11,6 +11,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 import com.gudboy.dto.EncuestaDTO;
+import com.gudboy.infrastructure.ActividadRegistry;
 
 public class VisitaService {
 
@@ -82,8 +83,6 @@ public class VisitaService {
     }
 
     private void log(String msg) {
-        if ("true".equalsIgnoreCase(System.getProperty("verbose", "false"))) {
-            System.out.println(msg);
-        }
+        ActividadRegistry.publicar(msg);
     }
 }

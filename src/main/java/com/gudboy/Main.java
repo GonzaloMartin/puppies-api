@@ -91,7 +91,9 @@ public class Main {
             TratamientoController tratamientoController     = new TratamientoController(tratamientoService);
             ComentarioController comentarioController       = new ComentarioController(comentarioService, historialService);
             HistorialClinicoController historialController  = new HistorialClinicoController(historialService);
-            ServicioRecordatorios recordatorios = new ServicioRecordatorios(2);
+
+            // Setear cantidad de días N para Notificar Recordatorio (Observer)
+            ServicioRecordatorios recordatorios = new ServicioRecordatorios(7);
 
             SwingUtilities.invokeLater(() ->
                     new VentanaPrincipal(

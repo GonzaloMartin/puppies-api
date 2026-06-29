@@ -25,6 +25,7 @@ import com.gudboy.repository.IUsuarioRepository;
 import com.gudboy.dto.AdopcionDTO;
 import com.gudboy.dto.UsuarioDTO;
 import com.gudboy.dto.EncuestaDTO;
+import com.gudboy.infrastructure.ActividadRegistry;
 
 public class SeguimientoService {
 
@@ -42,7 +43,10 @@ public class SeguimientoService {
     }
 
     public void evaluarTodosLosRecordatorios(ServicioRecordatorios recordatorios) {
+        ActividadRegistry.publicar("[ServicioRecordatorios] Iniciando evaluación de recordatorios con un umbral de " + recordatorios.getDiasPreviosConfigurable() + " días.");
         List<Seguimiento> segs = seguimientoRepository.listarTodos();
+        int totalProcesados = 0;
+        int totalSuscritos = 0;
         for (Seguimiento s : segs) {
             if (s.getEstado() != EstadoSeguimiento.ACTIVO) continue;
 
@@ -52,6 +56,7 @@ public class SeguimientoService {
             for (Visita v : visitas) {
                 if (!v.isCompletada()) {
                     v.suscribir(strategy);
+                    totalSuscritos++;
                 }
             }
             recordatorios.evaluarVisitas(visitas, LocalDate.now());
@@ -59,7 +64,9 @@ public class SeguimientoService {
             for (Visita v : visitas) {
                 v.desuscribir(strategy);
             }
+            totalProcesados++;
         }
+        ActividadRegistry.publicar("[ServicioRecordatorios] Evaluación finalizada. Seguimientos activos evaluados: " + totalProcesados + ", Visitas evaluadas: " + totalSuscritos + ".");
     }
 
     private IObservador resolverStrategy(PreferenciaRecordatorio pref) {
@@ -88,7 +95,7 @@ public class SeguimientoService {
         }
 
         seguimientoRepository.guardar(s);
-        log("[SEGUIMIENTO POST-ADOPCION] Creado nuevo seguimiento (" + s.getId() + ") para " + adopcion.getAdoptante().getNombre() + " " + adopcion.getAdoptante().getApellido() + ". Programadas " + cantVisitasIniciales + " visitas.");
+        log("[SEGUIMIENTO] Creado nuevo seguimiento (" + s.getId() + ") para " + adopcion.getAdoptante().getNombre() + " " + adopcion.getAdoptante().getApellido() + ". Programadas " + cantVisitasIniciales + " visitas.");
         return s;
     }
 
@@ -148,8 +155,7 @@ public class SeguimientoService {
     }
 
     private void log(String msg) {
-        if ("true".equalsIgnoreCase(System.getProperty("verbose", "false"))) {
-            System.out.println(msg);
-        }
+        ActividadRegistry.publicar(msg);
     }
+
 }
