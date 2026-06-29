@@ -16,6 +16,7 @@ import com.gudboy.service.SeguimientoService;
 import com.gudboy.service.VisitaService;
 import com.gudboy.controller.*;
 import com.gudboy.dto.*;
+import com.gudboy.infrastructure.ActividadRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -48,6 +49,9 @@ public class SeguimientoTest {
 
     @BeforeEach
     void setUp() {
+        // Hago que no salgan los prints en los test unitarios.
+        ActividadRegistry.setHabilitarConsola(false);
+
         ISeguimientoRepository seguimientoRepository;
         if (USE_MYSQL) {
             // Limpio la base de datos en el caso de que los test corran con mySQL.

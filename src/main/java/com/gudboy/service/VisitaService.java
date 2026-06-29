@@ -82,8 +82,6 @@ public class VisitaService {
     }
 
     private void log(String msg) {
-        if ("true".equalsIgnoreCase(System.getProperty("verbose", "false"))) {
-            System.out.println(msg);
-        }
+        com.gudboy.infrastructure.ActividadRegistry.publicar(msg);
     }
 }
