@@ -26,7 +26,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class SeguimientoTest {
 
-    private static final boolean USE_MYSQL = false;
+    private static final boolean USE_MYSQL = true;
 
     private SeguimientoService seguimientoService;
     private IFichaMedicaRepository fichaMedicaRepository;
@@ -69,9 +69,9 @@ public class SeguimientoTest {
             usuarioRepository = new UsuarioRepositoryMySQL();
             adopcionRepository = new AdopcionRepositoryMySQL(animalRepoMySQL, usuarioRepository);
 
-            seguimientoRepository = new SeguimientoRepositoryMySQL(adopcionRepository, usuarioRepository);
-            fichaMedicaRepository = new FichaMedicaRepositoryMySQL(animalRepoMySQL, usuarioRepository);
-            visitaRepository = new VisitaRepositoryMySQL(seguimientoRepository);
+            seguimientoRepository = new SeguimientoRepositoryHibernate();
+            fichaMedicaRepository = new FichaMedicaRepositoryHibernate(usuarioRepository);
+            visitaRepository = new VisitaRepositoryHibernate();
 
             // Creo entidades para probar
             animal1 = new AnimalDomestico("Firulais", "Perro", 0.5, 12.0, 3, "SALUDABLE");

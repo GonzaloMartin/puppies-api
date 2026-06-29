@@ -26,10 +26,10 @@ import com.gudboy.repository.IFichaMedicaRepository;
 import com.gudboy.repository.ISeguimientoRepository;
 import com.gudboy.repository.IUsuarioRepository;
 import com.gudboy.repository.IVisitaRepository;
-import com.gudboy.repository.SeguimientoRepositoryMySQL;
+import com.gudboy.repository.SeguimientoRepositoryHibernate;
 import com.gudboy.repository.TratamientoRepository;
 import com.gudboy.repository.UsuarioRepositoryMySQL;
-import com.gudboy.repository.VisitaRepositoryMySQL;
+import com.gudboy.repository.VisitaRepositoryHibernate;
 import com.gudboy.service.AdopcionService;
 import com.gudboy.service.AlarmaService;
 import com.gudboy.service.AnimalService;
@@ -75,8 +75,8 @@ public class Main {
             HistorialClinicoService historialService  = new HistorialClinicoService(historialRepository);
 
             // Seguimiento
-            ISeguimientoRepository seguimientoRepository = new SeguimientoRepositoryMySQL(adopcionRepository, usuarioRepository);
-            IVisitaRepository visitaRepository           = new VisitaRepositoryMySQL(seguimientoRepository);
+            ISeguimientoRepository seguimientoRepository = new SeguimientoRepositoryHibernate();
+            IVisitaRepository visitaRepository           = new VisitaRepositoryHibernate();
             SeguimientoService seguimientoService        = new SeguimientoService(seguimientoRepository, fichaRepo, adopcionRepository, usuarioRepository);
             VisitaService visitaService                  = new VisitaService(visitaRepository, seguimientoRepository, fichaRepo);
 

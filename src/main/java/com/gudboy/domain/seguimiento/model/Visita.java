@@ -7,17 +7,46 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import jakarta.persistence.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
+@Entity
+@Table(name = "visitas")
 public class Visita {
-    private final UUID id;
-    private final Seguimiento seguimiento;
-    private final LocalDate fechaProgramada;
+    @Id
+    @Column(name = "id")
+    @JdbcTypeCode(SqlTypes.CHAR)
+    private UUID id;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "seguimiento_id")
+    private Seguimiento seguimiento;
+
+    @Column(name = "fecha_programada")
+    private LocalDate fechaProgramada;
+
+    @Column(name = "fecha_real")
     private LocalDate fechaReal;
+
+    @Column(name = "comentarios")
     private String comentarios;
+
+    @Column(name = "completada")
     private boolean completada;
+
+    @Column(name = "continuar_visitas")
     private boolean continuarVisitas;
+
+    @Embedded
     private Encuesta encuesta;
+
+    @Transient
     private final List<IObservador> observadores;
+
+    protected Visita() {
+        this.observadores = new ArrayList<>();
+    }
 
     public Visita(Seguimiento seguimiento, LocalDate fechaProgramada) {
         this.id = UUID.randomUUID();
@@ -38,6 +67,7 @@ public class Visita {
         this.continuarVisitas = continuarVisitas;
         this.observadores = new ArrayList<>();
     }
+
 
     public void registrarResultado(Encuesta encuesta, String comentarios, boolean continuarVisitas) {
         this.encuesta = encuesta;

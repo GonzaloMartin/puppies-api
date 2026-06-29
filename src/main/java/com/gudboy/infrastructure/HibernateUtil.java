@@ -15,6 +15,9 @@ import com.gudboy.domain.animal.model.Animal;
 import com.gudboy.domain.animal.model.AnimalDomestico;
 import com.gudboy.domain.animal.model.AnimalSalvaje;
 import com.gudboy.domain.fichaMedica.model.FichaMedica;
+import com.gudboy.domain.seguimiento.model.Seguimiento;
+import com.gudboy.domain.seguimiento.model.Visita;
+import com.gudboy.domain.seguimiento.model.Encuesta;
 
 public class HibernateUtil {
 
@@ -43,11 +46,15 @@ public class HibernateUtil {
                 .addAnnotatedClass(Veterinario.class)
                 .addAnnotatedClass(Visitador.class)
                 .addAnnotatedClass(Adopcion.class)
+                .addAnnotatedClass(Seguimiento.class)
+                .addAnnotatedClass(Visita.class)
+                .addAnnotatedClass(Encuesta.class)
                 .buildSessionFactory();
         } catch (Exception e) {
             throw new RuntimeException("Error al iniciar Hibernate", e);
         }
     }
+
 
     public static Session openSession() {
         return sessionFactory.openSession();

@@ -10,17 +10,50 @@ import com.gudboy.dto.SeguimientoDTO;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import jakarta.persistence.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
+@Entity
+@Table(name = "seguimiento")
 public class Seguimiento {
-    private final UUID id;
-    private final Adopcion adopcion;
-    private final Usuario responsable;
-    private final DiaSemana diaSemana;
-    private final String horarioDesde;
-    private final String horarioHasta;
+    @Id
+    @Column(name = "id")
+    @JdbcTypeCode(SqlTypes.CHAR)
+    private UUID id;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "adopcion_id")
+    private Adopcion adopcion;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "responsable_email")
+    private Usuario responsable;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "dia_semana")
+    private DiaSemana diaSemana;
+
+    @Column(name = "horario_desde")
+    private String horarioDesde;
+
+    @Column(name = "horario_hasta")
+    private String horarioHasta;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "estado")
     private EstadoSeguimiento estado;
-    private final PreferenciaRecordatorio preferenciaRecordatorio;
-    private final List<Visita> visitas;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "preferencia_recordatorio")
+    private PreferenciaRecordatorio preferenciaRecordatorio;
+
+    @OneToMany(mappedBy = "seguimiento", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    private List<Visita> visitas;
+
+    protected Seguimiento() {
+        this.visitas = new ArrayList<>();
+    }
 
     public Seguimiento(Adopcion adopcion, Usuario responsable, DiaSemana diaSemana, String horarioDesde, String horarioHasta, PreferenciaRecordatorio preferenciaRecordatorio) {
         this.id = UUID.randomUUID();
@@ -45,6 +78,7 @@ public class Seguimiento {
         this.preferenciaRecordatorio = preferenciaRecordatorio;
         this.visitas = new ArrayList<>();
     }
+
 
     public void agregarVisita(Visita visita) {
         this.visitas.add(visita);
