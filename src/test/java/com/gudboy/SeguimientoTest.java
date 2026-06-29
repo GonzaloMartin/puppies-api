@@ -69,9 +69,9 @@ public class SeguimientoTest {
             usuarioRepository = new UsuarioRepositoryMySQL();
             adopcionRepository = new AdopcionRepositoryMySQL(animalRepoMySQL, usuarioRepository);
 
-            seguimientoRepository = new SeguimientoRepositoryMySQL(adopcionRepository, usuarioRepository);
-            fichaMedicaRepository = new FichaMedicaRepositoryMySQL(animalRepoMySQL, usuarioRepository);
-            visitaRepository = new VisitaRepositoryMySQL(seguimientoRepository);
+            seguimientoRepository = new SeguimientoRepositoryHibernate();
+            fichaMedicaRepository = new FichaMedicaRepositoryHibernate(usuarioRepository);
+            visitaRepository = new VisitaRepositoryHibernate();
 
             // Creo entidades para probar
             animal1 = new AnimalDomestico("Firulais", "Perro", 0.5, 12.0, 3, "SALUDABLE");

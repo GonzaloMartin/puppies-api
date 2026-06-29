@@ -1,11 +1,26 @@
 package com.gudboy.domain.seguimiento.model;
 
 import com.gudboy.dto.EncuestaDTO;
+import jakarta.persistence.Embeddable;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Column;
 
+@Embeddable
 public class Encuesta {
-    private final CalificacionEnum estadoGeneralAnimal;
-    private final CalificacionEnum limpiezaLugar;
-    private final CalificacionEnum ambiente;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "estado_general_animal")
+    private CalificacionEnum estadoGeneralAnimal;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "limpieza_lugar")
+    private CalificacionEnum limpiezaLugar;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "ambiente")
+    private CalificacionEnum ambiente;
+
+    protected Encuesta() {}
 
     public Encuesta(CalificacionEnum estadoGeneralAnimal, CalificacionEnum limpiezaLugar, CalificacionEnum ambiente) {
         this.estadoGeneralAnimal = estadoGeneralAnimal;
@@ -37,3 +52,4 @@ public class Encuesta {
         return ambiente;
     }
 }
+
