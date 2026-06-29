@@ -93,6 +93,7 @@ import com.gudboy.domain.tratamiento.Cancelado;
 import com.gudboy.domain.tratamiento.Finalizado;
 import com.gudboy.domain.tratamiento.TipoTratamiento;
 import com.gudboy.domain.tratamiento.Tratamiento;
+import com.gudboy.infrastructure.ActividadRegistry;
 
 public class VentanaPrincipal extends JFrame {
 
@@ -286,7 +287,7 @@ public class VentanaPrincipal extends JFrame {
         pStatus.add(pStatusControls, BorderLayout.EAST);
 
         // Registro de listener para actualizaciones de actividad en tiempo real
-        com.gudboy.infrastructure.ActividadRegistry.registrarListener(msg -> {
+        ActividadRegistry.registrarListener(msg -> {
             SwingUtilities.invokeLater(() -> lblStatus.setText("📡 " + msg));
         });
 

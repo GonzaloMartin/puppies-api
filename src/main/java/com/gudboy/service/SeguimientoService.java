@@ -25,6 +25,7 @@ import com.gudboy.repository.IUsuarioRepository;
 import com.gudboy.dto.AdopcionDTO;
 import com.gudboy.dto.UsuarioDTO;
 import com.gudboy.dto.EncuestaDTO;
+import com.gudboy.infrastructure.ActividadRegistry;
 
 public class SeguimientoService {
 
@@ -42,7 +43,7 @@ public class SeguimientoService {
     }
 
     public void evaluarTodosLosRecordatorios(ServicioRecordatorios recordatorios) {
-        com.gudboy.infrastructure.ActividadRegistry.publicar("[ServicioRecordatorios] Iniciando evaluación de recordatorios con un umbral de " + recordatorios.getDiasPreviosConfigurable() + " días.");
+        ActividadRegistry.publicar("[ServicioRecordatorios] Iniciando evaluación de recordatorios con un umbral de " + recordatorios.getDiasPreviosConfigurable() + " días.");
         List<Seguimiento> segs = seguimientoRepository.listarTodos();
         int totalProcesados = 0;
         int totalSuscritos = 0;
@@ -65,7 +66,7 @@ public class SeguimientoService {
             }
             totalProcesados++;
         }
-        com.gudboy.infrastructure.ActividadRegistry.publicar("[ServicioRecordatorios] Evaluación finalizada. Seguimientos activos evaluados: " + totalProcesados + ", Visitas evaluadas: " + totalSuscritos + ".");
+        ActividadRegistry.publicar("[ServicioRecordatorios] Evaluación finalizada. Seguimientos activos evaluados: " + totalProcesados + ", Visitas evaluadas: " + totalSuscritos + ".");
     }
 
     private IObservador resolverStrategy(PreferenciaRecordatorio pref) {
@@ -154,7 +155,7 @@ public class SeguimientoService {
     }
 
     private void log(String msg) {
-        com.gudboy.infrastructure.ActividadRegistry.publicar(msg);
+        ActividadRegistry.publicar(msg);
     }
 
 }
