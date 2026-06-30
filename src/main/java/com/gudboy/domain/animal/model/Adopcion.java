@@ -8,6 +8,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToOne;
@@ -27,7 +28,7 @@ public class Adopcion {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;    // FK de la BD (autoincremental); 0 = no persistido aún
     
-    @OneToMany
+    @OneToMany(fetch = FetchType.EAGER)
     @JoinTable(
     name = "adopcion_animal",
     joinColumns = @JoinColumn(name = "adopcion_id"),

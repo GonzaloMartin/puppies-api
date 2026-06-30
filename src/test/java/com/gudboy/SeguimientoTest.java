@@ -1,5 +1,17 @@
 package com.gudboy;
 
+import java.time.LocalDate;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import com.gudboy.controller.SeguimientoController;
+import com.gudboy.controller.VisitaController;
 import com.gudboy.domain.Usuario.EstadoCivil;
 import com.gudboy.domain.Usuario.Ocupacion;
 import com.gudboy.domain.Usuario.Veterinario;
@@ -7,23 +19,45 @@ import com.gudboy.domain.Usuario.Visitador;
 import com.gudboy.domain.animal.model.Adopcion;
 import com.gudboy.domain.animal.model.AnimalDomestico;
 import com.gudboy.domain.fichaMedica.model.FichaMedica;
-import com.gudboy.domain.seguimiento.adapter.*;
-import com.gudboy.domain.seguimiento.model.*;
-import com.gudboy.domain.seguimiento.observer.*;
-import com.gudboy.domain.seguimiento.service.*;
-import com.gudboy.repository.*;
+import com.gudboy.domain.seguimiento.adapter.IEmailAdapter;
+import com.gudboy.domain.seguimiento.adapter.ISMSAdapter;
+import com.gudboy.domain.seguimiento.adapter.IWhatsAppAdapter;
+import com.gudboy.domain.seguimiento.model.CalificacionEnum;
+import com.gudboy.domain.seguimiento.model.DiaSemana;
+import com.gudboy.domain.seguimiento.model.Encuesta;
+import com.gudboy.domain.seguimiento.model.EstadoSeguimiento;
+import com.gudboy.domain.seguimiento.model.PreferenciaRecordatorio;
+import com.gudboy.domain.seguimiento.model.Seguimiento;
+import com.gudboy.domain.seguimiento.model.Visita;
+import com.gudboy.domain.seguimiento.observer.EmailNotificacion;
+import com.gudboy.domain.seguimiento.observer.SMSNotificacion;
+import com.gudboy.domain.seguimiento.observer.WhatsAppNotificacion;
+import com.gudboy.domain.seguimiento.service.ServicioRecordatorios;
+import com.gudboy.dto.AdopcionDTO;
+import com.gudboy.dto.EncuestaDTO;
+import com.gudboy.dto.SeguimientoDTO;
+import com.gudboy.dto.UsuarioDTO;
+import com.gudboy.dto.VisitaDTO;
+import com.gudboy.infrastructure.ActividadRegistry;
+import com.gudboy.repository.AdopcionRepositoryEnMemoria;
+import com.gudboy.repository.AdopcionRepositoryHibernate;
+import com.gudboy.repository.AnimalRepositoryHibernate;
+import com.gudboy.repository.FichaMedicaRepositoryEnMemoria;
+import com.gudboy.repository.FichaMedicaRepositoryHibernate;
+import com.gudboy.repository.IAdopcionRepository;
+import com.gudboy.repository.IAnimalRepository;
+import com.gudboy.repository.IFichaMedicaRepository;
+import com.gudboy.repository.ISeguimientoRepository;
+import com.gudboy.repository.IUsuarioRepository;
+import com.gudboy.repository.IVisitaRepository;
+import com.gudboy.repository.SeguimientoRepositoryEnMemoria;
+import com.gudboy.repository.SeguimientoRepositoryHibernate;
+import com.gudboy.repository.UsuarioRepositoryEnMemoria;
+import com.gudboy.repository.UsuarioRepositoryHibernate;
+import com.gudboy.repository.VisitaRepositoryEnMemoria;
+import com.gudboy.repository.VisitaRepositoryHibernate;
 import com.gudboy.service.SeguimientoService;
 import com.gudboy.service.VisitaService;
-import com.gudboy.controller.*;
-import com.gudboy.dto.*;
-import com.gudboy.infrastructure.ActividadRegistry;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
-import java.time.LocalDate;
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 public class SeguimientoTest {
 
@@ -56,22 +90,26 @@ public class SeguimientoTest {
         if (USE_MYSQL) {
             // Limpio la base de datos en el caso de que los test corran con mySQL.
             // Ver el valor de USE_MYSQL = true
-            try (java.sql.Statement stmt = com.gudboy.infrastructure.ConexionMySQL.getInstancia().getConnection().createStatement()) {
-                stmt.executeUpdate("DELETE FROM visitas");
-                stmt.executeUpdate("DELETE FROM seguimiento");
-                stmt.executeUpdate("DELETE FROM alarmas");
-                stmt.executeUpdate("DELETE FROM adopcion_animal");
-                stmt.executeUpdate("DELETE FROM adopcion");
-                stmt.executeUpdate("DELETE FROM ficha_medica");
-                stmt.executeUpdate("DELETE FROM animal");
-                stmt.executeUpdate("DELETE FROM usuario");
-            } catch (java.sql.SQLException e) {
+            try (org.hibernate.Session cleanupSession = com.gudboy.infrastructure.HibernateUtil.openSession()) {
+                org.hibernate.Transaction cleanupTx = cleanupSession.beginTransaction();
+                cleanupSession.createNativeMutationQuery("SET FOREIGN_KEY_CHECKS=0").executeUpdate();
+                cleanupSession.createNativeMutationQuery("DELETE FROM visitas").executeUpdate();
+                cleanupSession.createNativeMutationQuery("DELETE FROM seguimiento").executeUpdate();
+                cleanupSession.createNativeMutationQuery("DELETE FROM alarmas").executeUpdate();
+                cleanupSession.createNativeMutationQuery("DELETE FROM adopcion_animal").executeUpdate();
+                cleanupSession.createNativeMutationQuery("DELETE FROM adopcion").executeUpdate();
+                cleanupSession.createNativeMutationQuery("DELETE FROM ficha_medica").executeUpdate();
+                cleanupSession.createNativeMutationQuery("DELETE FROM animal").executeUpdate();
+                cleanupSession.createNativeMutationQuery("DELETE FROM usuario").executeUpdate();
+                cleanupSession.createNativeMutationQuery("SET FOREIGN_KEY_CHECKS=1").executeUpdate();
+                cleanupTx.commit();
+            } catch (Exception e) {
                 e.printStackTrace();
             }
 
             IAnimalRepository animalRepoHibernate = new AnimalRepositoryHibernate();
-            usuarioRepository = new UsuarioRepositoryMySQL();
-            adopcionRepository = new AdopcionRepositoryMySQL(animalRepoHibernate, usuarioRepository);
+            usuarioRepository = new UsuarioRepositoryHibernate();
+            adopcionRepository = new AdopcionRepositoryHibernate();
 
             seguimientoRepository = new SeguimientoRepositoryHibernate();
             fichaMedicaRepository = new FichaMedicaRepositoryHibernate(usuarioRepository);

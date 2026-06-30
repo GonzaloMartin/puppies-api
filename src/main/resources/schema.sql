@@ -97,8 +97,8 @@ CREATE TABLE IF NOT EXISTS visitas (
 );
 
 CREATE TABLE IF NOT EXISTS tratamiento (
-    id           CHAR(36)  PRIMARY KEY,                             -- antes VARCHAR(36)
-    ficha_id     VARCHAR(36)  NOT NULL,
+    id           CHAR(36)  PRIMARY KEY,
+    ficha_id     CHAR(36)     NOT NULL,
     tipo         VARCHAR(50)  NOT NULL,
     estado       VARCHAR(20)  NOT NULL DEFAULT 'Pendiente',
     fecha_inicio DATETIME,
@@ -107,8 +107,8 @@ CREATE TABLE IF NOT EXISTS tratamiento (
 );
 
 CREATE TABLE IF NOT EXISTS comentario_medico (
-    id                CHAR(36)  PRIMARY KEY,                        -- antes VARCHAR(36)
-    ficha_id          VARCHAR(36)  NOT NULL,
+    id                CHAR(36)  PRIMARY KEY,
+    ficha_id          CHAR(36)     NOT NULL,
     veterinario_email VARCHAR(150),
     texto             TEXT         NOT NULL,
     fecha             DATETIME     NOT NULL,

@@ -13,7 +13,7 @@ import com.gudboy.controller.TratamientoController;
 import com.gudboy.controller.UsuarioController;
 import com.gudboy.controller.VisitaController;
 import com.gudboy.domain.seguimiento.service.ServicioRecordatorios;
-import com.gudboy.repository.AdopcionRepositoryMySQL;
+import com.gudboy.repository.AdopcionRepositoryHibernate;
 import com.gudboy.repository.AlarmaRepositoryMySql;
 import com.gudboy.repository.AnimalRepositoryHibernate;
 import com.gudboy.repository.ComentarioMedicoRepository;
@@ -28,7 +28,7 @@ import com.gudboy.repository.IUsuarioRepository;
 import com.gudboy.repository.IVisitaRepository;
 import com.gudboy.repository.SeguimientoRepositoryHibernate;
 import com.gudboy.repository.TratamientoRepository;
-import com.gudboy.repository.UsuarioRepositoryMySQL;
+import com.gudboy.repository.UsuarioRepositoryHibernate;
 import com.gudboy.repository.VisitaRepositoryHibernate;
 import com.gudboy.service.AdopcionService;
 import com.gudboy.service.AlarmaService;
@@ -53,8 +53,8 @@ public class Main {
 
             // --- Repositorios ---
             IAnimalRepository animalRepository       = new AnimalRepositoryHibernate();
-            IUsuarioRepository usuarioRepository     = new UsuarioRepositoryMySQL();
-            IAdopcionRepository adopcionRepository   = new AdopcionRepositoryMySQL(animalRepository, usuarioRepository);
+            IUsuarioRepository usuarioRepository     = new UsuarioRepositoryHibernate();
+            IAdopcionRepository adopcionRepository   = new AdopcionRepositoryHibernate();
             IAlarmaRepository alarmaRepository       = new AlarmaRepositoryMySql();
             IFichaMedicaRepository fichaRepo         = new FichaMedicaRepositoryHibernate(usuarioRepository);
 
