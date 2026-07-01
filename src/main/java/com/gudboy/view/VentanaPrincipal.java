@@ -618,24 +618,21 @@ public class VentanaPrincipal extends JFrame {
     private void dlgRegistrarTrat() {
         List<FichaMedica> fichas = fichaCtrl.listarTodas();
         if (fichas.isEmpty()) { warn("Primero creá una Ficha Médica para el animal."); return; }
-        JComboBox<FichaMedica>    fCB  = new JComboBox<>(fichas.toArray(new FichaMedica[0]));
+        JComboBox<FichaMedica>     fCB = new JComboBox<>(fichas.toArray(new FichaMedica[0]));
         fCB.setRenderer(fichaRenderer());
         JComboBox<TipoTratamiento> tCB = new JComboBox<>(TipoTratamiento.values());
         if (!confirm(form("Animal (Ficha Médica):", fCB, "Tipo de tratamiento:", tCB), "Registrar Tratamiento")) return;
 
-        FichaMedica fm = (FichaMedica) fCB.getSelectedItem();
+        FichaMedica     fm   = (FichaMedica)     fCB.getSelectedItem();
         TipoTratamiento tipo = (TipoTratamiento) tCB.getSelectedItem();
         try {
-            // TratamientoController registra en el repositorio en memoria y en el historial en memoria
-            Tratamiento t = tratCtrl.registrarTratamiento(fm.getAnimal().getId(), tipo);
-            // También lo agregamos a la FichaMedica (persistida en MySQL)
-            FichaMedica fmReal = fichaCtrl.buscarPorAnimalId(fm.getAnimal().getId());
-            if (fmReal != null) fichaCtrl.agregarTratamiento(fmReal.getFichaMedicaId(), t);
-            // Marcar animal en tratamiento
+            Tratamiento t = new Tratamiento(tipo);
+            fm.agregarTratamiento(t);
+            fichaCtrl.actualizar(fm);
             animalCtrl.ponerEnTratamiento(fm.getAnimal());
             refrescarTodo();
             info("Tratamiento registrado:\n• Animal: " + fm.getAnimal().getNombre()
-               + "\n• Tipo: " + tipo + "\n• Estado: Pendiente");
+                    + "\n• Tipo: " + tipo + "\n• Estado: Pendiente");
         } catch (Exception ex) { error(ex.getMessage()); }
     }
 
@@ -655,16 +652,16 @@ public class VentanaPrincipal extends JFrame {
                 if (v instanceof Tratamiento t) {
                     FichaMedica fm = mapa.get(t);
                     lbl.setText((fm != null ? fm.getAnimal().getNombre() : "?")
-                        + " — " + t.getTipoTratamientoEnum()
-                        + "  [" + t.getEstado().getClass().getSimpleName() + "]");
+                            + " — " + t.getTipoTratamientoEnum()
+                            + "  [" + t.getEstado().getClass().getSimpleName() + "]");
                 }
                 return lbl;
             }
         });
         JComboBox<String> acCB = new JComboBox<>(new String[]{
-            "Aplicar  (Pendiente → En Curso)",
-            "Finalizar  (alta médica)",
-            "Cancelar"
+                "Aplicar  (Pendiente → En Curso)",
+                "Finalizar  (alta médica)",
+                "Cancelar"
         });
         if (!confirm(form("Tratamiento:", tCB, "Acción:", acCB), "Cambiar Estado de Tratamiento")) return;
 
@@ -676,23 +673,22 @@ public class VentanaPrincipal extends JFrame {
                 t.aplicarTratamiento();
             } else if (ac.startsWith("Finalizar")) {
                 t.finalizarTratamiento();
-                // Si ya no quedan tratamientos activos, el animal queda sano
                 boolean otrosActivos = fm.getHistorial().getListaTratamiento().stream()
-                    .anyMatch(tr -> tr != t
-                        && !(tr.getEstado() instanceof Finalizado)
-                        && !(tr.getEstado() instanceof Cancelado));
+                        .anyMatch(tr -> tr != t
+                                && !(tr.getEstado() instanceof Finalizado)
+                                && !(tr.getEstado() instanceof Cancelado));
                 if (!otrosActivos) animalCtrl.disponibilizar(fm.getAnimal());
-                // Notificar al TratamientoController también
-                tratCtrl.finalizarTratamiento(t.getTratamientoID());
             } else {
                 t.cancelarTratamiento();
-                tratCtrl.cancelarTratamiento(t.getTratamientoID());
             }
+
+            fichaCtrl.actualizar(fm);
+
             refrescarTodo();
             info("Estado actualizado a: " + t.getEstado().getClass().getSimpleName());
         } catch (IllegalStateException ex) {
             error("Transición no válida desde " + t.getEstado().getClass().getSimpleName()
-                + ":\n" + ex.getMessage());
+                    + ":\n" + ex.getMessage());
         }
     }
 
@@ -713,7 +709,7 @@ public class VentanaPrincipal extends JFrame {
         texta.setLineWrap(true); texta.setWrapStyleWord(true);
 
         JPanel f = form("Animal (Ficha Médica):", fCB, "Veterinario:", vCB,
-                        "Comentario:", new JScrollPane(texta));
+                "Comentario:", new JScrollPane(texta));
         if (!confirm(f, "Agregar Comentario Médico")) return;
 
         FichaMedica fm  = (FichaMedica) fCB.getSelectedItem();
@@ -722,13 +718,11 @@ public class VentanaPrincipal extends JFrame {
         if (texto.isEmpty()) { error("El comentario no puede estar vacío."); return; }
 
         try {
-            // ComentarioController crea y guarda en su repositorio en memoria
-            ComentarioMedico cm = comenCtrl.agregarComentario(vet, texto);
-            // También se persiste en la FichaMedica (MySQL) via FichaMedicaController
-            FichaMedica fmReal = fichaCtrl.buscarPorAnimalId(fm.getAnimal().getId());
-            if (fmReal != null) fichaCtrl.agregarComentarioMedico(fmReal.getFichaMedicaId(), cm);
+            ComentarioMedico cm = new ComentarioMedico(vet, texto);
+            fm.agregarComentarioMedico(cm);
+            fichaCtrl.actualizar(fm);
             info("Comentario agregado:\n• Animal: " + fm.getAnimal().getNombre()
-               + "\n• Vet: " + vet + "\n• Texto: " + texto);
+                    + "\n• Vet: " + vet + "\n• Texto: " + texto);
         } catch (Exception ex) { error(ex.getMessage()); }
     }
 

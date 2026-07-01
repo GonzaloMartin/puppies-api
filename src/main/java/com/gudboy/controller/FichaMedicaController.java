@@ -50,4 +50,8 @@ public class FichaMedicaController {
     public List<FichaMedica> listarTodas() {
         return fichaMedicaService.listarTodas();
     }
+
+    public void actualizar(FichaMedica ficha) {
+        fichaMedicaService.actualizarFicha(ficha);
+    }
 }

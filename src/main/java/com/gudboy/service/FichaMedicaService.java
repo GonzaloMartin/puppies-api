@@ -109,5 +109,8 @@ public class FichaMedicaService implements IHistorialClinicoService {
     public FichaMedica buscarPorAnimalId(UUID animalId) {
         return repository.getByAnimalId(animalId);
     }
+    public void actualizarFicha(FichaMedica ficha) {
+        repository.actualizar(ficha);
+    }
 
 }

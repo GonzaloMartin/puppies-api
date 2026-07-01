@@ -20,7 +20,6 @@ public class TratamientoService {
     }
 
     public Tratamiento registrarTratamiento(UUID animalId, TipoTratamiento tipo) {
-        // FIX: UUID ya es el id — no llamar .getId() sobre un UUID
         HistorialClinico historialClinico = histCliRepo.buscarPorAnimal(animalId);
         Tratamiento tratamiento = new Tratamiento(tipo);
 
@@ -55,4 +54,5 @@ public class TratamientoService {
         }
         return resultado;
     }
+
 }

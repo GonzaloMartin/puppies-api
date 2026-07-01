@@ -15,10 +15,12 @@ import com.gudboy.domain.animal.model.Adopcion;
 import com.gudboy.domain.animal.model.Animal;
 import com.gudboy.domain.animal.model.AnimalDomestico;
 import com.gudboy.domain.animal.model.AnimalSalvaje;
+import com.gudboy.domain.comentarioMedico.ComentarioMedico;
 import com.gudboy.domain.fichaMedica.model.FichaMedica;
 import com.gudboy.domain.seguimiento.model.Encuesta;
 import com.gudboy.domain.seguimiento.model.Seguimiento;
 import com.gudboy.domain.seguimiento.model.Visita;
+import com.gudboy.domain.tratamiento.Tratamiento;
 
 public class HibernateUtil {
 
@@ -32,26 +34,28 @@ public class HibernateUtil {
                 db.load(is);
             }
             return new Configuration()
-                .setProperty("hibernate.connection.driver_class", "com.mysql.cj.jdbc.Driver")
-                .setProperty("hibernate.connection.url",      db.getProperty("db.url"))
-                .setProperty("hibernate.connection.username", db.getProperty("db.user"))
-                .setProperty("hibernate.connection.password", db.getProperty("db.password"))
-                .setProperty("hibernate.dialect",             "org.hibernate.dialect.MySQLDialect")
-                .setProperty("hibernate.hbm2ddl.auto",        "update")
-                .setProperty("hibernate.show_sql",             "false")
-                .addAnnotatedClass(Animal.class)
-                .addAnnotatedClass(AnimalDomestico.class)
-                .addAnnotatedClass(AnimalSalvaje.class)
-                .addAnnotatedClass(FichaMedica.class)
-                .addAnnotatedClass(Usuario.class)
-                .addAnnotatedClass(Veterinario.class)
-                .addAnnotatedClass(Visitador.class)
-                .addAnnotatedClass(Adopcion.class)
-                .addAnnotatedClass(Seguimiento.class)
-                .addAnnotatedClass(Visita.class)
-                .addAnnotatedClass(Encuesta.class)
-                .addAnnotatedClass(Alarma.class)
-                .buildSessionFactory();
+                    .setProperty("hibernate.connection.driver_class", "com.mysql.cj.jdbc.Driver")
+                    .setProperty("hibernate.connection.url",      db.getProperty("db.url"))
+                    .setProperty("hibernate.connection.username", db.getProperty("db.user"))
+                    .setProperty("hibernate.connection.password", db.getProperty("db.password"))
+                    .setProperty("hibernate.dialect",             "org.hibernate.dialect.MySQLDialect")
+                    .setProperty("hibernate.hbm2ddl.auto",        "update")
+                    .setProperty("hibernate.show_sql",             "false")
+                    .addAnnotatedClass(Animal.class)
+                    .addAnnotatedClass(AnimalDomestico.class)
+                    .addAnnotatedClass(AnimalSalvaje.class)
+                    .addAnnotatedClass(FichaMedica.class)
+                    .addAnnotatedClass(Usuario.class)
+                    .addAnnotatedClass(Veterinario.class)
+                    .addAnnotatedClass(Visitador.class)
+                    .addAnnotatedClass(Adopcion.class)
+                    .addAnnotatedClass(Seguimiento.class)
+                    .addAnnotatedClass(Visita.class)
+                    .addAnnotatedClass(Encuesta.class)
+                    .addAnnotatedClass(Alarma.class)
+                    .addAnnotatedClass(Tratamiento.class)       // ← nueva
+                    .addAnnotatedClass(ComentarioMedico.class)  // ← nueva
+                    .buildSessionFactory();
         } catch (Exception e) {
             throw new RuntimeException("Error al iniciar Hibernate", e);
         }
