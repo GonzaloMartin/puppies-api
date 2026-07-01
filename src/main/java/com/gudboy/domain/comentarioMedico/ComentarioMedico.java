@@ -50,6 +50,13 @@ public class ComentarioMedico {
         this.fecha             = fecha;
     }
 
+    public ComentarioMedico(UUID comentarioID, Veterinario veterinario, String casillaComentario, LocalDateTime fecha) {
+        this.comentarioID      = comentarioID;
+        this.veterinario       = veterinario;
+        this.casillaComentario = casillaComentario;
+        this.fecha             = fecha;
+    }
+
     public void setFichaMedica(FichaMedica fichaMedica) {
         this.fichaMedica = fichaMedica;
     }

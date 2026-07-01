@@ -168,12 +168,13 @@ public class FichaMedicaRepositoryHibernate implements IFichaMedicaRepository {
     private void cargarTratamientos(Session session, FichaMedica ficha, String fichaId) {
         session.doWork(conn -> {
             try (PreparedStatement ps = conn.prepareStatement(
-                    "SELECT id, tipo, estado FROM tratamiento WHERE ficha_id = ?")) {
+                    "SELECT id, tipo, estado, fecha_inicio, fecha_fin FROM tratamiento WHERE ficha_id = ?")) {
                 ps.setString(1, fichaId);
                 try (ResultSet rs = ps.executeQuery()) {
                     while (rs.next()) {
+                        UUID id = UUID.fromString(rs.getString("id"));
                         TipoTratamiento tipo = TipoTratamiento.valueOf(rs.getString("tipo"));
-                        Tratamiento t = new Tratamiento(tipo);
+                        Tratamiento t = new Tratamiento(id, tipo);  // usa el UUID real de la BD
                         switch (rs.getString("estado")) {
                             case "EnCurso"    -> t.aplicarTratamiento();
                             case "Finalizado" -> t.finalizarTratamiento();
@@ -193,12 +194,14 @@ public class FichaMedicaRepositoryHibernate implements IFichaMedicaRepository {
                 ps.setString(1, fichaId);
                 try (ResultSet rs = ps.executeQuery()) {
                     while (rs.next()) {
+                        UUID id    = UUID.fromString(rs.getString("id"));
                         String email = rs.getString("veterinario_email");
                         Veterinario vet = email == null ? null
                                 : usuarioRepository.listarTodos().stream()
                                 .filter(u -> u instanceof Veterinario && u.getEmail().equals(email))
                                 .map(u -> (Veterinario) u).findFirst().orElse(null);
                         ComentarioMedico cm = new ComentarioMedico(
+                                id,
                                 vet,
                                 rs.getString("texto"),
                                 rs.getTimestamp("fecha").toLocalDateTime());

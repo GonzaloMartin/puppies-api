@@ -44,10 +44,17 @@ public class Tratamiento {
     protected Tratamiento() {}
 
     public Tratamiento(TipoTratamiento tipoTratamientoEnum) {
-        this.tratamientoID    = UUID.randomUUID();
+        this.tratamientoID       = UUID.randomUUID();
         this.tipoTratamientoEnum = tipoTratamientoEnum;
-        this.estado           = new Pendiente(this);
-        this.estadoPersistido = "Pendiente";
+        this.estado              = new Pendiente(this);
+        this.estadoPersistido    = "Pendiente";
+    }
+
+    public Tratamiento(UUID tratamientoID, TipoTratamiento tipoTratamientoEnum) {
+        this.tratamientoID       = tratamientoID;
+        this.tipoTratamientoEnum = tipoTratamientoEnum;
+        this.estado              = new Pendiente(this);
+        this.estadoPersistido    = "Pendiente";
     }
 
     public void aplicarTratamiento()   { estado.aplicar(); }

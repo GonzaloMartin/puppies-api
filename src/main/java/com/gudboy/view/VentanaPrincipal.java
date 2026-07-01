@@ -627,9 +627,8 @@ public class VentanaPrincipal extends JFrame {
         TipoTratamiento tipo = (TipoTratamiento) tCB.getSelectedItem();
         try {
             Tratamiento t = new Tratamiento(tipo);
-            FichaMedica fmReal = fichaCtrl.buscarPorAnimalId(fm.getAnimal().getId());
-            if (fmReal == null) { error("No se encontró la ficha médica del animal."); return; }
-            fichaCtrl.agregarTratamiento(fmReal.getFichaMedicaId(), t);
+            fm.agregarTratamiento(t);
+            fichaCtrl.actualizar(fm);
             animalCtrl.ponerEnTratamiento(fm.getAnimal());
             refrescarTodo();
             info("Tratamiento registrado:\n• Animal: " + fm.getAnimal().getNombre()
@@ -720,9 +719,8 @@ public class VentanaPrincipal extends JFrame {
 
         try {
             ComentarioMedico cm = new ComentarioMedico(vet, texto);
-            FichaMedica fmReal = fichaCtrl.buscarPorAnimalId(fm.getAnimal().getId());
-            if (fmReal == null) { error("No se encontró la ficha médica del animal."); return; }
-            fichaCtrl.agregarComentarioMedico(fmReal.getFichaMedicaId(), cm);
+            fm.agregarComentarioMedico(cm);
+            fichaCtrl.actualizar(fm);
             info("Comentario agregado:\n• Animal: " + fm.getAnimal().getNombre()
                     + "\n• Vet: " + vet + "\n• Texto: " + texto);
         } catch (Exception ex) { error(ex.getMessage()); }
