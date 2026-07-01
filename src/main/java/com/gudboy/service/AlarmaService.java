@@ -9,7 +9,7 @@ import java.util.List;
 public class AlarmaService {
 
     private final IAlarmaRepository repository;
-    private final IHistorialClinicoService historialService; // <-- NUEVO: El puente hacia Ficha Médica
+    private final IHistorialClinicoService historialService;
 
     public AlarmaService(IAlarmaRepository repository, IHistorialClinicoService historialService) {
         this.repository = repository;

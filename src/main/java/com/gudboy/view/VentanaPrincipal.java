@@ -142,7 +142,7 @@ public class VentanaPrincipal extends JFrame {
         setSize(1080, 700);
         setLocationRelativeTo(null);
 
-        // ── Botones 4×4 ──────────────────────────────────────────────────────
+        // ── Botones 4×4 ──
         JPanel pBtns = new JPanel(new GridLayout(4, 4, 8, 8));
         pBtns.setBorder(BorderFactory.createEmptyBorder(10, 10, 6, 10));
 
@@ -165,7 +165,7 @@ public class VentanaPrincipal extends JFrame {
             pBtns.add(btn);
         }
 
-        // ── Panel seguimientos ────────────────────────────────────────────────
+        // ── Panel seguimientos ────
         listSeg    = new JList<>(segModel);
         listVisita = new JList<>(visitaModel);
         listSeg.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -224,7 +224,7 @@ public class VentanaPrincipal extends JFrame {
                       new JScrollPane(listVisita)));
         split.setDividerLocation(200);
 
-        // ── Tabs ─────────────────────────────────────────────────────────────
+        // ── Tabs ───
         JTabbedPane tabs = new JTabbedPane();
         tabs.addTab("Animales",      styledList(animalModel));
         tabs.addTab("Visitadores",   styledList(visitModel));
@@ -291,7 +291,7 @@ public class VentanaPrincipal extends JFrame {
         iniciarTimers();
     }
 
-    // ── Helpers UI ───────────────────────────────────────────────────────────
+    // ── Helpers UI ───
 
     private JPanel withTitle(String title, JComponent comp) {
         JPanel p = new JPanel(new BorderLayout());
@@ -318,7 +318,7 @@ public class VentanaPrincipal extends JFrame {
         };
     }
 
-    // ── Observer / Timers ────────────────────────────────────────────────────
+    // ── Observer / Timers ──
 
     private void iniciarTimers() {
         // Timer 1: verificar alarmas vencidas cada 60 seg
@@ -340,7 +340,7 @@ public class VentanaPrincipal extends JFrame {
         segCtrl.evaluarTodosLosRecordatorios(recordatorios);
     }
 
-    // ── Refresh ───────────────────────────────────────────────────────────────
+    // ── Refresh ───
 
     private void refrescarTodo() {
         animalModel.clear();
@@ -364,9 +364,7 @@ public class VentanaPrincipal extends JFrame {
         alarmaCtrl.getAll().forEach(alarmaModel::addElement);
     }
 
-    // ════════════════════════════════════════════════════════════════════════
     // DIÁLOGOS — ANIMAL
-    // ════════════════════════════════════════════════════════════════════════
 
     private void dlgCrearAnimal() {
         JTextField nombreF = new JTextField(), especieF = new JTextField(),
@@ -412,9 +410,7 @@ public class VentanaPrincipal extends JFrame {
         info("Estado actualizado:\n" + a);
     }
 
-    // ════════════════════════════════════════════════════════════════════════
     // DIÁLOGOS — USUARIOS
-    // ════════════════════════════════════════════════════════════════════════
 
     private void dlgCrearVisitador() {
         JTextField nF = new JTextField(), apF = new JTextField(),
@@ -455,9 +451,7 @@ public class VentanaPrincipal extends JFrame {
           catch (Exception ex)            { error(ex.getMessage()); }
     }
 
-    // ════════════════════════════════════════════════════════════════════════
     // DIÁLOGOS — ADOPCIÓN
-    // ════════════════════════════════════════════════════════════════════════
 
     private void dlgCrearAdopcion() {
         List<AnimalDomestico> anim = animalCtrl.listarAnimales().stream()
@@ -489,9 +483,7 @@ public class VentanaPrincipal extends JFrame {
         finally { refrescarTodo(); } // siempre refrescar: que la UI nunca quede desactualizada respecto al estado real
     }
 
-    // ════════════════════════════════════════════════════════════════════════
     // DIÁLOGOS — ALARMAS
-    // ════════════════════════════════════════════════════════════════════════
 
     private void dlgCrearAlarma() {
         List<Animal> anim = animalCtrl.listarAnimales();
@@ -564,9 +556,7 @@ public class VentanaPrincipal extends JFrame {
         }
     }
 
-    // ════════════════════════════════════════════════════════════════════════
     // DIÁLOGOS — FICHA MÉDICA
-    // ════════════════════════════════════════════════════════════════════════
 
     private void dlgCrearFicha() {
         List<Animal> anim = animalCtrl.listarAnimales();
@@ -577,7 +567,7 @@ public class VentanaPrincipal extends JFrame {
             // También registramos el historial clínico para el animal via HistorialClinicoController
             Animal a = (Animal) cb.getSelectedItem();
             fichaCtrl.crearFicha(a);
-            histCtrl.crearHistorial(a);   // HistorialClinicoController en uso
+            histCtrl.crearHistorial(a);
             info("Ficha médica creada para: " + a.getNombre());
         } catch (Exception ex) { error(ex.getMessage()); }
     }
@@ -611,9 +601,7 @@ public class VentanaPrincipal extends JFrame {
         d.add(new JScrollPane(ta)); d.setVisible(true);
     }
 
-    // ════════════════════════════════════════════════════════════════════════
     // DIÁLOGOS — TRATAMIENTO  (usa TratamientoController)
-    // ════════════════════════════════════════════════════════════════════════
 
     private void dlgRegistrarTrat() {
         List<FichaMedica> fichas = fichaCtrl.listarTodas();
@@ -692,9 +680,7 @@ public class VentanaPrincipal extends JFrame {
         }
     }
 
-    // ════════════════════════════════════════════════════════════════════════
     // DIÁLOGOS — COMENTARIO  (usa ComentarioController)
-    // ════════════════════════════════════════════════════════════════════════
 
     private void dlgAgregarComentario() {
         List<FichaMedica> fichas = fichaCtrl.listarTodas();
@@ -726,9 +712,7 @@ public class VentanaPrincipal extends JFrame {
         } catch (Exception ex) { error(ex.getMessage()); }
     }
 
-    // ════════════════════════════════════════════════════════════════════════
     // DIÁLOGOS — HISTORIAL  (usa HistorialClinicoController)
-    // ════════════════════════════════════════════════════════════════════════
 
     private void dlgVerHistorial() {
         List<FichaMedica> fichas = fichaCtrl.listarTodas();
@@ -739,9 +723,6 @@ public class VentanaPrincipal extends JFrame {
 
         FichaMedica fm = (FichaMedica) fCB.getSelectedItem();
         if (fm == null) return;
-
-        // HistorialClinicoController obtiene el historial en memoria
-        // La FichaMedica tiene el historial con los datos cargados desde MySQL
         var h = fm.getHistorial();
 
         StringBuilder sb = new StringBuilder();
@@ -785,9 +766,7 @@ public class VentanaPrincipal extends JFrame {
         dlg.add(sc); dlg.pack(); dlg.setLocationRelativeTo(this); dlg.setVisible(true);
     }
 
-    // ════════════════════════════════════════════════════════════════════════
     // DIÁLOGOS — SEGUIMIENTO Y VISITAS
-    // ════════════════════════════════════════════════════════════════════════
 
     private void dlgCrearSeguimiento() {
         List<Adopcion> adops = adopcionCtrl.listarTodos();
@@ -893,9 +872,7 @@ public class VentanaPrincipal extends JFrame {
         } catch (Exception ex) { error(ex.getMessage()); }
     }
 
-    // ════════════════════════════════════════════════════════════════════════
     // HELPERS
-    // ════════════════════════════════════════════════════════════════════════
 
     /** Crea un JPanel de GridBagLayout con pares (label, componente) alineados de forma limpia. */
     private JPanel form(Object... pairs) {

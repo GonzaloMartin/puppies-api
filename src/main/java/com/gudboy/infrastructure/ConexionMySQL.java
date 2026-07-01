@@ -44,7 +44,7 @@ public class ConexionMySQL {
         return instancia;
     }
 
-    /** Devuelve la conexión; reconecta automáticamente si fue cerrada. */
+    /** Devuelve la conexión, reconecta automáticamente si fue cerrada. */
     public Connection getConnection() {
         try {
             if (connection == null || connection.isClosed()) {

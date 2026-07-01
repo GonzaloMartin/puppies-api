@@ -26,7 +26,7 @@ public class Adopcion {
     @Id
     @Column(name = "id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;    // FK de la BD (autoincremental); 0 = no persistido aún
+    private int id;
     
     @OneToMany(fetch = FetchType.EAGER)
     @JoinTable(

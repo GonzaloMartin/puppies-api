@@ -6,7 +6,7 @@ import java.util.UUID;
 public class ComentarioMedicoDTO {
 
     private final UUID comentarioID;
-    private final String veterinarioEmail; // ✔ ID real en tu sistema
+    private final String veterinarioEmail; //ID del sistema
     private final String casillaComentario;
     private final LocalDateTime fecha;
 

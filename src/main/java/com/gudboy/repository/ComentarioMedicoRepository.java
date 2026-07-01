@@ -19,10 +19,7 @@ public class ComentarioMedicoRepository {
         return store.get(id);
     }
 
-    /** Persiste los cambios del comentario (ya está en el map por referencia,
-     *  pero se mantiene la firma que usa ComentarioServices). */
     public void actualizar(UUID id) {
-
         // referencia ya actualizada en memoria; no-op en implementación en memoria
     }
 

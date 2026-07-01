@@ -19,7 +19,6 @@ public class HistorialClinicoRepository {
         return store.get(historialId);
     }
 
-    /** Busca el historial clínico asociado al animal con ese UUID. */
     public HistorialClinico buscarPorAnimal(UUID animalId) {
         return store.values().stream()
                 .filter(h -> h.getAnimal().getId().equals(animalId))

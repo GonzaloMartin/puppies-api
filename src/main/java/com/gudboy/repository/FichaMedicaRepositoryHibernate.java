@@ -256,7 +256,7 @@ public class FichaMedicaRepositoryHibernate implements IFichaMedicaRepository {
                     }
                 }
             } catch (Exception ignored) {
-                // tablas de seguimiento aún no presentes
+
             }
         });
     }
