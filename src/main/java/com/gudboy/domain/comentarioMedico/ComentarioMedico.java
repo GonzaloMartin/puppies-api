@@ -3,14 +3,33 @@ package com.gudboy.domain.comentarioMedico;
 import com.gudboy.domain.Usuario.Veterinario;
 import java.time.LocalDateTime;
 import java.util.UUID;
+import com.gudboy.dto.ComentarioMedicoDTO;
 
+import jakarta.persistence.*;
+
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
+@Entity
+@Table(name = "comentario_medico")
 public class ComentarioMedico {
-    private final UUID comentarioID;
+
+    @Id
+    @Column(name = "id", columnDefinition = "CHAR(36)")
+    private UUID comentarioID;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "veterinario_email", referencedColumnName = "email")
     private Veterinario veterinario;
+
+    @Column(name = "texto", length = 1000, nullable = false)
     private String casillaComentario;
+
+    @Column(name = "fecha", nullable = false)
     private LocalDateTime fecha;
 
-    /** Constructor original (sin fecha) */
+    protected ComentarioMedico() {}
+
     public ComentarioMedico(Veterinario veterinario, String casillaComentario) {
         this.comentarioID = UUID.randomUUID();
         this.veterinario = veterinario;
@@ -18,7 +37,6 @@ public class ComentarioMedico {
         this.fecha = LocalDateTime.now();
     }
 
-    /** Constructor con fecha explícita (requerido por FichaMedicaService y tests) */
     public ComentarioMedico(Veterinario veterinario, String casillaComentario, LocalDateTime fecha) {
         this.comentarioID = UUID.randomUUID();
         this.veterinario = veterinario;
@@ -34,8 +52,17 @@ public class ComentarioMedico {
 
     public LocalDateTime getFecha() { return fecha; }
 
-    public void modificarComentario(String nuevoComenario) {
-        this.casillaComentario = nuevoComenario;
+    public void modificarComentario(String nuevoComentario) {
+        this.casillaComentario = nuevoComentario;
         this.fecha = LocalDateTime.now();
+    }
+
+    public ComentarioMedicoDTO toDTO() {
+        return new ComentarioMedicoDTO(
+                comentarioID,
+                veterinario != null ? veterinario.getEmail() : null,
+                casillaComentario,
+                fecha
+        );
     }
 }

@@ -6,35 +6,24 @@ import java.util.UUID;
 public class ComentarioMedicoDTO {
 
     private final UUID comentarioID;
-    private final UUID veterinarioID;
+    private final String veterinarioEmail; // ✔ ID real en tu sistema
     private final String casillaComentario;
     private final LocalDateTime fecha;
 
     public ComentarioMedicoDTO(
             UUID comentarioID,
-            UUID veterinarioID,
+            String veterinarioEmail,
             String casillaComentario,
             LocalDateTime fecha) {
 
         this.comentarioID = comentarioID;
-        this.veterinarioID = veterinarioID;
+        this.veterinarioEmail = veterinarioEmail;
         this.casillaComentario = casillaComentario;
         this.fecha = fecha;
     }
 
-    public UUID getComentarioID() {
-        return comentarioID;
-    }
-
-    public UUID getVeterinarioID() {
-        return veterinarioID;
-    }
-
-    public String getCasillaComentario() {
-        return casillaComentario;
-    }
-
-    public LocalDateTime getFecha() {
-        return fecha;
-    }
+    public UUID getComentarioID() { return comentarioID; }
+    public String getVeterinarioEmail() { return veterinarioEmail; }
+    public String getCasillaComentario() { return casillaComentario; }
+    public LocalDateTime getFecha() { return fecha; }
 }
