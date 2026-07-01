@@ -48,4 +48,24 @@ public class HistorialClinicoDTO {
     public List<VisitaDTO> getVisitas() {
         return visitas;
     }
+
+    public static HistorialClinicoDTO desde(com.gudboy.domain.historialClinico.HistorialClinico h) {
+        return new HistorialClinicoDTO(
+                h.getHistorialID(),
+                null,
+                h.getListaTratamiento().stream()
+                        .map(TratamientoDTO::desde)
+                        .collect(java.util.stream.Collectors.toList()),
+                h.getListaComentario().stream()
+                        .map(ComentarioMedicoDTO::desde)
+                        .collect(java.util.stream.Collectors.toList()),
+                h.getListaVisitas().stream()
+                        .map(v -> new VisitaDTO(
+                                v.getId(), null,
+                                v.getFechaProgramada(), v.getFechaReal(),
+                                v.getComentarios(), v.isCompletada(),
+                                v.isContinuarVisitas(), null))
+                        .collect(java.util.stream.Collectors.toList())
+        );
+    }
 }

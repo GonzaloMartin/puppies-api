@@ -26,4 +26,13 @@ public class ComentarioMedicoDTO {
     public String getVeterinarioEmail() { return veterinarioEmail; }
     public String getCasillaComentario() { return casillaComentario; }
     public LocalDateTime getFecha() { return fecha; }
+
+    public static ComentarioMedicoDTO desde(com.gudboy.domain.comentarioMedico.ComentarioMedico c) {
+        return new ComentarioMedicoDTO(
+                c.getComentarioID(),
+                c.getVeterinario() != null ? c.getVeterinario().getEmail() : null,
+                c.getCasillaComentario(),
+                c.getFecha()
+        );
+    }
 }

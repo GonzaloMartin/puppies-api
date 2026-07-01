@@ -1,12 +1,13 @@
 package com.gudboy.domain.comentarioMedico;
 
-import com.gudboy.domain.Usuario.Veterinario;
 import java.time.LocalDateTime;
 import java.util.UUID;
+
+import com.gudboy.domain.Usuario.Veterinario;
+import com.gudboy.domain.fichaMedica.model.FichaMedica;
 import com.gudboy.dto.ComentarioMedicoDTO;
 
 import jakarta.persistence.*;
-
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
@@ -16,6 +17,7 @@ public class ComentarioMedico {
 
     @Id
     @Column(name = "id", columnDefinition = "CHAR(36)")
+    @JdbcTypeCode(SqlTypes.CHAR)
     private UUID comentarioID;
 
     @ManyToOne(fetch = FetchType.EAGER)
@@ -28,34 +30,40 @@ public class ComentarioMedico {
     @Column(name = "fecha", nullable = false)
     private LocalDateTime fecha;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "ficha_id", nullable = false)
+    private FichaMedica fichaMedica;
+
     protected ComentarioMedico() {}
 
     public ComentarioMedico(Veterinario veterinario, String casillaComentario) {
-        this.comentarioID = UUID.randomUUID();
-        this.veterinario = veterinario;
+        this.comentarioID      = UUID.randomUUID();
+        this.veterinario       = veterinario;
         this.casillaComentario = casillaComentario;
-        this.fecha = LocalDateTime.now();
+        this.fecha             = LocalDateTime.now();
     }
 
     public ComentarioMedico(Veterinario veterinario, String casillaComentario, LocalDateTime fecha) {
-        this.comentarioID = UUID.randomUUID();
-        this.veterinario = veterinario;
+        this.comentarioID      = UUID.randomUUID();
+        this.veterinario       = veterinario;
         this.casillaComentario = casillaComentario;
-        this.fecha = fecha;
+        this.fecha             = fecha;
     }
 
-    public Veterinario getVeterinario() { return veterinario; }
-
-    public String getCasillaComentario() { return casillaComentario; }
-
-    public UUID getComentarioID() { return comentarioID; }
-
-    public LocalDateTime getFecha() { return fecha; }
+    public void setFichaMedica(FichaMedica fichaMedica) {
+        this.fichaMedica = fichaMedica;
+    }
 
     public void modificarComentario(String nuevoComentario) {
         this.casillaComentario = nuevoComentario;
-        this.fecha = LocalDateTime.now();
+        this.fecha             = LocalDateTime.now();
     }
+
+    public UUID          getComentarioID()     { return comentarioID; }
+    public Veterinario   getVeterinario()       { return veterinario; }
+    public String        getCasillaComentario() { return casillaComentario; }
+    public LocalDateTime getFecha()             { return fecha; }
+    public FichaMedica   getFichaMedica()       { return fichaMedica; }
 
     public ComentarioMedicoDTO toDTO() {
         return new ComentarioMedicoDTO(

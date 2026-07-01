@@ -44,4 +44,14 @@ public class TratamientoDTO {
     public Date getFechaFin() {
         return fechaFin;
     }
+
+    public static TratamientoDTO desde(com.gudboy.domain.tratamiento.Tratamiento t) {
+        return new TratamientoDTO(
+                t.getTratamientoID(),
+                t.getTipoTratamientoEnum().name(),
+                t.getEstado().getClass().getSimpleName(),
+                t.getFechaInicio(),
+                t.getFechaFin()
+        );
+    }
 }
