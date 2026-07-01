@@ -17,11 +17,14 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import com.gudboy.domain.Usuario.Veterinario;
+import com.gudboy.domain.animal.State.EstadoEnTratamiento;
+import com.gudboy.domain.animal.State.EstadoSaludable;
 import com.gudboy.domain.animal.factory.FabricaAnimalDomestico;
 import com.gudboy.domain.animal.factory.FabricaAnimalSalvaje;
 import com.gudboy.dto.AnimalDTO;
 import com.gudboy.domain.animal.model.Animal;
 import com.gudboy.domain.comentarioMedico.ComentarioMedico;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import com.gudboy.domain.fichaMedica.exportador.ExportadorExcel;
 import com.gudboy.domain.fichaMedica.exportador.ExportadorPDF;
 import com.gudboy.domain.fichaMedica.model.FichaMedica;
@@ -42,12 +45,14 @@ class FichaMedicaTest {
 
         @Override
         public FichaMedica getByAnimalId(UUID idAnimal) {
-            return null;
+            return store.values().stream()
+                    .filter(f -> f.getAnimal().getId().equals(idAnimal))
+                    .findFirst().orElse(null);
         }
 
         @Override
         public void update(FichaMedica ficha) {
-
+            store.put(ficha.getFichaMedicaId(), ficha);
         }
     }
 
@@ -189,5 +194,36 @@ class FichaMedicaTest {
         service.crearFicha(halcon);
 
         assertEquals(2, service.listarTodas().size());
+    }
+
+    @Test
+    void finalizarTratamientosActivos_conTratamientoYaFinalizado_noLanzaExcepcion() {
+        FichaMedica ficha = service.crearFicha(perro);
+        Tratamiento t = new Tratamiento(TipoTratamiento.COLOCAR_VACUNA);
+        service.agregarTratamiento(ficha.getFichaMedicaId(), t);
+
+        // Finalizamos el tratamiento la primera vez
+        t.finalizarTratamiento();
+
+        // Intentamos finalizar tratamientos activos para la vacuna. No debería lanzar una excepción.
+        assertDoesNotThrow(() ->
+            service.finalizarTratamientosActivos(perro.getId(), List.of(TipoTratamiento.COLOCAR_VACUNA))
+        );
+    }
+
+    @Test
+    void finalizarTratamientosActivos_cuandoNoQuedanTratamientosActivos_disponibilizaAnimal() {
+        FichaMedica ficha = service.crearFicha(perro);
+        Tratamiento t = new Tratamiento(TipoTratamiento.COLOCAR_VACUNA);
+        service.agregarTratamiento(ficha.getFichaMedicaId(), t);
+
+        perro.ponerEnTratamiento();
+        assertInstanceOf(EstadoEnTratamiento.class, perro.getEstadoDeSalud());
+
+        // Finalizamos los tratamientos activos
+        service.finalizarTratamientosActivos(perro.getId(), List.of(TipoTratamiento.COLOCAR_VACUNA));
+
+        // El animal debería estar disponible / saludable ahora
+        assertInstanceOf(EstadoSaludable.class, perro.getEstadoDeSalud());
     }
 }

@@ -33,6 +33,9 @@ public class FichaMedicaRepositoryHibernate implements IFichaMedicaRepository {
     public void guardar(FichaMedica ficha) {
         try (Session session = HibernateUtil.openSession()) {
             Transaction tx = session.beginTransaction();
+            if (ficha.getAnimal() != null) {
+                session.merge(ficha.getAnimal());
+            }
             session.persist(ficha);
             persistirHistorial(session, ficha);
             tx.commit();
@@ -45,6 +48,9 @@ public class FichaMedicaRepositoryHibernate implements IFichaMedicaRepository {
     public void actualizar(FichaMedica ficha) {
         try (Session session = HibernateUtil.openSession()) {
             Transaction tx = session.beginTransaction();
+            if (ficha.getAnimal() != null) {
+                session.merge(ficha.getAnimal());
+            }
             session.merge(ficha);
             persistirHistorial(session, ficha);
             tx.commit();
