@@ -14,7 +14,7 @@ import com.gudboy.controller.UsuarioController;
 import com.gudboy.controller.VisitaController;
 import com.gudboy.domain.seguimiento.service.ServicioRecordatorios;
 import com.gudboy.repository.AdopcionRepositoryHibernate;
-import com.gudboy.repository.AlarmaRepositoryMySql;
+import com.gudboy.repository.AlarmaRepositoryHibernate;
 import com.gudboy.repository.AnimalRepositoryHibernate;
 import com.gudboy.repository.ComentarioMedicoRepository;
 import com.gudboy.repository.FichaMedicaRepositoryHibernate;
@@ -55,7 +55,7 @@ public class Main {
             IAnimalRepository animalRepository       = new AnimalRepositoryHibernate();
             IUsuarioRepository usuarioRepository     = new UsuarioRepositoryHibernate();
             IAdopcionRepository adopcionRepository   = new AdopcionRepositoryHibernate();
-            IAlarmaRepository alarmaRepository       = new AlarmaRepositoryMySql();
+            IAlarmaRepository alarmaRepository       = new AlarmaRepositoryHibernate();
             IFichaMedicaRepository fichaRepo         = new FichaMedicaRepositoryHibernate(usuarioRepository);
 
             // Repositorios en memoria para Tratamiento, Comentario e Historial

@@ -11,6 +11,8 @@ import com.gudboy.domain.animal.model.Animal;
 import com.gudboy.domain.comentarioMedico.ComentarioMedico;
 import com.gudboy.domain.fichaMedica.exportador.Exportador;
 import com.gudboy.domain.fichaMedica.model.FichaMedica;
+import com.gudboy.domain.tratamiento.Cancelado;
+import com.gudboy.domain.tratamiento.Finalizado;
 import com.gudboy.domain.tratamiento.TipoTratamiento;
 import com.gudboy.domain.tratamiento.Tratamiento;
 import com.gudboy.repository.IFichaMedicaRepository;
@@ -95,13 +97,23 @@ public class FichaMedicaService implements IHistorialClinicoService {
             
             for (Tratamiento t : tratamientos) {
                 if (accionesFinalizadas != null && accionesFinalizadas.contains(t.getTipoTratamientoEnum())) {
-                    // El State Pattern se encarga de cambiar el estado internamente a Finalizado
-                    t.finalizarTratamiento();
-                    actualizados = true;
+                    // Solo finalizamos si no está ya finalizado o cancelado (evitando IllegalStateException)
+                    if (!(t.getEstado() instanceof Finalizado || t.getEstado() instanceof Cancelado)) {
+                        // El State Pattern se encarga de cambiar el estado internamente a Finalizado
+                        t.finalizarTratamiento();
+                        actualizados = true;
+                    }
                 }
             }
             
             if (actualizados) {
+                // Si ya no quedan más tratamientos activos (ni Pendiente ni EnCurso), disponibilizar el animal
+                boolean otrosActivos = tratamientos.stream()
+                        .anyMatch(tr -> !(tr.getEstado() instanceof Finalizado)
+                                && !(tr.getEstado() instanceof Cancelado));
+                if (!otrosActivos && ficha.getAnimal() != null) {
+                    ficha.getAnimal().disponibilizar();
+                }
                 repository.update(ficha);
             }
         }

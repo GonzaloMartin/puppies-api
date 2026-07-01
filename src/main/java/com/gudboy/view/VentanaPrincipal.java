@@ -560,7 +560,7 @@ public class VentanaPrincipal extends JFrame {
         Veterinario vet = (Veterinario) vetCB.getSelectedItem();
         if (al != null && vet != null) {
             alarmaCtrl.atenderAlarma(al.getId(), comF.getText().trim(), finCK.isSelected(), vet);
-            refrescarAlarmas(); info("Alarma atendida correctamente.");
+            refrescarTodo(); info("Alarma atendida correctamente.");
         }
     }
 

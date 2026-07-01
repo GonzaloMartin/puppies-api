@@ -6,7 +6,7 @@ import org.hibernate.Transaction;
 import com.gudboy.domain.alarma.model.Alarma;
 import com.gudboy.infrastructure.HibernateUtil;
 
-public class AlarmaRepositoryMySql implements IAlarmaRepository {
+public class AlarmaRepositoryHibernate implements IAlarmaRepository {
 
     @Override
     public void add(Alarma alarma) {
